@@ -542,20 +542,24 @@ def available(v, m):
             and len(v.get("tags", [])) <= 12)
 
 
-def pick(mapid):
+def pick(mapid, ok=lambda k: True, rank=lambda k: (len(k), k)):
     chosen = {}
     for k, v in raw.items():
-        if not available(v, mapid):
+        if not available(v, mapid) or not ok(k):
             continue
         cur = chosen.get(v["name"])
-        if cur is None or (len(k), k) < (len(cur), cur):
+        if cur is None or rank(k) < rank(cur):
             chosen[v["name"]] = k
     return set(chosen.values())
 
 
-sr_ids = pick("11")
-ar_ids = pick("12")
-all_ids = sr_ids | ar_ids
+# 아이템 번호 체계: 4자리 = 일반 상점 아이템, 12xxxx = 칼바람 전용 수치판.
+# 그 밖의 6자리(22·32·66·77 등)는 아레나·이벤트 모드(클래식 칼바람, 둠봇 등)용이라 같은 맵 표시가 있어도 상점 목록에서 제외
+STD = lambda k: len(k) <= 4
+sr_ids = pick("11", STD)
+ar_ids = pick("12", lambda k: STD(k) or (len(k) == 6 and k.startswith("12")), lambda k: (0 if len(k) == 6 else 1, k))
+# 예전 빌드에 담겼을 수 있는 특수 모드 아이템도 이름·그림은 보이도록 데이터에는 남김 (sr·ar 표시 없음 = 아이템 목록에 안 나옴)
+all_ids = sr_ids | ar_ids | pick("11") | pick("12")
 
 ATTACK = {"Damage", "AttackSpeed", "CriticalStrike", "LifeSteal", "ArmorPenetration", "OnHit"}
 MAGIC = {"SpellDamage", "Mana", "ManaRegen", "MagicPenetration", "SpellVamp"}

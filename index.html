@@ -1,4 +1,4 @@
-<script>/* 화면 테마·움직임 설정을 첫 화면 전에 적용 */try{var u=JSON.parse(localStorage.getItem('ttn.v1.ui')||'{}');if(u.theme==='dark'||u.theme==='light'){document.documentElement.dataset.theme=u.theme;var c=u.theme==='dark'?'#0A1016':'#ECEFF2';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});}if(u.motion==='off')document.documentElement.classList.add('rm');}catch(e){}</script>
+<script>/* 화면 테마·움직임 설정을 첫 화면 전에 적용 */try{var u=JSON.parse(localStorage.getItem('ttn.v1.ui')||'{}');if(u.theme==='dark'||u.theme==='light'){document.documentElement.dataset.theme=u.theme;var c=u.theme==='dark'?'#0A1016':'#ECEFF2';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});}if(u.motion==='off')document.documentElement.classList.add('rm');var vm=document.querySelector('meta[name="viewport"]');if(u.scale&&u.scale!==100&&vm&&document.querySelector('link[rel="manifest"]')&&matchMedia('(pointer: coarse)').matches){var L=matchMedia('(orientation: landscape)').matches,dw=L?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);vm.content='width='+Math.round(dw*100/u.scale)+',viewport-fit=cover';}}catch(e){}</script>
 <title>템트리 노트</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -430,6 +430,14 @@ html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,h
 .set-row .lab span{display:block;font-size:12.5px;line-height:1.4;color:var(--muted)}
 .set-row .seg{flex:none}
 .set-note{font-size:12.5px;color:var(--muted);margin-top:6px}
+/* 빌드 맵 표시(머리), 이 맵 상점에 없는 아이템 표시 */
+.mx.mp{color:var(--fg-2)}
+.ib.off .ico,.tb.off .ico,.pit.off .ico{opacity:.38;filter:grayscale(1)}
+.ib.off::after,.tb.off::after{content:'';position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface);pointer-events:none}
+.tb{position:relative}
+.pick-map{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pick-map .lbl{font-size:12.5px;color:var(--muted)}
+.set-row .btn.sm{flex:none}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums}
@@ -549,6 +557,34 @@ function applyTheme(){
   if(t==='light' || t==='dark') root.dataset.theme = t; else delete root.dataset.theme;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const q = m.getAttribute('media') || ''; m.content = THEME_BAR[t] || (/dark/.test(q) ? THEME_BAR.dark : THEME_BAR.light); });
   root.classList.toggle('rm', S.motion==='off');
+}
+/* 화면 크기: 설치형 앱·사이트의 터치 기기에서만 (Claude 페이지·PC는 브라우저 확대 사용) */
+const SCALE_OK = () => !inClaude() && !!document.querySelector('link[rel="manifest"]') && matchMedia('(pointer: coarse)').matches;
+function applyScale(){
+  const m = document.querySelector('meta[name="viewport"]'); if(!m || !SCALE_OK()) return;
+  const s = S.scale || 100, L = matchMedia('(orientation: landscape)').matches;
+  const dw = L ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const want = s===100 ? 'width=device-width,initial-scale=1,viewport-fit=cover' : `width=${Math.round(dw*100/s)},viewport-fit=cover`;
+  if(m.content !== want) m.content = want;
+}
+try{ matchMedia('(orientation: landscape)').addEventListener('change', () => { if(S.scale && S.scale!==100) applyScale(); }); }catch{}
+/* 오프라인 준비: 모든 그림 묶음과 스킬 정보를 미리 받아 기기에 보관 (설치형 앱의 보관함 사용) */
+const OFF_OK = () => !inClaude() && 'serviceWorker' in navigator;
+const reSet = () => { const t = topSheet(); if(t && t.kind==='about') renderSheet(); };
+async function prefetchAll(){
+  if(S.prefetching) return; S.prefetching = {n:0, all:0};
+  const urls = Object.values(D.sheets).map(sh => `${sh.url}?v=${sh.h||D.v}`);
+  S.prefetching.all = urls.length + 1; reSet();
+  let ok = 0, bytes = 0;
+  const sk = await loadSkills(); if(sk) ok++; S.prefetching.n++; reSet();
+  for(const u of urls){
+    try{ const r = await fetch(u); if(r.ok){ bytes += (await r.blob()).size; ok++; } }catch{}
+    S.prefetching.n++; reSet();
+  }
+  const done = ok === urls.length + 1;
+  if(done) uiSet('offline', {rev: D.rev, mb: Math.round(bytes/1e5)/10});
+  S.prefetching = null; reSet();
+  toast(done ? '오프라인 준비를 마쳤습니다' : '일부를 받지 못했습니다. 연결을 확인한 뒤 다시 눌러 주세요');
 }
 /* 화면 꺼짐 방지: 앱이 보이는 동안만 유지 (다른 앱으로 가면 자동 해제, 돌아오면 다시) */
 let wakeL = null;
@@ -718,11 +754,25 @@ function normalize(b){
   b.patch = b.patch || (D ? D.patch : ''); b.updated = b.updated || Date.now(); b.created = b.created || b.updated;
   return b;
 }
+/* 빌드 맵: 아이템 목록·구매 가능 여부의 기준 (데이터의 sr·ar = 그 맵 상점에 있는 아이템) */
+const MAPN = {sr:'협곡', aram:'칼바람'};
+const poolKey = b => b && b.mode==='aram' ? 'ar' : 'sr';
+const inPool = (b, id) => { const it = D && D.items[id]; return !it || !!it[poolKey(b)]; };   /* 데이터에 없는 아이템은 따로 '삭제된 아이템'으로 표시 */
+/* 맵 바꾸기: 같은 이름의 그 맵 버전이 있으면 바꿔 담음(예: 오만 → 칼바람 수치판). 없으면 그대로 두고 표시만 */
+function convertMap(b, to){
+  const key = to==='aram' ? 'ar' : 'sr', byName = {};
+  for(const [id, it] of Object.entries(D.items)) if(it[key] && !byName[it.n]) byName[it.n] = id;
+  let moved = 0;
+  b.it = b.it.map(id => { const it = D.items[id]; if(!it || it[key]) return id; const alt = byName[it.n]; if(alt && !b.it.includes(alt)){ moved++; b.nm[alt] = it.n; return alt; } return id; });
+  b.mode = to;
+  return {moved, off: b.it.filter(id => D.items[id] && !D.items[id][key]).length};
+}
 function toDoc(b){ const o = clone(b); delete o.id; return o; }
 function cur(){ return S.views[S.views.length-1]; }
 function curBuild(){ const v=cur(); return v.name==='build' ? S.builds.get(v.id) : null; }
 function topSheet(){ return S.sheets[S.sheets.length-1]; }
-const sortBuilds = list => list.sort((a,b)=> (b.pin-a.pin) || (b.updated-a.updated));
+const cnOf = b => { const c = IX.champ[b.champ]; return c ? c.n : ''; };
+const sortBuilds = list => list.sort((a,b)=> (b.pin-a.pin) || (S.bsort==='new' ? (b.created-a.created) : S.bsort==='name' ? (koCmp(cnOf(a), cnOf(b)) || (b.updated-a.updated)) : (b.updated-a.updated)));
 const buildsOf = champId => sortBuilds([...S.builds.values()].filter(b=>b.champ===champId));
 
 /* ------------------------------------------------------------ [설치형 앱] GitHub 비공개 저장소 동기화
@@ -1190,7 +1240,7 @@ function headHTML(b, E, c){
       <button class="bh-por" data-act="champ-info" data-champ="${b.champ}" aria-label="${esc(c?c.n:'')} 능력치·스킬 보기">${champIco(c,68)}</button>
       <div class="bh-main">
         ${E?`<input id="f-title" class="ttl" maxlength="60" enterkeyhint="done" value="${esc(b.title)}" aria-label="빌드 이름">`:`<h1 class="ttl">${b.pin?'<span class="pin" aria-label="대표 빌드">★</span>':''}${esc(b.title)}</h1>`}
-        <div class="spl">${spells}${mx}</div>
+        <div class="spl">${spells}${mx}${E ? `<button class="mx mp" data-act="build-map" aria-label="맵 ${MAPN[b.mode]}, 누르면 ${MAPN[b.mode==='aram'?'sr':'aram']}(으)로 변경">${MAPN[b.mode]}</button>` : `<span class="mx mp" title="이 빌드의 맵">${MAPN[b.mode]}</span>`}</div>
       </div>
     </section>`;
 }
@@ -1240,7 +1290,8 @@ function placePop(){
 function itemsCard(b){
   const tiles = b.it.map(id=>{
     const it = IX.item[id];
-    return `<button class="ib ${it&&it.tier==='legend'?'legend':''} ${it?'':'miss'}" data-drag data-act="item-info" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'삭제된 아이템'))}">${icoFluid('items', it?it.i:-1)}</button>`;
+    const off = it && !inPool(b, id);
+    return `<button class="ib ${it&&it.tier==='legend'?'legend':''} ${it?'':'miss'}${off?' off':''}" data-drag data-act="item-info" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'삭제된 아이템'))}${off?` · ${MAPN[b.mode]} 상점에 없음`:''}">${icoFluid('items', it?it.i:-1)}</button>`;
   });
   tiles.push(S.readonly ? `<span class="ib add ph" aria-hidden="true"></span>` : `<button class="ib add ${b.it.length?'opt':''}" data-act="pick-start" aria-label="아이템 추가">+</button>`);
   return `<section class="card" id="b-items"><div class="igrid" data-sort="build">${tiles.join('')}</div></section>`;
@@ -1487,7 +1538,8 @@ const SHEETS = {
   },
   picker(){
     const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
-    const body = `<label class="search">${ICONS.search}<input id="q-item" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(P.q)}"></label>
+    const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
+      <label class="search">${ICONS.search}<input id="q-item" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(P.q)}"></label>
       <div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="pick-tier" data-v="${k}" aria-pressed="${P.tier===k}">${l}</button>`).join('')}</div>
       ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="pick-stat" data-v="${k}" aria-pressed="${P.stats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
       <div class="fbar" id="pick-count">${pickCountHTML(b)}</div>
@@ -1506,16 +1558,24 @@ const SHEETS = {
     const MAP = [['sr','협곡'],['aram','칼바람']];
     const body = `<div><div class="sec-t">화면</div><div class="set">
         ${row('테마', '', seg('theme', [['system','시스템'],['light','라이트'],['dark','다크']], S.theme||'system', '테마'))}
+        ${SCALE_OK() ? row('화면 크기', '글자·아이콘 크기', seg('scale', [['90','작게'],['100','보통'],['110','크게'],['120','최대']], String(S.scale||100), '화면 크기')) : ''}
         ${row('화면 전환', '페이지 넘김 움직임', seg('motion', [['normal','기본'],['fast','빠르게'],['off','끔']], S.motion||'normal', '화면 전환'))}
+      </div></div>
+      <div><div class="sec-t">목록</div><div class="set">
+        ${row('시작 화면', '앱을 열 때 처음 보이는 탭', seg('start', [['builds','내 빌드'],['champs','챔피언']], S.start||'builds', '시작 화면'))}
+        ${row('빌드 정렬', '대표 빌드는 항상 맨 위', seg('bsort', [['upd','수정순'],['new','생성순'],['name','이름순']], S.bsort||'upd', '빌드 정렬'))}
       </div></div>
       <div><div class="sec-t">동작</div><div class="set">
         ${row('진동 반응', '누르기·끌기·밀기 때', seg('haptic', [['on','켬'],['off','끔']], S.haptic!==false?'on':'off', '진동 반응'))}
         ${navigator.wakeLock ? row('화면 꺼짐 방지', '앱 사용 중 켜짐 유지', seg('wake', [['on','켬'],['off','끔']], S.wake?'on':'off', '화면 꺼짐 방지')) : ''}
-      </div><div class="set-note">화면·동작 설정은 기기마다 따로 저장됩니다.</div></div>
+      </div></div>
       <div><div class="sec-t">빌드 기본값</div><div class="set">
-        ${row('새 빌드 맵', '아이템 목록 기준 맵', seg('nbm', MAP, S.prefs.nbm==='aram'?'aram':'sr', '새 빌드 맵'))}
+        ${row('새 빌드 맵', '빌드마다 편집 화면에서 변경', seg('nbm', MAP, S.prefs.nbm==='aram'?'aram':'sr', '새 빌드 맵'))}
         ${row('주문 대기시간', '소환사 주문 쿨타임 기준', seg('cdm', MAP, S.prefs.cdm==='aram'?'aram':'sr', '주문 대기시간 기준'))}
-      </div><div class="set-note">빌드 기본값은 폰과 PC에 함께 적용됩니다.</div></div>
+      </div><div class="set-note">빌드 기본값은 폰과 PC에 함께 적용되고, 나머지 설정은 기기마다 따로 저장됩니다.</div></div>
+      ${OFF_OK() ? (() => { const o = (lsGet(LS_UI)||{}).offline, P = S.prefetching, ready = o && o.rev===D.rev;
+        const sub = P ? `받는 중 ${P.n}/${P.all}` : ready ? `준비됨 · 그림 ${o.mb}MB` : o ? '데이터가 바뀌어 다시 받기 필요' : '그림·스킬 정보를 미리 받아 둠';
+        return `<div><div class="sec-t">오프라인</div><div class="set">${row('오프라인 준비', sub, `<button class="btn sm" data-act="prefetch"${P?' disabled':''}>${ready?'다시 받기':'받기'}</button>`)}</div></div>`; })() : ''}
       ${inClaude() ? (APP_URL ? `<div><div class="sec-t">설치형 앱</div><div class="small muted" style="margin-bottom:8px">전체 화면·기기 뒤로 가기가 되는 설치형 앱 주소입니다. 크롬에서 열어 ‘앱 설치’를 누르세요.</div><a class="btn block" href="${APP_URL}" target="_blank" rel="noopener">설치형 앱 열기</a></div>` : '') : installHTML()}
       ${inClaude() ? '' : syncSecHTML()}
       <div><div class="sec-t">백업</div><div class="small muted" style="margin-bottom:8px">빌드 전체를 텍스트로 복사해 메모장 등에 보관할 수 있습니다.</div><div class="btn-row"><button class="btn" data-act="backup">전체 백업 복사</button>${S.readonly?'':'<button class="btn" data-act="restore">백업으로 복원</button>'}</div></div>
@@ -1539,13 +1599,9 @@ const SHEETS = {
 };
 /* 아이템 목록: 협곡·칼바람 아이템을 함께 보여 주고, 이름이 같은 항목은 하나만 */
 function pickerItems(b){
-  const P = S.picker; const pref = b.mode==='aram' ? 'ar' : 'sr';
+  const P = S.picker; const pref = poolKey(b);
   const byName = new Map();
-  for(const [id,it] of Object.entries(D.items)){
-    if(!(it.sr||it.ar)) continue;
-    const cur = byName.get(it.n);
-    if(!cur || (!D.items[cur][pref] && it[pref])) byName.set(it.n, id);
-  }
+  for(const [id,it] of Object.entries(D.items)) if(it[pref] && !byName.has(it.n)) byName.set(it.n, id);
   for(const id of b.it){ const it = D.items[id]; if(it) byName.set(it.n, id); }
   let list = [...byName.values()].map(id=>[id, D.items[id]]);
   if(P.tier==='legend') list = list.filter(([,it])=>it.tier==='legend');
@@ -1559,7 +1615,7 @@ function pickerItems(b){
 function trayHTML(b){
   if(!b.it.length) return `<div class="tray-empty">아이템을 누르면 여기에 순서대로 담깁니다</div>`;
   const bumpId = S.picker && S.picker.bump;
-  return `<div class="tray" data-sort="tray" style="--n:${Math.max(8,b.it.length)}">${b.it.map(id=>{ const it=IX.item[id]; return `<button class="tb${id===bumpId?' pin-in':''}" data-drag data-act="tray-del" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'아이템'))} 빼기">${icoFluid('items', it?it.i:-1)}</button>`; }).join('')}</div>`;
+  return `<div class="tray" data-sort="tray" style="--n:${Math.max(8,b.it.length)}">${b.it.map(id=>{ const it=IX.item[id]; return `<button class="tb${id===bumpId?' pin-in':''}${it&&!inPool(b,id)?' off':''}" data-drag data-act="tray-del" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'아이템'))} 빼기">${icoFluid('items', it?it.i:-1)}</button>`; }).join('')}</div>`;
 }
 /* 아이템 추가 창: 누른 칸 하나와 위쪽 목록·아래 미리보기만 바꿈 (288칸 전체를 다시 그리지 않음) */
 function markPit(id, on){
@@ -1580,7 +1636,7 @@ function pickCountHTML(b){
 function pickGridHTML(b){
   const list = pickerItems(b); const inB = new Set(b.it);
   if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 능력치 필터를 줄여 보세요.</div>`;
-  return `${lazyGrid(list, 'pgrid', ([id,it])=>`<button class="pit ${it.tier==='legend'?'legend':''} ${inB.has(id)?'in':''}" data-act="pick-toggle" data-id="${id}" aria-pressed="${inB.has(id)}">${itemIco(id,44)}<span class="nm">${esc(it.n)}</span><span class="g">${fmtGold(it.g)}</span>${inB.has(id)?'<span class="chk" aria-hidden="true">✓</span>':''}</button>`)}`;
+  return `${lazyGrid(list, 'pgrid', ([id,it])=>`<button class="pit ${it.tier==='legend'?'legend':''} ${inB.has(id)?'in':''}${inPool(b,id)?'':' off'}" data-act="pick-toggle" data-id="${id}" aria-pressed="${inB.has(id)}">${itemIco(id,44)}<span class="nm">${esc(it.n)}</span><span class="g">${fmtGold(it.g)}</span>${inB.has(id)?'<span class="chk" aria-hidden="true">✓</span>':''}</button>`)}`;
 }
 function pickFootHTML(b){
   const P = S.picker; const it = P.last && IX.item[P.last];
@@ -1672,6 +1728,15 @@ const ACT = {
   fullscreen(){ try{ const p=document.documentElement.requestFullscreen(); if(p&&p.catch) p.catch(()=>toast('이 화면에서는 전체 화면을 쓸 수 없습니다')); }catch{ toast('이 화면에서는 전체 화면을 쓸 수 없습니다'); } },
   about(){ openSheet('about'); },
   haptic(){ S.haptic = S.haptic===false; uiSet('haptic', S.haptic); renderSheet(); buzz(12); },
+  prefetch(){ prefetchAll(); },
+  'build-map'(el){
+    const b = curBuild(); if(!b || S.readonly) return;
+    const to = el.dataset.v || (b.mode==='aram' ? 'sr' : 'aram'); if(to===b.mode) return;
+    let r; editB(x => { r = convertMap(x, to); });
+    if(S.picker && S.picker.bid===b.id){ S.picker.scroll = 0; renderSheet(); }
+    toast(`${MAPN[to]} 빌드로 변경${r.off ? ` · 상점에 없는 아이템 ${r.off}개` : r.moved ? ` · ${r.moved}개 ${MAPN[to]} 버전으로` : ''}`);
+    buzz(10);
+  },
   async set(el){
     const k = el.dataset.k, v = el.dataset.v;
     if(el.getAttribute('aria-pressed')==='true') return;
@@ -1684,6 +1749,9 @@ const ACT = {
       if(S.wake && !ok){ S.wake = false; uiSet('wake', false); toast('이 화면에서는 화면 꺼짐 방지를 쓸 수 없습니다'); }
     }
     else if(k==='nbm' || k==='cdm'){ S.prefs[k] = v==='aram' ? 'aram' : 'sr'; savePrefs(); }
+    else if(k==='scale'){ S.scale = +v; uiSet('scale', S.scale); applyScale(); }
+    else if(k==='start'){ S.start = v; uiSet('start', v); }
+    else if(k==='bsort'){ S.bsort = v; uiSet('bsort', v); S.rev++; }
     renderSheet(); buzz(8);
   },
   backup(){
@@ -2002,8 +2070,9 @@ function indexData(){
 async function boot(hot){
   const ui = lsGet(LS_UI) || {}; if(ui.role) S.role = ui.role; if(ui.tree) S.treeOpen = true;
   if(ui.lvl>=1 && ui.lvl<=18) S.calc.lvl = ui.lvl; if(ui.citems===false) S.calc.items = false; S.haptic = ui.haptic !== false;
+  S.scale = [90,110,120].includes(ui.scale) ? ui.scale : 100; S.bsort = ui.bsort==='new' || ui.bsort==='name' ? ui.bsort : 'upd'; S.start = ui.start==='champs' ? 'champs' : 'builds'; S.tab = S.start;
   S.theme = ui.theme==='light' || ui.theme==='dark' ? ui.theme : 'system'; S.motion = ui.motion==='fast' || ui.motion==='off' ? ui.motion : 'normal'; S.wake = ui.wake===true;
-  applyTheme(); if(S.wake) wakeSync();
+  applyTheme(); applyScale(); if(S.wake) wakeSync();
   if(hot && Array.isArray(hot.views) && hot.views.length && hot.views[0].name==='home'){ S.views = hot.views; if(hot.tab) S.tab = hot.tab; }
   try{ history.replaceState({ttn:SID, i:0}, ''); }catch{ histOK = false; }
   /* [오프라인] 마지막으로 받은 데이터로 먼저 열고, 새 데이터는 뒤에서 받아 내용이 바뀌었을 때만 교체
@@ -2028,7 +2097,7 @@ async function boot(hot){
   syncPages('');
   (window.requestIdleCallback || ((f)=>setTimeout(f, 800)))(() => ['champs','items','runes','spells'].forEach(warmSheet), {timeout:2000});
   await initStore();
-  if(S.tab==='builds' && S.loaded && !S.builds.size && S.views.length===1) S.tab='champs';
+  if(S.tab==='builds' && S.loaded && !S.builds.size && S.views.length===1) S.tab='champs';   /* 빌드가 하나도 없으면 챔피언부터 */
   render();
   setTimeout(loadSkills, 2500);
 }
