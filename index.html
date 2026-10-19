@@ -1,3 +1,4 @@
+<script>/* 화면 테마·움직임 설정을 첫 화면 전에 적용 */try{var u=JSON.parse(localStorage.getItem('ttn.v1.ui')||'{}');if(u.theme==='dark'||u.theme==='light'){document.documentElement.dataset.theme=u.theme;var c=u.theme==='dark'?'#0A1016':'#ECEFF2';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});}if(u.motion==='off')document.documentElement.classList.add('rm');}catch(e){}</script>
 <title>템트리 노트</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -418,6 +419,17 @@ button.tn:active{background:var(--surface-2)}
 .kbox{position:absolute;right:0;bottom:0;min-width:20px;height:20px;padding:0 4px;display:grid;place-items:center;font:500 12px/1 var(--f-body);color:#fff;background:rgba(8,12,16,.74);border-radius:4px 0 3px 0}
 .skm{flex:1;min-width:0;font-size:14px;line-height:1.6;color:var(--muted);font-variant-numeric:tabular-nums}
 .menu{display:flex;flex-direction:column;gap:8px}
+html.rm .pop,html.rm .bump,html.rm .tb.pin-in,html.rm .pit .chk,html.rm .sheet.anim{animation:none}
+html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,html.rm .spopt:active,html.rm .mxo:active,html.rm .tn:active,html.rm .jump button:active,html.rm .ctile:active,html.rm .iconbtn:active,html.rm .seg button:active,html.rm .tgl:active,html.rm .fab:active,html.rm .bcard:active,html.rm .skrow:active,html.rm .ro:active,html.rm .ib:active,html.rm .bh-por:active{transform:none}
+/* 설정: 항목 이름(왼쪽)과 선택지(오른쪽)를 한 줄로. 좁으면 선택지가 아래로 내려감 */
+.set{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.set-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:52px;padding:8px 0}
+.set-row+.set-row{border-top:1px solid var(--line)}
+.set-row .lab{flex:1 1 80px;min-width:0}
+.set-row .lab b{display:block;font-size:14.5px;font-weight:600}
+.set-row .lab span{display:block;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.set-row .seg{flex:none}
+.set-note{font-size:12.5px;color:var(--muted);margin-top:6px}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums}
@@ -471,6 +483,7 @@ const ICONS = {
   search:SVG('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
   full:SVG('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),
   info:SVG('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  gear:SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
   more:SVG('<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>'),
   pen:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
   check:SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
@@ -525,9 +538,28 @@ function toast(msg, action){
   toastT=setTimeout(()=>{ t.hidden=true; S.toastFn=null; }, action?5000:1800);
 }
 /* 움직임 줄이기 설정을 따름 */
-const RM = matchMedia('(prefers-reduced-motion: reduce)'); const REDUCE = () => RM.matches;
-/* 진동: 안드로이드에서만 동작 (아이폰은 미지원, 일부 앱 화면에서는 막힐 수 있음). 정보 창에서 끄고 켬 */
+const RM = matchMedia('(prefers-reduced-motion: reduce)'); const REDUCE = () => RM.matches || S.motion==='off';
+const MOF = () => S.motion==='fast' ? .6 : 1;
+/* 진동: 안드로이드에서만 동작 (아이폰은 미지원, 일부 앱 화면에서는 막힐 수 있음). 설정 화면에서 끄고 켬 */
 function buzz(p){ if(S.haptic===false) return; try{ if(navigator.vibrate) navigator.vibrate(p); }catch{} }
+/* 화면 테마: 시스템(기기 설정 따름)·라이트·다크. 기기마다 따로 저장 */
+const THEME_BAR = {light:'#ECEFF2', dark:'#0A1016'};
+function applyTheme(){
+  const t = S.theme, root = document.documentElement;
+  if(t==='light' || t==='dark') root.dataset.theme = t; else delete root.dataset.theme;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const q = m.getAttribute('media') || ''; m.content = THEME_BAR[t] || (/dark/.test(q) ? THEME_BAR.dark : THEME_BAR.light); });
+  root.classList.toggle('rm', S.motion==='off');
+}
+/* 화면 꺼짐 방지: 앱이 보이는 동안만 유지 (다른 앱으로 가면 자동 해제, 돌아오면 다시) */
+let wakeL = null;
+async function wakeSync(){
+  const want = !!S.wake && document.visibilityState==='visible';
+  if(want && !wakeL && navigator.wakeLock){
+    try{ wakeL = await navigator.wakeLock.request('screen'); wakeL.addEventListener('release', () => { wakeL = null; }); }catch{ wakeL = null; }
+  } else if(!want && wakeL){ const w = wakeL; wakeL = null; try{ await w.release(); }catch{} }
+  return !!wakeL;
+}
+document.addEventListener('visibilitychange', () => { if(S.wake) wakeSync(); });
 /* 고른 항목이 살짝 튀어 오르며 선택을 확인시킴 */
 function bumpEl(el){ if(!el || REDUCE()) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); el.addEventListener('animationend', () => el.classList.remove('bump'), {once:true}); }
 function ico(sheet, idx, px, cls=''){
@@ -663,7 +695,7 @@ function skillBlock(c, s){
 /* ------------------------------------------------------------ 빌드 모델 */
 function newBuild(champId){
   const c = IX.champ[champId];
-  return normalize({ id: uid(), champ: champId, title: `${c ? c.n : ''} 빌드`, role:'', mode:'sr', it:[], patch: D.patch, created: Date.now(), updated: Date.now() });
+  return normalize({ id: uid(), champ: champId, title: `${c ? c.n : ''} 빌드`, role:'', mode: S.prefs.nbm==='aram' ? 'aram' : 'sr', it:[], patch: D.patch, created: Date.now(), updated: Date.now() });
 }
 /* 예전 형식(구역별 아이템·스킬 순서·메모)은 읽을 때 새 형식으로 바꾸고, 다음 저장 때 정리 */
 function normalize(b){
@@ -730,7 +762,7 @@ function ghStore(cfg){
   const emitPrefs = () => { if(st.prefs) psubs.forEach(cb => { try{ cb({exists:true, data:() => st.prefs}); }catch{} }); };
   function authFail(code){
     fail = 'auth'; report();
-    if(!authToast){ authToast = true; toast(code===404 ? '동기화 저장소에 접근할 수 없습니다. 정보 화면에서 토큰을 확인해 주세요' : '동기화 토큰이 맞지 않거나 만료되었습니다. 정보 화면에서 다시 연결해 주세요'); }
+    if(!authToast){ authToast = true; toast(code===404 ? '동기화 저장소에 접근할 수 없습니다. 설정 화면에서 토큰을 확인해 주세요' : '동기화 토큰이 맞지 않거나 만료되었습니다. 설정 화면에서 다시 연결해 주세요'); }
   }
   function netFail(){ fail = 'net'; report(); clearTimeout(retryT); retryT = setTimeout(() => { pull(false).then(() => { if(pending) schedule(0); }); }, 20000); }
   /* 받은 내용과 이 기기 내용 합치기 */
@@ -842,7 +874,7 @@ async function initStore(){
     cacheLocal(); refresh();
   }, () => { S.sync = 'error'; renderTop(); toast('저장소 연결이 끊겼습니다. 새로 고침해 주세요'); });
   db.doc('meta/prefs').onSnapshot(d => {
-    if(d.exists){ const p = d.data(); S.prefs = {fav: Array.isArray(p.fav) ? [...p.fav] : [], cdm: p.cdm==='aram' ? 'aram' : 'sr'}; cacheLocal(); refresh(); }
+    if(d.exists){ const p = d.data(); S.prefs = {fav: Array.isArray(p.fav) ? [...p.fav] : [], cdm: p.cdm==='aram' ? 'aram' : 'sr', nbm: p.nbm==='aram' ? 'aram' : 'sr'}; cacheLocal(); refresh(); }
   }, () => {});
 }
 function checkLocalImport(){
@@ -891,7 +923,7 @@ async function removeBuild(id){
 let prefT;
 function savePrefs(){
   cacheLocal(); clearTimeout(prefT);
-  prefT = setTimeout(() => { if(S.db) S.db.doc('meta/prefs').set({fav:S.prefs.fav, cdm:S.prefs.cdm==='aram'?'aram':'sr'}).catch(handleWriteError); }, 400);
+  prefT = setTimeout(() => { if(S.db) S.db.doc('meta/prefs').set({fav:S.prefs.fav, cdm:S.prefs.cdm==='aram'?'aram':'sr', nbm:S.prefs.nbm==='aram'?'aram':'sr'}).catch(handleWriteError); }, 400);
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState==='hidden') flushAll(); });
 window.addEventListener('online', () => { S.offline=false; renderTop(); });
@@ -1051,7 +1083,7 @@ function viewTopHTML(v){
   const fullOK = !STANDALONE && document.fullscreenEnabled && !document.fullscreenElement;
   let html;
   if(v.name==='home'){
-    html = `<div class="top-title"><div class="brand">${ICONS.mark}<b>템트리 노트</b></div></div>${syncHTML()}${D?`<button class="iconbtn" data-act="about" aria-label="정보·백업">${ICONS.info}</button>`:''}`;
+    html = `<div class="top-title"><div class="brand">${ICONS.mark}<b>템트리 노트</b></div></div>${syncHTML()}${D?`<button class="iconbtn" data-act="about" aria-label="설정">${ICONS.gear}</button>`:''}`;
   } else if(v.name==='champ'){
     const c=IX.champ[v.id];
     html = `<button class="iconbtn" data-act="back" aria-label="뒤로">${ICONS.back}</button><div class="top-title">${esc(c?c.n:'')}</div>${syncHTML()}`;
@@ -1267,7 +1299,7 @@ function makePage(src){
 let RUN = [];
 function runAnim(list, done){
   const job = {over:false};
-  job.anims = list.filter(x => x[0]).map(([el, kf, o]) => el.animate(kf, Object.assign({easing:EASE}, o)));
+  job.anims = list.filter(x => x[0]).map(([el, kf, o]) => el.animate(kf, Object.assign({easing:EASE}, o, {duration:Math.round((o.duration||0) * MOF())})));
   job.fin = () => { if(job.over) return; job.over = true; RUN = RUN.filter(j => j!==job); job.anims.forEach(a => a.cancel()); if(done) done(); };
   RUN.push(job);
   Promise.all(job.anims.map(a => a.finished)).then(job.fin, () => {});
@@ -1469,14 +1501,28 @@ const SHEETS = {
   about(p){
     const nb = S.builds.size, nf = S.prefs.fav.length;
     const syncText = S.sync==='local' ? '이 기기에만 저장 (동기화 꺼짐)' : !S.db ? '연결 중' : S.db.kind==='github' ? 'GitHub 비공개 저장소 · 폰과 PC 자동 동기화' : 'claude.ai 계정에 저장 · 폰과 PC 자동 동기화';
-    const body = `<dl class="kv"><dt>패치</dt><dd>${esc(D.patch)} (Data Dragon ${esc(D.v)})</dd><dt>스킬 수치</dt><dd>${esc(D.sv||'미포함')} 기준</dd>${D.aramSrc?`<dt>칼바람 보정</dt><dd>${esc(D.aramSrc)} 패치 기준</dd>`:''}<dt>데이터 갱신</dt><dd>${esc(D.built)} · 매주 금요일 오전 자동 확인</dd><dt>구성</dt><dd>챔피언 ${D.champs.length}명 · 아이템 ${new Set(Object.values(D.items).map(i=>i.n)).size}개 · 룬 ${Object.keys(D.runes.r).length}개</dd><dt>저장</dt><dd>${syncText}</dd><dt>내 기록</dt><dd>빌드 ${nb}개 · 즐겨찾기 ${nf}명</dd></dl>
+    const seg = (k, opts, cur, label) => `<div class="seg xs" role="group" aria-label="${label}">${opts.map(([v,l]) => `<button data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
+    const row = (name, sub, ctl) => `<div class="set-row"><div class="lab"><b>${name}</b>${sub?`<span>${sub}</span>`:''}</div>${ctl}</div>`;
+    const MAP = [['sr','협곡'],['aram','칼바람']];
+    const body = `<div><div class="sec-t">화면</div><div class="set">
+        ${row('테마', '', seg('theme', [['system','시스템'],['light','라이트'],['dark','다크']], S.theme||'system', '테마'))}
+        ${row('화면 전환', '페이지 넘김 움직임', seg('motion', [['normal','기본'],['fast','빠르게'],['off','끔']], S.motion||'normal', '화면 전환'))}
+      </div></div>
+      <div><div class="sec-t">동작</div><div class="set">
+        ${row('진동 반응', '누르기·끌기·밀기 때', seg('haptic', [['on','켬'],['off','끔']], S.haptic!==false?'on':'off', '진동 반응'))}
+        ${navigator.wakeLock ? row('화면 꺼짐 방지', '앱 사용 중 켜짐 유지', seg('wake', [['on','켬'],['off','끔']], S.wake?'on':'off', '화면 꺼짐 방지')) : ''}
+      </div><div class="set-note">화면·동작 설정은 기기마다 따로 저장됩니다.</div></div>
+      <div><div class="sec-t">빌드 기본값</div><div class="set">
+        ${row('새 빌드 맵', '아이템 목록 기준 맵', seg('nbm', MAP, S.prefs.nbm==='aram'?'aram':'sr', '새 빌드 맵'))}
+        ${row('주문 대기시간', '소환사 주문 쿨타임 기준', seg('cdm', MAP, S.prefs.cdm==='aram'?'aram':'sr', '주문 대기시간 기준'))}
+      </div><div class="set-note">빌드 기본값은 폰과 PC에 함께 적용됩니다.</div></div>
       ${inClaude() ? (APP_URL ? `<div><div class="sec-t">설치형 앱</div><div class="small muted" style="margin-bottom:8px">전체 화면·기기 뒤로 가기가 되는 설치형 앱 주소입니다. 크롬에서 열어 ‘앱 설치’를 누르세요.</div><a class="btn block" href="${APP_URL}" target="_blank" rel="noopener">설치형 앱 열기</a></div>` : '') : installHTML()}
       ${inClaude() ? '' : syncSecHTML()}
       <div><div class="sec-t">백업</div><div class="small muted" style="margin-bottom:8px">빌드 전체를 텍스트로 복사해 메모장 등에 보관할 수 있습니다.</div><div class="btn-row"><button class="btn" data-act="backup">전체 백업 복사</button>${S.readonly?'':'<button class="btn" data-act="restore">백업으로 복원</button>'}</div></div>
-      <div><div class="sec-t">반응</div><button class="btn block" data-act="haptic" aria-pressed="${S.haptic!==false}">${S.haptic!==false?'진동 반응 켜짐 (누르면 끔)':'진동 반응 꺼짐 (누르면 켬)'}</button></div>
+      <div><div class="sec-t">정보</div><dl class="kv"><dt>패치</dt><dd>${esc(D.patch)} (Data Dragon ${esc(D.v)})</dd><dt>스킬 수치</dt><dd>${esc(D.sv||'미포함')} 기준</dd>${D.aramSrc?`<dt>칼바람 보정</dt><dd>${esc(D.aramSrc)} 패치 기준</dd>`:''}<dt>데이터 갱신</dt><dd>${esc(D.built)} · 매주 금요일 오전 자동 확인</dd><dt>구성</dt><dd>챔피언 ${D.champs.length}명 · 아이템 ${new Set(Object.values(D.items).map(i=>i.n)).size}개 · 룬 ${Object.keys(D.runes.r).length}개</dd><dt>저장</dt><dd>${syncText}</dd><dt>내 기록</dt><dd>빌드 ${nb}개 · 즐겨찾기 ${nf}명</dd></dl></div>
       <div><a class="btn block" href="${PATCH_NOTES}" target="_blank" rel="noopener">공식 패치 노트 열기</a></div>
       <div class="foot-note">아이템·룬·챔피언 데이터와 이미지는 Riot Games 공개 데이터(Data Dragon), 스킬 세부 수치는 CommunityDragon 게임 데이터, 칼바람 보정치는 aramnerfs.com(공식 패치 노트 정리) 기준입니다. 칼바람 소환사 주문 재사용 대기시간은 칼바람 나락 오라(소환사 주문 가속 70)를 적용한 값입니다. 일부 아이템 효과는 공식 데이터에 수치가 없어 문구만 표시됩니다. 능력치 파편 수치는 공식 데이터에 없어 최근 알려진 값으로 표시합니다. 승률 기반 추천 빌드는 제공하지 않습니다.</div>`;
-    return {title:'템트리 노트 정보', body, anchor: p && p.to ? '#'+p.to : ''};
+    return {title:'설정', body, anchor: p && p.to ? '#'+p.to : ''};
   },
   buildMenu(p){
     const b = curBuild(); if(!b) return {title:'',body:'', auto:true};
@@ -1626,6 +1672,20 @@ const ACT = {
   fullscreen(){ try{ const p=document.documentElement.requestFullscreen(); if(p&&p.catch) p.catch(()=>toast('이 화면에서는 전체 화면을 쓸 수 없습니다')); }catch{ toast('이 화면에서는 전체 화면을 쓸 수 없습니다'); } },
   about(){ openSheet('about'); },
   haptic(){ S.haptic = S.haptic===false; uiSet('haptic', S.haptic); renderSheet(); buzz(12); },
+  async set(el){
+    const k = el.dataset.k, v = el.dataset.v;
+    if(el.getAttribute('aria-pressed')==='true') return;
+    if(k==='theme'){ S.theme = v; uiSet('theme', v); applyTheme(); }
+    else if(k==='motion'){ S.motion = v; uiSet('motion', v); applyTheme(); }
+    else if(k==='haptic'){ S.haptic = v==='on'; uiSet('haptic', S.haptic); }
+    else if(k==='wake'){
+      S.wake = v==='on'; uiSet('wake', S.wake);
+      const ok = await wakeSync();
+      if(S.wake && !ok){ S.wake = false; uiSet('wake', false); toast('이 화면에서는 화면 꺼짐 방지를 쓸 수 없습니다'); }
+    }
+    else if(k==='nbm' || k==='cdm'){ S.prefs[k] = v==='aram' ? 'aram' : 'sr'; savePrefs(); }
+    renderSheet(); buzz(8);
+  },
   backup(){
     const text = JSON.stringify({app:'템트리 노트', format:2, exported:new Date().toISOString(), patch:D.patch, prefs:S.prefs, builds:[...S.builds.values()]});
     copyText(text, `빌드 ${S.builds.size}개를 백업으로 복사했습니다`, '전체 백업', '아래 내용을 전체 선택해 복사한 뒤 메모장 등에 보관하세요.');
@@ -1652,7 +1712,7 @@ const ACT = {
   /* 챔피언 정보 (초상화·선마·스킬 목록 어디서 눌러도 같은 창) */
   'champ-info'(el){ const b=curBuild(); const champ=el.dataset.champ || (b&&b.champ); if(!champ) return; loadSkills(); openSheet('champ',{champ, k:el.dataset.k||'', max: b&&b.champ===champ ? b.max : '', bid: b&&b.champ===champ ? b.id : ''}); },
   'calc-items'(el){ buzz(6); S.calc.items = !S.calc.items; el.setAttribute('aria-pressed', S.calc.items); uiSet('citems', S.calc.items); updateCalc(); },
-  jump(el){ const body=topBody(); const t=body && body.querySelector('#'+el.dataset.to); if(!t) return; const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches; body.scrollTo({top:Math.max(0,t.offsetTop-12), behavior:smooth?'smooth':'auto'}); },
+  jump(el){ const body=topBody(); const t=body && body.querySelector('#'+el.dataset.to); if(!t) return; const smooth = !REDUCE(); body.scrollTo({top:Math.max(0,t.offsetTop-12), behavior:smooth?'smooth':'auto'}); },
   'new-build'(el){ if(S.readonly) return; const b=newBuild(el.dataset.id); S.builds.set(b.id,b); touch(b,{render:false}); go({name:'build', id:b.id, edit:true}); },
   'toggle-edit'(){ if(S.sheets.length) closeAllSheets(); S.edit=!S.edit; resetEditState(); buzz(10); bumpEl(viewPage() && viewPage().fab); if(!S.edit){ const t=$('#f-title'); if(t) t.blur(); flushAll(); toast('저장했습니다'); } render(); },
   'build-menu'(){ openSheet('buildMenu',{}); },
@@ -1762,7 +1822,7 @@ function dragTiles(box){ return [...box.querySelectorAll(':scope > [data-drag]')
 function flipMove(box, fn){
   const tiles = dragTiles(box); const before = new Map(tiles.map(t=>[t, t.getBoundingClientRect()]));
   fn();
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(REDUCE()) return;
   for(const t of tiles){ const a=before.get(t), b=t.getBoundingClientRect(); const dx=a.left-b.left, dy=a.top-b.top; if(!dx && !dy) continue;
     t.style.transition='none'; t.style.transform=`translate(${dx}px,${dy}px)`; t.getBoundingClientRect(); t.style.transition='transform .16s ease-out'; t.style.transform=''; }
 }
@@ -1942,6 +2002,8 @@ function indexData(){
 async function boot(hot){
   const ui = lsGet(LS_UI) || {}; if(ui.role) S.role = ui.role; if(ui.tree) S.treeOpen = true;
   if(ui.lvl>=1 && ui.lvl<=18) S.calc.lvl = ui.lvl; if(ui.citems===false) S.calc.items = false; S.haptic = ui.haptic !== false;
+  S.theme = ui.theme==='light' || ui.theme==='dark' ? ui.theme : 'system'; S.motion = ui.motion==='fast' || ui.motion==='off' ? ui.motion : 'normal'; S.wake = ui.wake===true;
+  applyTheme(); if(S.wake) wakeSync();
   if(hot && Array.isArray(hot.views) && hot.views.length && hot.views[0].name==='home'){ S.views = hot.views; if(hot.tab) S.tab = hot.tab; }
   try{ history.replaceState({ttn:SID, i:0}, ''); }catch{ histOK = false; }
   /* [오프라인] 마지막으로 받은 데이터로 먼저 열고, 새 데이터는 뒤에서 받아 내용이 바뀌었을 때만 교체
