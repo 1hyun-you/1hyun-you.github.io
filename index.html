@@ -1152,6 +1152,7 @@ function homeHTML(){
   const lp = S.localPending.length;
   return `<div class="stack">
     <div class="home-head">
+      ${inClaude() && APP_URL ? `<div class="banner info"><span>이 페이지는 패치 데이터 갱신이 중단되었습니다. 최신 패치는 설치형 앱에서 확인하세요.</span><a class="btn sm primary" href="${APP_URL}" target="_blank" rel="noopener">앱 열기</a></div>` : ''}
       ${lp?`<div class="banner info"><span>이 기기에만 저장된 빌드 ${lp}개가 있습니다. 계정으로 옮기면 다른 기기에서도 보입니다.</span><button class="btn sm primary" data-act="import-local">계정으로 옮기기</button></div>`:''}
       <div class="seg" role="group" aria-label="보기 선택">
         <button data-act="tab" data-v="builds" aria-pressed="${S.tab==='builds'}">내 빌드</button>
@@ -1579,7 +1580,7 @@ const SHEETS = {
       ${inClaude() ? (APP_URL ? `<div><div class="sec-t">설치형 앱</div><div class="small muted" style="margin-bottom:8px">전체 화면·기기 뒤로 가기가 되는 설치형 앱 주소입니다. 크롬에서 열어 ‘앱 설치’를 누르세요.</div><a class="btn block" href="${APP_URL}" target="_blank" rel="noopener">설치형 앱 열기</a></div>` : '') : installHTML()}
       ${inClaude() ? '' : syncSecHTML()}
       <div><div class="sec-t">백업</div><div class="small muted" style="margin-bottom:8px">빌드 전체를 텍스트로 복사해 메모장 등에 보관할 수 있습니다.</div><div class="btn-row"><button class="btn" data-act="backup">전체 백업 복사</button>${S.readonly?'':'<button class="btn" data-act="restore">백업으로 복원</button>'}</div></div>
-      <div><div class="sec-t">정보</div><dl class="kv"><dt>패치</dt><dd>${esc(D.patch)} (Data Dragon ${esc(D.v)})</dd><dt>스킬 수치</dt><dd>${esc(D.sv||'미포함')} 기준</dd>${D.aramSrc?`<dt>칼바람 보정</dt><dd>${esc(D.aramSrc)} 패치 기준</dd>`:''}<dt>데이터 갱신</dt><dd>${esc(D.built)} · 매주 금요일 오전 자동 확인</dd><dt>구성</dt><dd>챔피언 ${D.champs.length}명 · 아이템 ${new Set(Object.values(D.items).map(i=>i.n)).size}개 · 룬 ${Object.keys(D.runes.r).length}개</dd><dt>저장</dt><dd>${syncText}</dd><dt>내 기록</dt><dd>빌드 ${nb}개 · 즐겨찾기 ${nf}명</dd></dl></div>
+      <div><div class="sec-t">정보</div><dl class="kv"><dt>패치</dt><dd>${esc(D.patch)} (Data Dragon ${esc(D.v)})</dd><dt>스킬 수치</dt><dd>${esc(D.sv||'미포함')} 기준</dd>${D.aramSrc?`<dt>칼바람 보정</dt><dd>${esc(D.aramSrc)} 패치 기준</dd>`:''}<dt>데이터 갱신</dt><dd>${esc(D.built)} · ${inClaude() ? '이 페이지는 갱신 중단 (설치형 앱에서 매주 갱신)' : '매주 금요일 오전 자동 확인'}</dd><dt>구성</dt><dd>챔피언 ${D.champs.length}명 · 아이템 ${new Set(Object.values(D.items).map(i=>i.n)).size}개 · 룬 ${Object.keys(D.runes.r).length}개</dd><dt>저장</dt><dd>${syncText}</dd><dt>내 기록</dt><dd>빌드 ${nb}개 · 즐겨찾기 ${nf}명</dd></dl></div>
       <div><a class="btn block" href="${PATCH_NOTES}" target="_blank" rel="noopener">공식 패치 노트 열기</a></div>
       <div class="foot-note">아이템·룬·챔피언 데이터와 이미지는 Riot Games 공개 데이터(Data Dragon), 스킬 세부 수치는 CommunityDragon 게임 데이터, 칼바람 보정치는 aramnerfs.com(공식 패치 노트 정리) 기준입니다. 칼바람 소환사 주문 재사용 대기시간은 칼바람 나락 오라(소환사 주문 가속 70)를 적용한 값입니다. 일부 아이템 효과는 공식 데이터에 수치가 없어 문구만 표시됩니다. 능력치 파편 수치는 공식 데이터에 없어 최근 알려진 값으로 표시합니다. 승률 기반 추천 빌드는 제공하지 않습니다.</div>`;
     return {title:'설정', body, anchor: p && p.to ? '#'+p.to : ''};
