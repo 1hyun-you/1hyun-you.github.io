@@ -438,6 +438,14 @@ html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,h
 .pick-map{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pick-map .lbl{font-size:12.5px;color:var(--muted)}
 .set-row .btn.sm{flex:none}
+/* 여러 개 고르기: 카드 왼쪽 위 동그라미, 고른 카드는 금색 테두리 */
+.bcard{position:relative;-webkit-touch-callout:none}
+.bc-chk{position:absolute;left:6px;top:6px;z-index:1;width:24px;height:24px;border-radius:50%;border:2px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;pointer-events:none}
+.bc-chk svg{width:15px;height:15px;stroke:var(--on-gold);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.bcard.sel{border-color:var(--gold);background:var(--gold-soft)}
+.bcard.sel .bc-chk{background:var(--gold);border-color:var(--gold)}
+.iconbtn[aria-pressed="true"]{color:var(--gold)}
+.iconbtn.danger{color:var(--danger)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums}
@@ -496,6 +504,7 @@ const ICONS = {
   pen:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
   check:SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   left:SVG('<path d="M14 6l-6 6 6 6"/>'), right:SVG('<path d="M10 6l6 6-6 6"/>'),
+  selall:SVG('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.3l2.8 2.8L16.2 9.6"/>'),
   trash:SVG('<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>'),
   mark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 10-8 10-8-10z" fill="none" stroke="var(--gold)" stroke-width="2"/><path d="M12 7l4 5-4 5-4-5z" fill="var(--gold)"/></svg>'
 };
@@ -767,6 +776,24 @@ function convertMap(b, to){
   b.mode = to;
   return {moved, off: b.it.filter(id => D.items[id] && !D.items[id][key]).length};
 }
+/* 여러 개 고르기: 길게 누르면 시작, 누를 때마다 넣고 빼기. 기기 뒤로 가기·✕·Esc로 끝냄 (뒤로 가기가 앱을 닫지 않도록 기록 한 칸 추가) */
+function selEnter(id){
+  if(S.sel || S.readonly) return;
+  S.sel = new Set([id]);
+  try{ history.pushState({ttn:SID, i:depth(), sel:1}, ''); S.selHist = true; }catch{ S.selHist = false; }
+  buzz(15); renderMain();
+}
+function selExit(fromPop){
+  if(!S.sel) return; S.sel = null;
+  if(!fromPop && S.selHist){ NAV.exp.push({i:depth(), t:Date.now()}); try{ history.back(); }catch{} }
+  S.selHist = false; renderMain();
+}
+function selToggle(id){
+  if(!S.sel) return; if(S.sel.has(id)) S.sel.delete(id); else S.sel.add(id);
+  if(!S.sel.size) return selExit();
+  buzz(6); renderMain();
+}
+const homeBuildIds = () => [...S.builds.values()].filter(b => { if(!S.q) return true; const c = IX.champ[b.champ]; return match(S.q, b.title, c&&c.n, c&&c.id); }).map(b => b.id);
 function toDoc(b){ const o = clone(b); delete o.id; return o; }
 function cur(){ return S.views[S.views.length-1]; }
 function curBuild(){ const v=cur(); return v.name==='build' ? S.builds.get(v.id) : null; }
@@ -1008,6 +1035,7 @@ window.addEventListener('popstate', e => {
   const st = e.state, target = st && st.ttn===SID ? st.i : 0, now = Date.now();
   NAV.exp = NAV.exp.filter(x => now - x.t < 2500);
   if(NAV.exp.length && NAV.exp[0].i===target){ NAV.exp.shift(); return; }   /* 앱이 이미 화면을 맞춰 둔 이동 */
+  if(S.sel && !(st && st.sel)){ S.selHist = false; selExit(true); if(target===depth()) return; }   /* 여러 개 고르기 중 뒤로 = 고르기 끝 */
   NAV.exp = []; NAV.hi = target;
   if(S.panel && target < depth()){   /* 팝업이 열려 있으면 화면은 그대로 두고 팝업만 닫은 뒤 기록을 다시 채움 */
     closePanel(); NAV.fwd = [];
@@ -1021,7 +1049,7 @@ window.addEventListener('popstate', e => {
   if(n) applyNav(dir); else syncCW();
 });
 function closePanel(){ if(!S.panel) return false; S.panel = null; renderMain(); syncCW(); return true; }
-function navBack(){ if(closePanel() || !depth()) return; const synced = histSynced(); if(stepBack()){ applyNav('back'); if(synced) rewind(1); } NAV.swipe = null; }
+function navBack(){ if(S.sel){ selExit(); return; } if(closePanel() || !depth()) return; const synced = histSynced(); if(stepBack()){ applyNav('back'); if(synced) rewind(1); } NAV.swipe = null; }
 function navForward(){ if(!NAV.fwd.length) return; const synced = histSynced(); if(stepForward()){ applyNav('fwd'); if(synced) histGo(1); } }
 function resetEditState(){ S.panel=null; S.lastRune=''; }
 function go(view){ flushAll(); S.views.push(view); S.edit = !!view.edit; resetEditState(); pushHist(); syncPages('fwd'); }
@@ -1132,6 +1160,10 @@ function syncHTML(){
 function viewTopHTML(v){
   const fullOK = !STANDALONE && document.fullscreenEnabled && !document.fullscreenElement;
   let html;
+  if(v.name==='home' && S.sel){
+    const ids = homeBuildIds(), all = ids.length && ids.every(id => S.sel.has(id));
+    return `<button class="iconbtn" data-act="sel-cancel" aria-label="고르기 끝내기">${ICONS.close}</button><div class="top-title">${S.sel.size}개 선택</div><button class="iconbtn" data-act="sel-all" aria-pressed="${!!all}" aria-label="${all?'전체 선택 해제':'전체 선택'}">${ICONS.selall}</button><button class="iconbtn danger" data-act="sel-del" aria-label="고른 빌드 삭제">${ICONS.trash}</button>`;
+  }
   if(v.name==='home'){
     html = `<div class="top-title"><div class="brand">${ICONS.mark}<b>템트리 노트</b></div></div>${syncHTML()}${D?`<button class="iconbtn" data-act="about" aria-label="설정">${ICONS.gear}</button>`:''}`;
   } else if(v.name==='champ'){
@@ -1201,7 +1233,9 @@ function bcardHTML(b){
   const c = IX.champ[b.champ];
   const ks = b.runes.pr[0];
   const n = b.it.length;
-  return `<button class="bcard" data-act="open-build" data-id="${b.id}">
+  const on = !!(S.sel && S.sel.has(b.id));
+  return `<button class="bcard${on?' sel':''}" data-act="open-build" data-id="${b.id}"${S.sel?` aria-pressed="${on}"`:''}>
+    ${S.sel?`<span class="bc-chk" aria-hidden="true">${on?ICONS.check:''}</span>`:''}
     <span class="bc-por">${champIco(c,56)}<span class="bc-cn">${esc(c?c.n:b.champ)}</span></span>
     <span class="bc-main">
       <span class="bc-top">${ks&&IX.rune[ks]?runeIco(ks,24):'<span class="ks-ph" aria-hidden="true"></span>'}<span class="bcard-title">${b.pin?'<span class="pin" aria-label="대표 빌드">★</span>':''}${esc(b.title)}</span></span>
@@ -1730,6 +1764,16 @@ const ACT = {
   about(){ openSheet('about'); },
   haptic(){ S.haptic = S.haptic===false; uiSet('haptic', S.haptic); renderSheet(); buzz(12); },
   prefetch(){ prefetchAll(); },
+  'sel-cancel'(){ selExit(); },
+  'sel-all'(){ if(!S.sel) return; const ids = homeBuildIds(); if(ids.every(id => S.sel.has(id))) return selExit(); ids.forEach(id => S.sel.add(id)); buzz(8); renderMain(); },
+  'sel-del'(){
+    if(!S.sel || !S.sel.size || S.readonly) return;
+    const saved = [...S.sel].map(id => S.builds.get(id)).filter(Boolean).map(b => clone(b));
+    selExit();
+    saved.forEach(b => removeBuild(b.id));
+    buzz([12,40,12]); render();
+    toast(`빌드 ${saved.length}개를 삭제했습니다`, {label:'되돌리기', fn(){ saved.forEach(s => { const r = normalize(clone(s)); S.builds.set(r.id, r); touch(r, {keepPatch:true, render:false}); }); render(); toast(`빌드 ${saved.length}개를 되살렸습니다`); }});
+  },
   'build-map'(el){
     const b = curBuild(); if(!b || S.readonly) return;
     const to = el.dataset.v || (b.mode==='aram' ? 'sr' : 'aram'); if(to===b.mode) return;
@@ -1773,10 +1817,10 @@ const ACT = {
     const n = restoreBuilds(S.localPending); S.localPending = [];
     lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}}); render(); toast(`빌드 ${n}개를 계정으로 옮겼습니다`);
   },
-  tab(el){ S.tab = el.dataset.v; S.q=''; render(); },
+  tab(el){ if(S.sel) selExit(); S.tab = el.dataset.v; S.q=''; render(); },
   role(el){ S.role = el.dataset.v; dirtyMain(); $('#home-filters').innerHTML = homeFilters(); $('#home-list').innerHTML = homeList(); uiSet('role', S.role); },
   'open-champ'(el){ warmChamp(el.dataset.id); go({name:'champ', id:el.dataset.id}); },
-  'open-build'(el){ const b = S.builds.get(el.dataset.id); if(b) warmChamp(b.champ); go({name:'build', id:el.dataset.id}); },
+  'open-build'(el){ if(S.sel){ selToggle(el.dataset.id); return; } const b = S.builds.get(el.dataset.id); if(b) warmChamp(b.champ); go({name:'build', id:el.dataset.id}); },
   fav(el){ const id=el.dataset.id; const f=new Set(S.prefs.fav); const on=!f.has(id); on?f.add(id):f.delete(id); S.prefs.fav=[...f]; savePrefs(); render(); buzz(8); toast(on?'즐겨찾기에 추가했습니다':'즐겨찾기에서 뺐습니다'); },
   /* 챔피언 정보 (초상화·선마·스킬 목록 어디서 눌러도 같은 창) */
   'champ-info'(el){ const b=curBuild(); const champ=el.dataset.champ || (b&&b.champ); if(!champ) return; loadSkills(); openSheet('champ',{champ, k:el.dataset.k||'', max: b&&b.champ===champ ? b.max : '', bid: b&&b.champ===champ ? b.id : ''}); },
@@ -1850,8 +1894,28 @@ const ACT = {
   'close-sheet': closeSheet,
   'close-all': closeAllSheets,
 };
+const LP = {t:0, id:'', x:0, y:0, fired:0, armed:false, skip:false};   /* armed: 이번 누르기에서 길게 누르기가 일어남, skip: 그 누르기 끝의 클릭 한 번 무시 */
+const lpTarget = e => { const c = e.target.closest && e.target.closest('.bcard[data-act=open-build]'); return c && !S.readonly && S.tab==='builds' && cur().name==='home' && !S.sheets.length ? c : null; };
+function lpFire(id){ LP.fired = Date.now(); LP.armed = true; if(S.sel) selToggle(id); else selEnter(id); }
+document.addEventListener('pointerdown', e => {
+  if(e.pointerType==='mouse' && e.button>0) return;
+  LP.skip = false; LP.armed = false;
+  const c = lpTarget(e); if(!c) return;
+  clearTimeout(LP.t); LP.id = c.dataset.id; LP.x = e.clientX; LP.y = e.clientY;
+  LP.t = setTimeout(() => { LP.t = 0; lpFire(LP.id); }, 450);
+}, true);
+document.addEventListener('pointermove', e => { if(LP.t && Math.hypot(e.clientX-LP.x, e.clientY-LP.y) > 10){ clearTimeout(LP.t); LP.t = 0; } }, true);
+['pointerup','pointercancel'].forEach(t => document.addEventListener(t, () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } if(LP.armed){ LP.armed = false; LP.skip = true; } }, true));
+document.addEventListener('scroll', () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } }, true);
+document.addEventListener('contextmenu', e => {
+  const c = lpTarget(e); if(!c) return;
+  e.preventDefault();
+  if(LP.t){ clearTimeout(LP.t); LP.t = 0; lpFire(c.dataset.id); }      /* 손가락: 길게 누르기 메뉴 대신 고르기 */
+  else if(Date.now() - LP.fired > 700) lpFire(c.dataset.id);          /* 마우스 오른쪽 클릭 */
+});
 document.addEventListener('click', e => {
   if(Date.now() - DRAG.end < 250){ e.preventDefault(); return; }   /* 끌기 직후의 클릭은 무시 */
+  if(LP.skip){ LP.skip = false; if(e.target.closest && e.target.closest('.bcard')){ e.preventDefault(); return; } }   /* 길게 누른 그 손가락을 뗄 때의 클릭은 무시 */
   const el = e.target.closest('[data-act]'); if(!el || el.disabled) return;
   const f = ACT[el.dataset.act]; if(f){ e.preventDefault(); f(el, e); }
 });
@@ -1865,7 +1929,8 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => { if(e.target && e.target.id==='calc-lvl') uiSet('lvl', S.calc.lvl); });
 document.addEventListener('keydown', e => {
-  if(e.key==='Escape' && S.sheets.length) navBack();
+  if(e.key==='Escape' && S.sel && !S.sheets.length) selExit();
+  else if(e.key==='Escape' && S.sheets.length) navBack();
   else if(e.key==='Escape' && S.panel){ S.panel=null; renderMain(); }
   if(e.key==='Enter' && e.target && (e.target.id==='f-title' || e.target.type==='search')) e.target.blur();
 });
