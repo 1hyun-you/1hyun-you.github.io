@@ -1,0 +1,2498 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>템트리 노트</title>
+<meta name="description" content="롤 챔피언별 아이템·룬·소환사 주문·선마 빌드 기록">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ECEFF2">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A1016">
+<meta name="mobile-web-app-capable" content="yes">
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<script>/* 화면 테마·움직임 설정을 첫 화면 전에 적용 */try{var u=JSON.parse(localStorage.getItem('ttn.v1.ui')||'{}');if(u.theme==='dark'||u.theme==='light'){document.documentElement.dataset.theme=u.theme;var c=u.theme==='dark'?'#0A1016':'#ECEFF2';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});}if(u.motion==='off')document.documentElement.classList.add('rm');var vm=document.querySelector('meta[name="viewport"]');if(u.scale&&u.scale!==100&&vm&&document.querySelector('link[rel="manifest"]')&&matchMedia('(pointer: coarse)').matches){var L=matchMedia('(orientation: landscape)').matches,dw=L?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);vm.content='width='+Math.round(dw*100/u.scale)+',viewport-fit=cover';}}catch(e){}</script>
+<title>템트리 노트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 빌드 한 장 = 초상화·주문·선마 / 아이템 / 룬 전체 트리. 열람과 편집이 같은 화면, 편집 버튼은 엄지 영역(우하단) 고정 */
+:root{
+  --bg:#ECEFF2; --surface:#FFFFFF; --surface-2:#F2F4F6; --raise:#FFFFFF; --line:#D3D9DF; --line-strong:#B9C2CA;
+  --fg:#121A21; --muted:#56626D; --gold:#87651F; --gold-soft:#F3EAD6; --on-gold:#FFFFFF;
+  --warn:#A44E14; --warn-soft:#FBE9D9; --danger:#B3261E; --ok:#2B7A52; --toast-act:#E6C47A;
+  --fg-2:#2A323A; --c-ap:#5B4BD3;
+  --c-mag:#0A78BE; --c-phy:#B35A0A; --c-heal:#2A7A3B; --c-shield:#4F6478; --c-cc:#9238A0; --c-spd:#147570; --c-mana:#1E6CB5; --c-ar:#876707; --c-mr:#6B3EBF;
+  --shadow:0 18px 40px rgba(14,22,30,.18); --dim:.16; --edge:rgba(14,22,30,.16); --on-danger:#FFFFFF;
+  --f-body:Roboto,"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-disp:var(--f-body);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1016; --surface:#111920; --surface-2:#18222B; --raise:#24313C; --line:#24303A; --line-strong:#34434F;
+    --fg:#E8E4D9; --muted:#8E9AA5; --gold:#CDAA5F; --gold-soft:#2A2315; --on-gold:#15110A;
+    --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
+    --fg-2:#D3D7DC; --c-ap:#8C7CF5;
+    --c-mag:#2BA9EC; --c-phy:#F28C2E; --c-heal:#45B866; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#79D5CE; --c-mana:#62B5FF; --c-ar:#E5C25B; --c-mr:#B48FFF;
+    --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1016; --surface:#111920; --surface-2:#18222B; --raise:#24313C; --line:#24303A; --line-strong:#34434F;
+  --fg:#E8E4D9; --muted:#8E9AA5; --gold:#CDAA5F; --gold-soft:#2A2315; --on-gold:#15110A;
+  --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
+  --fg-2:#D3D7DC; --c-ap:#8C7CF5;
+  --c-mag:#2BA9EC; --c-phy:#F28C2E; --c-heal:#45B866; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#79D5CE; --c-mana:#62B5FF; --c-ar:#E5C25B; --c-mr:#B48FFF;
+  --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
+}
+*{box-sizing:border-box}
+/* 화면 = 페이지를 겹겹이 쌓은 구조. 각 페이지가 자기 스크롤을 가져 뒤로 가도 이전 페이지가 그대로 남아 있음 */
+html,body{height:100%;overflow:hidden;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;word-break:keep-all;overflow-wrap:break-word}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.top,.pg-t,.pg-f,.chips,.seg,.tray,.bcard,.ctile{-webkit-user-select:none;user-select:none}
+button:disabled{cursor:default;opacity:.35}
+input,textarea{font:inherit;color:inherit}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.narrow{max-width:760px}
+h1,h2,h3{margin:0;text-wrap:balance}
+
+/* 페이지: 위로 쌓일 때 오른쪽에서 들어오고, 바로 아래 페이지는 왼쪽으로 조금 밀려 어두워짐 (밀어서 뒤로 갈 때 그대로 드러남) */
+#stack{position:fixed;inset:0;overflow:hidden}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);contain:layout size style;will-change:transform;touch-action:pan-y pinch-zoom}
+.page+.page{box-shadow:-14px 0 30px var(--edge)}
+.page.under{transform:translateX(-28%)}
+.page.deep{visibility:hidden}
+.page.leaving{pointer-events:none}
+.pg-dim{position:absolute;inset:0;z-index:20;background:#000;opacity:0;pointer-events:none}
+.page.under>.pg-dim{opacity:var(--dim)}
+.nopress,.nopress:active{transform:none!important}
+.pg-b{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;touch-action:pan-y pinch-zoom}   /* 스크롤 영역마다 지정해야 가로 밀기를 브라우저가 가져가지 않음 */
+.vb{padding-block:14px 48px}
+.page.has-fab .vb{padding-bottom:104px}
+.sb{display:flex;flex-direction:column;gap:12px;padding:14px max(16px,env(safe-area-inset-right,0px),calc((100% - 720px)/2)) 28px max(16px,env(safe-area-inset-left,0px),calc((100% - 720px)/2))}
+.sb>*{flex-shrink:0}
+.pg-t{flex:none;padding:10px max(16px,env(safe-area-inset-right,0px),calc((100% - 720px)/2)) 10px max(16px,env(safe-area-inset-left,0px),calc((100% - 720px)/2));border-bottom:1px solid var(--line)}
+.pg-f{flex:none;display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);background:var(--bg);padding:10px max(16px,env(safe-area-inset-right,0px),calc((100% - 720px)/2)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px),calc((100% - 720px)/2))}
+.pg-f>.btn.block{flex:1}
+.boot{position:fixed;inset:0;display:grid;place-items:center;padding:24px}
+/* 상단 바 */
+.top{flex:none;position:relative;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{display:flex;align-items:center;gap:6px;min-height:54px}
+.top-title{flex:1;min-width:0;font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand{display:flex;align-items:center;gap:8px;font-size:18px;letter-spacing:-.01em}
+.brand svg{width:18px;height:18px;flex:none}
+.iconbtn{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;flex:none}
+.iconbtn:hover{background:var(--surface-2)}
+.iconbtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn.sm{width:34px;height:34px}
+.iconbtn.sm svg{width:18px;height:18px}
+.sync{display:flex;align-items:center;justify-content:center;gap:6px;min-width:32px;min-height:40px;font-size:12px;color:var(--muted);white-space:nowrap;padding:0 4px;border-radius:10px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block;flex:none}
+.sync[data-s="synced"] i{background:var(--ok)}
+.sync[data-s="saving"] i{background:var(--gold)}
+.sync[data-s="local"] i,.sync[data-s="error"] i,.sync[data-s="offline"] i{background:var(--warn)}
+.sync .lbl{display:inline-block;min-width:8.5em}
+@media(max-width:430px){.sync .lbl{display:none}}
+
+.stack{display:flex;flex-direction:column;gap:14px}
+
+/* 공통 */
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chips.wrapc{flex-wrap:wrap;overflow:visible}
+.home-head .chips{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
+.chip{flex:none;text-align:center;height:32px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;transition:background-color .12s,color .12s,border-color .12s}
+.chip.sm{height:28px;padding:0 10px;font-size:12.5px}
+.chip[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{flex:1;text-align:center;white-space:nowrap;height:36px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
+.seg.sm button{height:30px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.search{position:relative;display:block}
+.search input{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 14px 0 40px;font-size:15px}
+.search input::placeholder{color:var(--muted)}
+.search svg{position:absolute;left:13px;top:12px;width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 16px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;text-decoration:none;color:var(--fg)}
+.btn:hover{border-color:var(--line-strong)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.btn.danger{color:var(--danger)}
+.btn.danger-fill{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+.btn.sm{height:32px;padding:0 12px;font-size:13px}
+.btn.block{width:100%}
+.btn-row{display:flex;gap:8px}
+.btn-row>.btn{flex:1}
+.linkbtn{font-size:12.5px;font-weight:600;color:var(--gold);padding:4px 2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;min-width:0;transition:border-color .15s}
+.card-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;min-height:24px}
+.card-h h2{font-size:14px;font-weight:700;letter-spacing:.01em;flex:1}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:28px 18px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty b{color:var(--fg);font-size:16px}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-radius:12px;padding:9px 12px;background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:500}
+.banner span{flex:1;min-width:180px}
+.banner.info{background:var(--gold-soft);color:var(--fg)}
+.none{font-size:13px;color:var(--muted)}
+.v{font-variant-numeric:tabular-nums}
+.desc .v,.rcap .v{color:var(--fg-2)}
+.v.q{color:var(--muted);font-weight:500;border-bottom:1px dotted var(--muted)}
+.gold{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--gold);white-space:nowrap}
+.gold::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--gold);vertical-align:0}
+/* 효과 색상: 베이스 앱 규칙 (설명문은 굵게 쓰지 않고 색으로만 구분. 마법 피해 하늘색, 주문력 계수 보라, 물리·공격력 주황, 체력 초록) */
+.kn{color:var(--gold);font-weight:500}
+.kb{color:var(--fg)}
+.km{color:var(--c-mag)}
+.kap{color:var(--c-ap)}
+.kp{color:var(--c-phy)}
+.kt{color:var(--fg)}
+.kh{color:var(--c-heal)}
+.ks{color:var(--c-shield)}
+.kc{color:inherit}
+.ksp{color:var(--c-spd)}
+.kmn{color:var(--c-mana)}
+.ka{color:var(--c-ar)}
+.kr{color:var(--c-mr)}
+.kg{color:var(--gold);font-weight:600}
+.ki{color:var(--muted);font-style:italic}
+.kl{color:var(--muted)}
+.kd{color:var(--danger)}
+.skd .desc .kn,.skd .desc .kb{color:var(--fg);font-weight:400}
+
+/* 스프라이트 아이콘 */
+.ico{display:inline-block;flex:none;width:var(--px);height:var(--px);border-radius:6px;background-repeat:no-repeat;background-color:var(--surface-2)}
+.ico-missing{display:inline-grid;place-items:center;color:var(--muted);font-weight:700}
+.ico.clear{background-color:transparent}
+
+/* 홈 */
+.home-head{display:flex;flex-direction:column;gap:12px}
+.champ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:12px 8px}
+.ctile{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;padding:4px 0;border-radius:10px}
+.ctile:hover{background:var(--surface)}
+.ctile .ico{border-radius:12px;border:1px solid var(--line)}
+.ctile span.n{font-size:12.5px;font-weight:500;text-align:center;line-height:1.25;word-break:keep-all}
+.ctile .has{position:absolute;top:5px;right:calc(50% - 32px);width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg)}
+.ctile .fav{position:absolute;top:2px;left:calc(50% - 34px);color:var(--gold);font-size:13px;line-height:1}
+.blist{display:grid;gap:10px}
+@media(min-width:760px){.blist{grid-template-columns:1fr 1fr}}
+/* 빌드 카드: 왼쪽 초상화+챔피언 이름 / 오른쪽 위 핵심 룬+제목, 아래 아이템 (아이템 줄 아래선 = 챔피언 이름 아래선) */
+.bcard{display:flex;gap:12px;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0;width:100%;transition:border-color .12s}
+.bcard:hover{border-color:var(--line-strong)}
+.bcard:active{border-color:var(--gold)}
+.bc-por{flex:none;width:60px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bc-por .ico{border-radius:12px;border:1px solid var(--line)}
+.bc-cn{font-size:12.5px;font-weight:500;color:var(--muted);max-width:64px;text-align:center;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-main{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.bc-top{display:flex;align-items:center;gap:7px;min-height:24px}
+.ks-ph{flex:none;width:22px;height:22px;margin:1px;border-radius:50%;border:1.5px dashed var(--line-strong)}
+.bcard-title{flex:1;min-width:0;font-weight:500;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pin{color:var(--gold);margin-right:4px}
+.bc-items{display:grid;grid-template-columns:repeat(var(--n),minmax(0,40px));gap:4px}
+.bi{aspect-ratio:1;line-height:0;min-width:0}
+.bi.more{display:grid;place-items:center;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-size:12.5px;font-weight:600;line-height:1}
+.bi .ico{width:100%!important;height:100%!important;border-radius:6px;background-size:var(--bs) auto!important}
+
+/* 챔피언 화면 */
+.chero{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.chero-por{line-height:0;border-radius:17px;flex:none}
+.chero .ico{border-radius:16px;border:1px solid var(--line)}
+.chero-por:hover .ico{border-color:var(--gold)}
+.chero h1{font-size:24px;line-height:1.2}
+.chero .t{color:var(--muted);font-size:14px}
+.favbtn[aria-pressed="true"]{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 50%,transparent)}
+.sklist{display:flex;flex-direction:column}
+.skrow{display:flex;gap:12px;align-items:center;padding:8px 0;text-align:left;width:100%}
+.skrow+.skrow{border-top:1px solid var(--line)}
+.skrow .ico{border-radius:8px}
+.skrow .m{flex:1;min-width:0}
+.skrow .nm{font-weight:600;font-size:14.5px;display:block}
+.skrow .key{font:700 12px var(--f-disp);color:var(--gold);margin-right:6px}
+.chev{color:var(--muted);font-size:18px;flex:none}
+
+/* 빌드 화면: 초상화(누르면 챔피언 정보) · 제목 · 주문 2개 + 선마 */
+.bh{position:relative;display:flex;gap:14px;align-items:center}
+.ph{visibility:hidden}
+.bh-por{flex:none;line-height:0;border-radius:15px;transition:transform .12s}
+.bh-por .ico{border-radius:14px;border:1px solid var(--line);transition:border-color .12s}
+.bh-por:hover .ico{border-color:var(--gold)}
+.bh-por:active{transform:scale(.96)}
+.bh-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+/* 제목: 열람(글자)과 편집(입력칸)이 같은 높이·같은 글자 위치 */
+.ttl{display:block;width:100%;height:40px;margin:0;padding:0;border:0;font:700 18px/40px var(--f-body);color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+input.ttl{width:calc(100% + 11px);margin-left:-11px;padding:0 10px;border:1px solid var(--gold);border-radius:9px;background:var(--surface);line-height:38px}
+.spl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{line-height:0;border-radius:9px}
+.sp .ico{border-radius:8px;border:1px solid var(--line)}
+.sp[aria-expanded="true"] .ico,.mx[aria-expanded="true"]{box-shadow:0 0 0 2px var(--gold)}
+.edit .sp .ico{border-style:dashed;border-color:var(--gold)}
+.mx{height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.mx b{font:700 16px/1 var(--f-disp);color:var(--gold)}
+.mx.on{color:var(--fg);background:var(--gold-soft);border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.edit .mx{border-style:dashed;border-color:var(--gold)}
+/* 주문·선마 팝업: 아래 내용을 밀지 않고 위에 겹쳐 뜸 */
+.pop-bg{position:fixed;inset:0;z-index:35}
+.pop{position:absolute;z-index:36;left:0;top:0;background:var(--raise);border:1px solid var(--line-strong);border-radius:14px;box-shadow:var(--shadow);animation:popin .12s ease-out}
+@keyframes popin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.pop{animation:none}}
+#bv{position:relative;display:block}
+#bv:not(.edit) .ib.add.opt{display:none}
+.edit .v-only,#bv:not(.edit) .e-only{display:none}
+#bv>.card,#bv>.bh{contain:layout}
+#bv>*+*{margin-top:14px}
+#pop-layer{position:absolute;left:0;top:0;width:100%;height:0;margin:0}
+.pop{contain:layout}
+.pop-sp{width:min(304px,100%);padding:10px}
+.pop-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12.5px;color:var(--muted)}
+.seg.xs{padding:2px;border-radius:9px}
+.seg.xs button{height:28px;padding:0 12px;font-size:12.5px;border-radius:7px}
+.pop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.spopt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 5px;border-radius:9px;text-align:center;line-height:1.2;min-width:0}
+.spopt .ico{border-radius:7px}
+.spopt .nm{font-size:11.5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spopt small{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.spopt.na{opacity:.45}
+.spopt[aria-selected="true"]{background:var(--gold-soft);box-shadow:inset 0 0 0 1px var(--gold)}
+.pop-mx{width:224px;padding:4px}
+.mxo{display:flex;align-items:center;gap:10px;min-height:46px;padding:4px 8px 4px 5px;border-radius:10px;width:100%}
+.mxo .nm{flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mxo .ck{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-strong);display:grid;place-items:center;font-size:11px;font-weight:700}
+.mxo[aria-selected="true"]{background:var(--gold-soft)}
+.mxo[aria-selected="true"] .ck{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.mxo:active{background:var(--surface-2)}
+.mxo .kbox{min-width:16px;height:16px;font-size:10.5px}
+
+/* 아이템 */
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px}
+.ib{position:relative;line-height:0;border-radius:9px;aspect-ratio:1;max-width:100%;-webkit-user-select:none;user-select:none}
+.ib .ico{width:100%!important;height:100%!important;border-radius:9px;border:1px solid var(--line);background-size:var(--bs) auto!important}
+.ib.legend .ico{border-color:color-mix(in srgb,var(--gold) 70%,transparent)}
+.ib.miss .ico{border-style:dashed;border-color:var(--warn)}
+.ib.add{display:grid;place-items:center;border:1.5px dashed var(--line-strong);color:var(--muted);font-size:22px;line-height:1}
+.ib:active{transform:scale(.94)}
+[data-drag]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.edit .ib[data-drag],.tb[data-drag]{touch-action:none;cursor:grab}
+[data-drag].ph{visibility:visible;opacity:.22}
+.ghost{position:fixed;left:0;top:0;z-index:70;pointer-events:none;margin:0;border-radius:9px;box-shadow:0 12px 26px rgba(0,0,0,.38);opacity:.96}
+
+/* 룬 전체 트리: 칸 너비에 맞춰 아이콘이 커짐 */
+.runes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rt{background:var(--surface-2);border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rt-sty,.rt-row{display:flex;justify-content:space-around;align-items:center;gap:4px}
+.rt-sty{padding-bottom:8px;border-bottom:1px solid var(--line)}
+.rt-sh{display:grid;grid-template-columns:repeat(3,1fr);gap:7px 4px;justify-items:center;padding-top:9px;border-top:1px solid var(--line)}
+.ro{flex:0 1 var(--mx);min-width:0;aspect-ratio:1;line-height:0;border-radius:50%}
+.rt-sty .ro{--mx:30px}
+.rt-row .ro{--mx:44px}
+.rt-row.k .ro{--mx:56px}
+.rt-sh .ro{width:30px;max-width:100%}
+.ro .ico{display:block;width:100%!important;height:100%!important;background-size:var(--bs) auto!important;filter:grayscale(1);opacity:.32}
+.edit .ro .ico{opacity:.55}
+.ro.on{box-shadow:0 0 0 2px var(--gold)}
+.ro.on .ico{filter:none;opacity:1}
+.ro.key.on{box-shadow:0 0 0 2px var(--gold),0 0 14px color-mix(in srgb,var(--gold) 45%,transparent)}
+.rcap{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:13.5px;line-height:1.6}
+.rcap .rn{display:block;font-weight:500;color:var(--gold);margin-bottom:2px}
+.rcap{color:var(--fg-2)}
+
+/* 편집 버튼 (엄지 영역) */
+.fab{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;height:50px;min-width:136px;justify-content:center;padding:0 18px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;background:var(--fg);color:var(--bg);box-shadow:var(--shadow)}
+.fab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fab.on{background:var(--gold);color:var(--on-gold)}
+
+/* 빌드 메뉴: 아래에서 올라오는 작은 메뉴 (페이지가 아닌 선택지 목록) */
+.sheet-root{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.backdrop{position:absolute;inset:0;background:rgba(5,9,13,.5);touch-action:none}
+.sheet-h,.sheet-t,.sheet-f,.sheet-grip{touch-action:none}
+.sheet-root.closing{pointer-events:none}
+.sheet-grip{position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--line-strong);z-index:1}
+@media(min-width:720px){.sheet-grip{display:none}}
+/* 누름·선택 반응 */
+@keyframes bump{0%{transform:scale(.86)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+.bump{animation:bump .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes pinIn{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.tb.pin-in{animation:pinIn .22s cubic-bezier(.2,.8,.2,1)}
+.pit .chk{animation:bump .24s cubic-bezier(.2,.8,.2,1)}
+.btn,.chip,.mx,.sp,.spopt,.mxo,.skrow,.tn,.jump button,.ctile,.bcard,.ro,.iconbtn,.seg button,.tgl,.fab,.bh-por,.chero-por{transition:transform .1s ease-out}
+.btn:active,.chip:active,.mx:active,.sp:active,.spopt:active,.mxo:active,.tn:active,.jump button:active,.ctile:active,.iconbtn:active,.seg button:active,.tgl:active,.fab:active{transform:scale(.95)}
+.bcard:active,.skrow:active{transform:scale(.985)}
+.ro:active{transform:scale(.9)}
+.fab{transition:transform .1s ease-out,background-color .2s,color .2s}
+@media(prefers-reduced-motion:reduce){.bump,.tb.pin-in,.pit .chk{animation:none}.btn:active,.chip:active,.mx:active,.sp:active,.spopt:active,.mxo:active,.tn:active,.jump button:active,.ctile:active,.iconbtn:active,.seg button:active,.tgl:active,.fab:active,.bcard:active,.skrow:active,.ro:active{transform:none}}
+.sheet{position:relative;width:100%;max-width:640px;max-height:min(84dvh,calc(100% - 24px));display:flex;flex-direction:column;background:var(--surface);border-radius:18px 18px 0 0;box-shadow:var(--shadow);padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.anim{animation:up .26s cubic-bezier(.32,.72,0,1)}
+@media(min-width:720px){.sheet-root{align-items:center}.sheet{border-radius:18px;max-height:min(80vh,780px)}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes upc{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media(min-width:720px){.sheet.anim{animation:upc .18s ease-out}}
+@media(prefers-reduced-motion:reduce){.sheet.anim{animation:none}.ib:active,.bh-por:active{transform:none}}
+.sheet-h{display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.sheet-h h2{flex:1;font-size:16px;min-width:0;padding-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-t{padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.sheet-b>*{flex-shrink:0}
+.sheet-b{position:relative;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px max(16px,env(safe-area-inset-right,0px)) 18px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;min-height:0}
+.sheet-f{border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.sheet-f>.btn.block{flex:1}
+/* 아이템 추가: 위쪽에 현재 담긴 아이템 (누르면 빠짐, 끌어서 순서 변경) */
+.tray{display:grid;grid-template-columns:repeat(var(--n),minmax(0,40px));gap:6px;height:40px;align-items:center}
+.tb{width:100%;aspect-ratio:1;line-height:0;border-radius:7px;min-width:0}
+.tb .ico{width:100%!important;height:100%!important;border-radius:7px;border:1px solid var(--line);background-size:var(--bs) auto!important}
+.tb:active .ico{border-color:var(--danger)}
+.tray-empty{display:flex;align-items:center;height:40px;padding:0 12px;border:1px dashed var(--line-strong);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.fgroup{display:flex;gap:8px;align-items:flex-start}
+.fgroup .fl{flex:none;width:30px;font-size:11.5px;font-weight:600;color:var(--muted);padding-top:5px}
+.fgroup .chips{flex:1;min-width:0;margin-right:-16px;padding-right:16px}
+.fbar:empty{display:none}
+.fbar{display:flex;align-items:center;justify-content:space-between;min-height:22px;font-size:12.5px;color:var(--muted)}
+/* 긴 격자: 한 격자 안에서 칸마다 화면 밖이면 배치·그리기를 건너뜀 (묶음으로 나누면 중간 줄이 비는 문제) */
+.lazy>*{content-visibility:auto;contain-intrinsic-size:auto 72px auto 92px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px 4px}
+.pit{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0;border-radius:8px}
+.pit .ico{border-radius:8px;border:1px solid var(--line)}
+.pit.legend .ico{border-color:color-mix(in srgb,var(--gold) 70%,transparent)}
+.pit .nm{font-size:11.5px;line-height:1.25;text-align:center;word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:72px}
+.pit .g{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1}
+.pit .chk{position:absolute;top:0;right:6px;width:18px;height:18px;border-radius:5px;background:var(--gold);color:var(--on-gold);font-size:11px;font-weight:700;display:grid;place-items:center}
+.pit.in .ico{box-shadow:0 0 0 2px var(--gold)}
+.pit:active{transform:scale(.95)}
+.pprev{flex:1;min-width:0;display:flex;gap:10px;align-items:center}
+.pprev .info{flex:1;min-width:0}
+.pprev .nm{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.statl{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 정보 창 공통 머리 (아이템·룬·주문·파편·챔피언 같은 자리) */
+.idet{display:flex;gap:14px;align-items:center}
+.idet .ico{border-radius:10px;border:1px solid var(--line)}
+.idet h3{font-size:19px;font-weight:500;line-height:1.3;color:var(--gold)}
+.idet .k{font:700 12px var(--f-disp);color:var(--gold);letter-spacing:.06em}
+.stat-col{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;font-size:14.5px;line-height:1.6;font-variant-numeric:tabular-nums}
+.price{font-size:14px;color:var(--fg-2);font-variant-numeric:tabular-nums}
+.desc{font-size:14px;line-height:1.65;color:var(--fg-2)}
+.foot-note{font-size:12px;color:var(--muted);line-height:1.5}
+.mini-h{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.irow{display:flex;flex-wrap:wrap;gap:8px 6px}
+/* 하위 아이템 조직도 (접고 펴기, 모든 아이템 공통 상태) */
+.comp{display:flex;flex-direction:column;gap:12px}
+.tgl{display:flex;align-items:center;gap:6px;width:100%;height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);font-size:14px;font-weight:500}
+.tgl .chev{margin-left:auto;font-size:13px;transition:transform .15s}
+.tgl[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.tree{overflow-x:auto;padding-bottom:2px}
+.tree ul{display:flex;justify-content:center;margin:0;padding:16px 0 0;position:relative}
+.tree>ul{padding-top:0;min-width:max-content;margin:0 auto}
+.tree li{list-style:none;display:flex;flex-direction:column;align-items:center;position:relative;padding:16px 3px 0}
+.tree>ul>li{padding-top:0}
+.tree li::before,.tree li::after{content:"";position:absolute;top:0;right:50%;width:50%;height:16px;border-top:1.5px solid var(--line-strong)}
+.tree li::after{right:auto;left:50%;border-left:1.5px solid var(--line-strong)}
+.tree li:only-child::before,.tree li:only-child::after,.tree>ul>li::before,.tree>ul>li::after{display:none}
+.tree li:only-child{padding-top:0}
+.tree li:first-child::before,.tree li:last-child::after{border:0}
+.tree li:last-child::before{border-right:1.5px solid var(--line-strong);border-radius:0 8px 0 0}
+.tree li:first-child::after{border-radius:8px 0 0 0}
+.tree ul ul::before{content:"";position:absolute;top:0;left:50%;height:16px;border-left:1.5px solid var(--line-strong)}
+.tn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px;border-radius:8px}
+.tn .ico{border-radius:7px;border:1px solid var(--line)}
+.tn span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.1}
+.tn.root .ico{border-color:var(--gold)}
+button.tn:active{background:var(--surface-2)}
+/* 챔피언 정보: 능력치 + 스킬 전체 스크롤 */
+.jump{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:5px}
+.jump button{height:40px;display:flex;align-items:center;justify-content:center;padding:0 3px;border-radius:9px;border:1px solid var(--line);color:var(--muted);min-width:0;transition:background-color .12s,color .12s,border-color .12s}
+.jump .kbox{min-width:14px;height:14px;padding:0 2px;font-size:10px}
+.jump button.txt{padding:0 10px;font:600 13px var(--f-body)}
+.jump button.mxk{border-color:color-mix(in srgb,var(--gold) 55%,transparent);color:var(--gold)}
+.jump button[aria-current="true"]{background:var(--surface-2);color:var(--fg);border-color:var(--line-strong)}
+.jump button.mxk[aria-current="true"]{color:var(--gold);border-color:var(--gold)}
+.csec{display:flex;flex-direction:column;gap:10px}
+.csec+.csec{padding-top:12px}
+.sec-h{font-size:13px;font-weight:500;color:var(--muted)}
+.amods{display:flex;flex-wrap:wrap;gap:6px}
+.amod{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--fg-2)}
+.amod b{font-weight:500;font-variant-numeric:tabular-nums}
+.amod.up b{color:var(--ok)}
+.amod.down b{color:var(--danger)}
+.aab{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.aab li{display:flex;gap:10px;align-items:center;font-size:14px;line-height:1.5;color:var(--fg-2)}
+.aab .kbox{min-width:13px;height:13px;padding:0 2px;font-size:9.5px}
+.aab-sp{flex:none;width:28px}
+.cstats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cstats>div{background:var(--surface);padding:7px 12px;display:flex;flex-direction:column;min-width:0}
+.cstats span{font-size:12px;color:var(--muted)}
+.cstats b small{margin-left:5px;font-size:11.5px;font-weight:500;color:var(--ok)}
+.calc{color:var(--gold)}
+.calc-row{display:flex;align-items:center;gap:10px;margin-top:10px;height:32px}
+.calc-row .lv{flex:none;width:58px;font-size:13px;color:var(--muted);white-space:nowrap}
+.calc-row .lv b{color:var(--fg);font-weight:500;font-variant-numeric:tabular-nums}
+.calc-row input{flex:1;min-width:0;accent-color:var(--gold);height:28px}
+.cstats b{font-size:14.5px;font-weight:500;font-variant-numeric:tabular-nums}
+.skd{display:flex;flex-direction:column;gap:10px;padding-top:26px}
+.skd h3{font-size:15px;font-weight:500;line-height:1.35}
+.skd-r{display:flex;gap:14px;align-items:flex-start}
+.skd-r .desc{flex:1;min-width:0}
+.sico{position:relative;flex:none;line-height:0}
+.sico .ico{border-radius:3px;box-shadow:0 0 0 1px color-mix(in srgb,var(--gold) 70%,transparent)}
+.kbox{position:absolute;right:0;bottom:0;min-width:20px;height:20px;padding:0 4px;display:grid;place-items:center;font:500 12px/1 var(--f-body);color:#fff;background:rgba(8,12,16,.74);border-radius:4px 0 3px 0}
+.skm{flex:1;min-width:0;font-size:14px;line-height:1.6;color:var(--muted);font-variant-numeric:tabular-nums}
+.menu{display:flex;flex-direction:column;gap:8px}
+html.rm .pop,html.rm .bump,html.rm .tb.pin-in,html.rm .pit .chk,html.rm .sheet.anim{animation:none}
+html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,html.rm .spopt:active,html.rm .mxo:active,html.rm .tn:active,html.rm .jump button:active,html.rm .ctile:active,html.rm .iconbtn:active,html.rm .seg button:active,html.rm .tgl:active,html.rm .fab:active,html.rm .bcard:active,html.rm .skrow:active,html.rm .ro:active,html.rm .ib:active,html.rm .bh-por:active{transform:none}
+/* 설정: 항목 이름(왼쪽)과 선택지(오른쪽)를 한 줄로. 좁으면 선택지가 아래로 내려감 */
+.set{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.set-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:52px;padding:8px 0}
+.set-row+.set-row{border-top:1px solid var(--line)}
+.set-row .lab{flex:1 1 80px;min-width:0}
+.set-row .lab b{display:block;font-size:14.5px;font-weight:600}
+.set-row .lab span{display:block;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.set-row .seg{flex:none}
+.set-note{font-size:12.5px;color:var(--muted);margin-top:6px}
+/* 빌드 맵 표시(머리), 이 맵 상점에 없는 아이템 표시 */
+.mx.mp{color:var(--fg-2)}
+.ib.off .ico,.tb.off .ico,.pit.off .ico{opacity:.38;filter:grayscale(1)}
+.ib.off::after,.tb.off::after{content:'';position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface);pointer-events:none}
+.tb{position:relative}
+.pick-map{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pick-map .lbl{font-size:12.5px;color:var(--muted)}
+.set-row .btn.sm{flex:none}
+/* 여러 개 고르기: 카드 왼쪽 위 동그라미, 고른 카드는 금색 테두리 */
+.bcard{position:relative;-webkit-touch-callout:none}
+.bc-chk{position:absolute;left:6px;top:6px;z-index:1;width:24px;height:24px;border-radius:50%;border:2px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;pointer-events:none}
+.bc-chk svg{width:15px;height:15px;stroke:var(--on-gold);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.bcard.sel{border-color:var(--gold);background:var(--gold-soft)}
+.bcard.sel .bc-chk{background:var(--gold);border-color:var(--gold)}
+.iconbtn[aria-pressed="true"]{color:var(--gold)}
+.iconbtn.danger{color:var(--danger)}
+/* 홈: 탭 3개를 가로로 이어 붙여 밀어서 전환, 탭마다 따로 스크롤, 검색창은 각 탭 위에 고정 */
+.home-pg>.pg-b{overflow:hidden;padding:0}
+.home-pg .wrap.app{max-width:none;padding:0;height:100%}
+.hm{display:flex;flex-direction:column;height:100%;--td:.28s}
+.hm-top{flex:none;width:100%;max-width:1080px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px}
+.hm-top>#hm-ban:empty{display:none}
+.hm-view{flex:1;min-height:0;overflow:hidden;position:relative}
+.hm-track{display:flex;width:300%;height:100%;will-change:transform;transition:transform var(--td) cubic-bezier(.32,.72,0,1)}
+.hm-pane{flex:0 0 33.3333%;height:100%;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y pinch-zoom;scrollbar-gutter:stable}
+.hm-pane>.wrap{padding-bottom:110px}
+.hm.col .hm-pane[data-tab=items]>.wrap{padding-bottom:230px}
+.hm-head{position:sticky;top:0;z-index:3;background:var(--bg);display:flex;flex-direction:column;gap:10px;padding:6px 0 10px}
+.hm-head .chips{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
+.seg.hm-seg{position:relative}
+.seg.hm-seg button{position:relative;z-index:1;background:none;box-shadow:none;transition:color .2s}
+.seg.hm-seg button[aria-pressed="true"]{background:none;box-shadow:none}
+.seg-ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);border-radius:9px;background:var(--raise);box-shadow:0 1px 3px rgba(0,0,0,.14);transition:transform var(--td) cubic-bezier(.32,.72,0,1);pointer-events:none}
+.hm.drag .hm-track,.hm.drag .seg-ind{transition:none}
+html.rm .hm-track,html.rm .seg-ind{transition:none}
+@media(prefers-reduced-motion:reduce){.hm-track,.seg-ind{transition:none}}
+.hm-fab{min-width:0}
+.it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.it-pane-f{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.it-pane-f .fgroup .chips{flex-wrap:wrap;overflow:visible;margin-right:0;padding-right:0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+.it-sets{margin:0 -16px 12px;padding-inline:16px}
+.set-chip .n{font-weight:700;color:var(--gold)}
+/* 세트 담기 막대 (아이템 탭 아래) */
+.setbar{position:absolute;left:0;right:0;bottom:0;z-index:16;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.14);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.setbar>.wrap{display:flex;flex-direction:column;gap:9px}
+.sb-h{display:flex;align-items:center;gap:8px}
+.sb-name{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:9px;background:var(--bg);padding:0 10px;font-weight:600;font-size:15px}
+.sb-name:focus{outline:none;border-color:var(--gold)}
+.sb-meta{flex:none;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sb-empty{height:40px;display:flex;align-items:center;font-size:13px;color:var(--muted)}
+.sb-act{display:flex;gap:8px}
+.sb-act .btn{flex:1}
+/* 세트 적용 화면 */
+.aset{display:flex;gap:6px;flex-wrap:wrap}
+.aset .bi{width:36px}
+.alist{display:flex;flex-direction:column;gap:8px}
+.arow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left}
+.arow .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.arow .m b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .w{flex:none;font-size:11.5px;color:var(--warn)}
+/* 선마: 스킬 그림(오른쪽 아래 키) + '선마' */
+.mx.mxs{padding:0 12px 0 0;gap:8px;overflow:hidden}
+.mx.mxs .sico .ico{border-radius:8px 0 0 8px;box-shadow:none}
+.mx.mxs .kbox{border-radius:4px 0 0 0}
+.edit .mx.mxs{padding-left:0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-variant-numeric:tabular-nums}
+.steps{margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.sec-t{font-size:13px;font-weight:700;margin-bottom:6px}
+.tok{width:100%;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 12px;font-size:14px}
+.note-input{width:100%;min-height:110px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;resize:vertical;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:8px 8px 8px 16px;border-radius:999px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow);max-width:min(calc(100% - 32px),420px);display:flex;align-items:center;gap:10px;min-height:38px;border-radius:19px}
+body.fab-on .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.menu-on .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px))}
+.toast span{padding-right:8px;word-break:keep-all;text-wrap:balance}
+.toast-act{color:var(--toast-act);font-weight:700;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--bg) 14%,transparent);white-space:nowrap}
+.foot{margin-top:28px;font-size:12px;color:var(--muted);line-height:1.6}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+</style>
+
+<div id="stack"><div class="boot"><div class="loading">패치 데이터를 불러오는 중…</div></div></div>
+<div class="sheet-root" id="sheet" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+'use strict';
+/* 글꼴: 폰은 베이스 앱과 같은 기기 기본 글꼴(Roboto + Noto Sans CJK)을 그대로 사용.
+   웹 글꼴을 쓰면 새 글자가 나올 때마다 글꼴 조각을 내려받아 다시 그려 버벅임이 생김. PC만 웹 글꼴로 같은 모양을 맞춤 */
+if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+  try{ const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap'; document.head.appendChild(l); }catch{}
+}
+/* ------------------------------------------------------------ 상수 */
+const ROLES = [['top','탑'],['jungle','정글'],['mid','미드'],['adc','원딜'],['sup','서폿']];
+const ROLE_N = Object.fromEntries(ROLES);
+const TAG_N = {Fighter:'전사',Tank:'탱커',Mage:'마법사',Assassin:'암살자',Marksman:'원거리',Support:'서포터'};
+const TIERS = [['all','전체'],['legend','완성'],['boots','신발'],['start','시작']];
+const TIER_ORDER = {legend:0,boots:1,epic:2,basic:3,consumable:4};
+/* 능력치 필터: 공식 아이템 능력치 이름 기준, 공격·마법·방어 묶음 */
+const STAT_GROUPS = [
+  ['공격', [['ad','공격력',['공격력']],['as','공격 속도',['공격 속도']],['crit','치명타',['치명타 확률','치명타 피해량']],['pen','물리 관통',['물리 관통력','방어구 관통력']],['ls','흡혈',['생명력 흡수','모든 피해 흡혈']]]],
+  ['마법', [['ap','주문력',['주문력']],['ah','스킬 가속',['스킬 가속','재사용 대기시간 감소']],['mana','마나',['마나','기본 마나 재생','5초당 마나 재생']],['mpen','마법 관통',['마법 관통력']]]],
+  ['방어', [['hp','체력',['체력']],['ar','방어력',['방어력']],['mr','마법 저항',['마법 저항력']],['regen','체력 재생',['기본 체력 재생','5초당 체력 재생']],['heal','회복·보호막',['체력 회복 및 보호막']],['ten','강인함',['강인함']],['ms','이동 속도',['이동 속도']]]],
+];
+const STAT_NAME = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l,names])=>names.forEach(n=>STAT_NAME[n]=k)));
+const STAT_LABEL = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l])=>STAT_LABEL[k]=l));
+/* 아이템 능력치 값 색상: 설명문 효과 색상과 같은 규칙 */
+const STAT_CLASS = {ad:'kp',as:'ksp',crit:'kp',pen:'kp',ls:'kh',ap:'km',ah:'kb',mana:'kmn',mpen:'km',hp:'kh',ar:'ka',mr:'kr',regen:'kh',heal:'kh',ten:'kc',ms:'ksp'};
+const SKEY = k => k==='P' ? '패시브' : k;
+const PATCH_NOTES = 'https://www.leagueoflegends.com/ko-kr/news/game-updates/';
+const LS_BUILDS = 'ttn.v1.local', LS_CACHE = 'ttn.v1.cache', LS_UI = 'ttn.v1.ui', LS_DATA = 'ttn.v1.data', LS_SK = 'ttn.v1.skills';
+const SVG = p => `<svg viewBox="0 0 24 24">${p}</svg>`;
+const ICONS = {
+  back:SVG('<path d="M15 18l-6-6 6-6"/>'), close:SVG('<path d="M6 6l12 12M18 6L6 18"/>'),
+  search:SVG('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
+  full:SVG('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),
+  info:SVG('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  gear:SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  more:SVG('<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>'),
+  pen:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+  check:SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  left:SVG('<path d="M14 6l-6 6 6 6"/>'), right:SVG('<path d="M10 6l6 6-6 6"/>'),
+  plus:SVG('<path d="M12 5v14M5 12h14"/>'),
+  selall:SVG('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.3l2.8 2.8L16.2 9.6"/>'),
+  trash:SVG('<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>'),
+  mark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 10-8 10-8-10z" fill="none" stroke="var(--gold)" stroke-width="2"/><path d="M12 7l4 5-4 5-4-5z" fill="var(--gold)"/></svg>'
+};
+
+/* ------------------------------------------------------------ 상태 */
+let D = null, SK = null, skLoading = null;
+const IX = {champ:{}, item:{}, rune:{}, style:{}, spell:{}, nameToItem:{}, runeStyle:{}, istat:{}};
+const S = {
+  builds: new Map(), prefs:{fav:[], cdm:'aram', nbm:'aram', sets:[]}, loaded:false,
+  q:'', qc:'', qi:'', qa:'', qp:'', imap:'aram', itier:'all', istats:[], icol:false, iset:null, atab:'build',
+  sync:'loading', db:null, readonly:false, offline: navigator.onLine === false,
+  views:[{name:'home'}], tab:'builds', q:'', role:'all',
+  edit:false, panel:null, lastRune:'', picker:null, sheets:[], dirty:new Set(), treeOpen:false,
+  mainDirty:false, localPending:[], toastFn:null, calc:{lvl:11, items:true}, popAt:null, rev:0,
+};
+const timers = {}, chains = {};
+
+/* ------------------------------------------------------------ 유틸 */
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* 숫자 쉼표·한글 정렬: 매번 새 지역화 객체를 만들면 폰에서 100ms 이상 걸려 미리 만든 것만 사용 */
+const fmtGold = n => String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const koCmp = (a,b) => a < b ? -1 : a > b ? 1 : 0;   /* 한글은 유니코드 순서가 가나다순 (정렬 객체 생성 비용 없음) */
+/* 긴 격자: 칸마다 화면 밖이면 그리기를 건너뜀 */
+const lazyGrid = (arr, cls, fn) => `<div class="${cls} lazy">${arr.map(fn).join('')}</div>`;
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+function cho(s){let r='';for(const ch of s){const c=ch.charCodeAt(0)-0xAC00;r+=(c>=0&&c<11172)?CHO[Math.floor(c/588)]:ch;}return r;}
+function match(q, ...names){
+  q = q.replace(/\s+/g,'').toLowerCase(); if(!q) return true;
+  const onlyCho = /^[ㄱ-ㅎ]+$/.test(q);
+  return names.some(n => { if(!n) return false; const s=String(n).replace(/\s+/g,'').toLowerCase(); return s.includes(q) || (onlyCho && cho(s).includes(q)); });
+}
+function rankOf(q, name){ q=q.replace(/\s+/g,'').toLowerCase(); const s=String(name||'').replace(/\s+/g,'').toLowerCase(); return (s.startsWith(q) || cho(s).startsWith(q)) ? 0 : 1; }
+function uid(){ return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function lsGet(k){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch{ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+/* 조사: 받침 있으면 을, 없으면 를 */
+function eul(w){ const c=String(w||'').trim().slice(-1).charCodeAt(0)-0xAC00; return (c>=0&&c<11172&&c%28) ? '을' : '를'; }
+function uiSet(k,v){ const ui=lsGet(LS_UI)||{}; ui[k]=v; lsSet(LS_UI,ui); }
+let toastT;
+function hideToast(){ const t=$('#toast'); if(t && !t.hidden && !S.toastFn){ clearTimeout(toastT); t.hidden = true; } }
+function toast(msg, action){
+  const t=$('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${action?`<button class="toast-act" data-act="toast-act">${esc(action.label)}</button>`:''}`;
+  t.style.paddingRight = action ? '' : '16px';
+  S.toastFn = action ? action.fn : null; t.hidden=false; clearTimeout(toastT);
+  if(!REDUCE()) t.animate([{opacity:0, transform:'translate(-50%,10px)'},{opacity:1, transform:'translate(-50%,0)'}], {duration:180, easing:'cubic-bezier(.2,.8,.2,1)'});
+  toastT=setTimeout(()=>{ t.hidden=true; S.toastFn=null; }, action?5000:1800);
+}
+/* 움직임 줄이기 설정을 따름 */
+const RM = matchMedia('(prefers-reduced-motion: reduce)'); const REDUCE = () => RM.matches || S.motion==='off';
+const MOF = () => S.motion==='fast' ? .6 : 1;
+/* 진동: 안드로이드에서만 동작 (아이폰은 미지원, 일부 앱 화면에서는 막힐 수 있음). 설정 화면에서 끄고 켬 */
+function buzz(p){ if(S.haptic===false) return; try{ if(navigator.vibrate) navigator.vibrate(p); }catch{} }
+/* 화면 테마: 시스템(기기 설정 따름)·라이트·다크. 기기마다 따로 저장 */
+const THEME_BAR = {light:'#ECEFF2', dark:'#0A1016'};
+function applyTheme(){
+  const t = S.theme, root = document.documentElement;
+  if(t==='light' || t==='dark') root.dataset.theme = t; else delete root.dataset.theme;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const q = m.getAttribute('media') || ''; m.content = THEME_BAR[t] || (/dark/.test(q) ? THEME_BAR.dark : THEME_BAR.light); });
+  root.classList.toggle('rm', S.motion==='off');
+}
+/* 화면 크기: 설치형 앱·사이트의 터치 기기에서만 (Claude 페이지·PC는 브라우저 확대 사용) */
+const SCALE_OK = () => !inClaude() && !!document.querySelector('link[rel="manifest"]') && matchMedia('(pointer: coarse)').matches;
+function applyScale(){
+  const m = document.querySelector('meta[name="viewport"]'); if(!m || !SCALE_OK()) return;
+  const s = S.scale || 100, L = matchMedia('(orientation: landscape)').matches;
+  const dw = L ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const want = s===100 ? 'width=device-width,initial-scale=1,viewport-fit=cover' : `width=${Math.round(dw*100/s)},viewport-fit=cover`;
+  if(m.content !== want) m.content = want;
+}
+try{ matchMedia('(orientation: landscape)').addEventListener('change', () => { if(S.scale && S.scale!==100) applyScale(); }); }catch{}
+/* 오프라인 준비: 모든 그림 묶음과 스킬 정보를 미리 받아 기기에 보관 (설치형 앱의 보관함 사용) */
+const OFF_OK = () => !inClaude() && 'serviceWorker' in navigator;
+const reSet = () => { const t = topSheet(); if(t && t.kind==='about') renderSheet(); };
+async function prefetchAll(){
+  if(S.prefetching) return; S.prefetching = {n:0, all:0};
+  const urls = Object.values(D.sheets).map(sh => `${sh.url}?v=${sh.h||D.v}`);
+  S.prefetching.all = urls.length + 1; reSet();
+  let ok = 0, bytes = 0;
+  const sk = await loadSkills(); if(sk) ok++; S.prefetching.n++; reSet();
+  for(const u of urls){
+    try{ const r = await fetch(u); if(r.ok){ bytes += (await r.blob()).size; ok++; } }catch{}
+    S.prefetching.n++; reSet();
+  }
+  const done = ok === urls.length + 1;
+  if(done) uiSet('offline', {rev: D.rev, mb: Math.round(bytes/1e5)/10});
+  S.prefetching = null; reSet();
+  toast(done ? '오프라인 준비를 마쳤습니다' : '일부를 받지 못했습니다. 연결을 확인한 뒤 다시 눌러 주세요');
+}
+/* 화면 꺼짐 방지: 앱이 보이는 동안만 유지 (다른 앱으로 가면 자동 해제, 돌아오면 다시) */
+let wakeL = null;
+async function wakeSync(){
+  const want = !!S.wake && document.visibilityState==='visible';
+  if(want && !wakeL && navigator.wakeLock){
+    try{ wakeL = await navigator.wakeLock.request('screen'); wakeL.addEventListener('release', () => { wakeL = null; }); }catch{ wakeL = null; }
+  } else if(!want && wakeL){ const w = wakeL; wakeL = null; try{ await w.release(); }catch{} }
+  return !!wakeL;
+}
+document.addEventListener('visibilitychange', () => { if(S.wake) wakeSync(); });
+/* 고른 항목이 살짝 튀어 오르며 선택을 확인시킴 */
+function bumpEl(el){ if(!el || REDUCE()) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); el.addEventListener('animationend', () => el.classList.remove('bump'), {once:true}); }
+function ico(sheet, idx, px, cls=''){
+  const s = D && D.sheets[sheet];
+  if(!s || idx==null || idx<0) return `<span class="ico ico-missing ${cls}" style="--px:${px}px" aria-hidden="true">?</span>`;
+  const col = idx % s.cols, row = Math.floor(idx / s.cols);
+  return `<span class="ico ${cls}" aria-hidden="true" style="--px:${px}px;background-image:url('${s.url}?v=${s.h||D.v}');background-size:${s.cols*px}px ${s.rows*px}px;background-position:-${col*px}px -${row*px}px"></span>`;
+}
+/* 크기가 바뀌는 칸(아이템 격자)용: 백분율 위치로 어떤 크기에도 맞춤 */
+function icoFluid(sheet, idx, cls=''){
+  const s = D && D.sheets[sheet];
+  if(!s || idx==null || idx<0) return `<span class="ico ico-missing ${cls}" style="--px:100%" aria-hidden="true">!</span>`;
+  const col = idx % s.cols, row = Math.floor(idx / s.cols);
+  const px = s.cols>1 ? col/(s.cols-1)*100 : 0, py = s.rows>1 ? row/(s.rows-1)*100 : 0;
+  return `<span class="ico ${cls}" aria-hidden="true" style="--px:100%;--bs:${s.cols*100}%;background-image:url('${s.url}?v=${s.h||D.v}');background-position:${px}% ${py}%"></span>`;
+}
+const champIco = (c, px, cls='') => ico('champs', c ? c.i : -1, px, cls);
+const itemIco = (id, px) => ico('items', IX.item[id] ? IX.item[id].i : -1, px);
+const runeIco = (id, px) => { const r = IX.rune[id] || IX.style[id] || D.runes.shards[id]; return ico('runes', r ? r.i : -1, px, 'clear'); };
+const spellIco = (id, px) => ico('spells', IX.spell[id] ? IX.spell[id].i : -1, px);
+const shardShort = id => { const s = D.runes.shards[id]; return s ? `${s.n} ${String(s.val||'').split(' (')[0]}` : ''; };
+
+/* ------------------------------------------------------------ 스킬 세부 수치 (필요할 때 불러오기) */
+function loadSkills(){
+  if(SK) return Promise.resolve(SK);
+  /* [오프라인] 같은 데이터로 만든 스킬 수치가 기기에 있으면 바로 사용, 없으면 받아서 저장 (못 받으면 예전 것이라도 사용) */
+  const tag = `${D.v}|${D.sv}|${D.skrev||D.built}`, kept = lsGet(LS_SK);
+  if(kept && kept.tag===tag && kept.d){ SK = kept.d; return Promise.resolve(SK); }
+  if(!skLoading) skLoading = fetch('skills.json?v=' + encodeURIComponent(tag), {cache:'no-store'}).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(j => { try{ localStorage.setItem(LS_SK, JSON.stringify({tag, d:j})); }catch{} return j; }, e => { if(kept && kept.d) return kept.d; throw e; })
+    .then(j => { SK = j; const pg = PG.find(x => x.__src.kind==='champ'); if(pg){ pg.__src.props.rejump = true; fillSheetPage(pg); } return SK; })
+    .catch(() => { skLoading = null; return null; });
+  return skLoading;
+}
+function skDetail(champId, k){ return SK && SK.champs[champId] ? SK.champs[champId].find(x=>x.k===k) : null; }
+/* ------------------------------------------------------------ [계산기] 레벨·빌드 아이템 기준 최종 능력치와 스킬 계산값
+   능력치 = 기본 + 레벨 성장 + 빌드 아이템 기본 능력치 + 능력치 파편 (아이템 고유 효과는 라바돈의 주문력 증가만 반영)
+   스킬 = 랭크별 기본값 + 계수 × 해당 능력치 (대상 체력 비례 등 내 능력치로 못 구하는 값은 표시 안 함) */
+const CALC_ITEM = {'체력':'hp','공격력':'ad','주문력':'ap','방어력':'ar','마법 저항력':'mr','공격 속도':'as','치명타 확률':'crit','마나':'mp','스킬 가속':'ah','물리 관통력':'leth','생명력 흡수':'ls'};
+const RATIO_STAT = {'추가 공격력':'bad','공격력':'ad','주문력':'ap','추가 주문력':'ap','추가 체력':'bhp','최대 체력':'hp','추가 방어력':'bar','방어력':'ar','추가 마법 저항력':'bmr','마법 저항력':'mr','추가 마나':'bmp','최대 마나':'mp','물리 관통력':'leth'};
+const hasRes = c => { const r = (c.res||'').trim(); return !!(r && r!=='없음' && c.s && c.s[4]>0); };
+function itemTotals(ids){
+  const t = {};
+  for(const id of ids){
+    const it = IX.item[id]; if(!it) continue;
+    for(const line of it.st){
+      const m = String(line).match(/^(.*?)\s*([+\-]?[\d.,]+)(%?)$/); if(!m) continue;
+      const name = m[1].trim(), v = parseFloat(m[2].replace(/,/g,''));
+      if(name==='이동 속도'){ if(m[3]) t.msPct = (t.msPct||0)+v; else t.msFlat = (t.msFlat||0)+v; continue; }
+      const k = CALC_ITEM[name]; if(k) t[k] = (t[k]||0)+v;
+    }
+    const am = String(it.d||'').match(/총 <span class="k\w+">주문력이 (\d+)%/); if(am) t.apMul = (t.apMul||0) + (+am[1])/100;
+  }
+  return t;
+}
+function calcStats(c, lvl, b){
+  const s = c.s, k = (lvl-1)*(0.7025+0.0175*(lvl-1)), g = (bi,gi) => s[bi] + (gi<0 ? 0 : s[gi])*k;
+  const t = b ? itemTotals(b.it) : {};
+  let adapt = 0, shHP = 0, shAS = 0, shAH = 0, shMS = 0;
+  if(b) for(const id of b.runes.sh){ if(id==='5008') adapt++; else if(id==='5011') shHP += 65; else if(id==='5001') shHP += 10 + 170*(lvl-1)/17; else if(id==='5005') shAS += 10; else if(id==='5007') shAH += 8; else if(id==='5010') shMS += 2; }
+  const iAD = t.ad||0, iAP = t.ap||0, toAP = iAP>iAD || (iAP===iAD && ['Mage','Support'].includes(c.tags[0]));
+  const bad = iAD + (toAP ? 0 : 5.4*adapt), ap = (iAP + (toAP ? 9*adapt : 0)) * (1 + (t.apMul||0)), bhp = (t.hp||0) + shHP, res = hasRes(c);
+  return { hp:g(0,1)+bhp, bhp, hpr:g(2,3), mp:res ? g(4,5)+(t.mp||0) : 0, bmp:t.mp||0, mpr:res ? g(6,7) : 0, range:s[8], ad:g(9,10)+bad, bad, ap,
+    as:Math.min(2.5, s[11]*(1 + (s[12]*k + (t.as||0) + shAS)/100)), ar:g(13,14)+(t.ar||0), bar:t.ar||0, mr:g(15,16)+(t.mr||0), bmr:t.mr||0,
+    ms:(s[17] + (t.msFlat||0)) * (1 + ((t.msPct||0) + shMS)/100), ah:(t.ah||0) + shAH, crit:Math.min(100, t.crit||0), ls:t.ls||0, leth:t.leth||0 };
+}
+function calcFor(c, p){ const b = p.bid && S.calc.items ? S.builds.get(p.bid) : null; return {st: calcStats(c, S.calc.lvl, b), base: b ? calcStats(c, S.calc.lvl, null) : null}; }
+const fmtN = (v, dp) => { const r = Number(v.toFixed(dp)); return dp===0 ? fmtGold(r) : String(r); };
+function statCells(c, st, base){
+  const res = hasRes(c) ? c.res.trim() : '';
+  const cells = [['체력','hp',0],['체력 재생','hpr',2], ...(res ? [[res,'mp',0],[res+' 재생','mpr',2]] : []), ['공격력','ad',0],['주문력','ap',0],['공격 속도','as',3],['치명타 확률','crit',0,'%'],['방어력','ar',0],['마법 저항력','mr',0],['이동 속도','ms',0],['사거리','range',0],['스킬 가속','ah',0],['생명력 흡수','ls',0,'%']];
+  return cells.map(([l,k,dp,u='']) => { const v = st[k]||0, d = base ? v - (base[k]||0) : 0; return `<div><span>${esc(l)}</span><b>${fmtN(v,dp)}${u}${d>0.04 ? `<small>+${fmtN(d,dp)}${u}</small>` : ''}</b></div>`; }).join('');
+}
+const CALCIFY = new Map();
+function calcify(key, tt){
+  if(CALCIFY.has(key) && CALCIFY.get(key)[0]===tt) return CALCIFY.get(key)[1];
+  const out = tt.replace(/<span class="v">((?:[^<]|<span class="k\w+">[^<]*<\/span>)*)<\/span>/g, (all, inner) => {
+    const text = inner.replace(/<[^>]+>/g, '');
+    const m = text.match(/^\s*([\d.]+(?:\s*\/\s*[\d.]+)*)\s*((?:\(\+[^()]*\)\s*)+)$/); if(!m) return all;
+    const r = [];
+    for(const g of m[2].match(/\([^()]*\)/g)){
+      const q = g.match(/^\(\+\s*([\d.]+(?:\s*\/\s*[\d.]+)*)%\s*(.+?)\)$/); const key2 = q && RATIO_STAT[q[2].trim()];
+      if(!key2) return all;
+      r.push([q[1].split('/').map(x => parseFloat(x)/100), key2]);
+    }
+    return all + `<span class="calc" data-c='${JSON.stringify({b:m[1].split('/').map(parseFloat), r})}'></span>`;
+  });
+  CALCIFY.set(key, [tt, out]); return out;
+}
+function cdCalcSpan(v){
+  const m = String(v).match(/^([\d.]+(?:\s*\/\s*[\d.]+)*)초$/); if(!m) return '';
+  return `<span class="calc" data-c='${JSON.stringify({cd:m[1].split('/').map(parseFloat)})}'></span>`;
+}
+const fmtC = v => v>=100 ? String(Math.round(v)) : String(Number(v.toFixed(1)));
+const joinR = a => a.every(x => x===a[0]) ? a[0] : a.join(' / ');
+function fillCalc(root, st){
+  root.querySelectorAll('.calc').forEach(el => {
+    const c = el.__c || (el.__c = JSON.parse(el.dataset.c)); let out = '';
+    if(c.cd) out = st.ah>0 ? ` → ${joinR(c.cd.map(v => fmtC(v*100/(100+st.ah))))}초` : '';
+    else {
+      const n = Math.max(c.b.length, ...c.r.map(x => x[0].length)), vals = [];
+      for(let i=0; i<n; i++){ let v = c.b[Math.min(i, c.b.length-1)]; for(const [ps,k] of c.r) v += ps[Math.min(i, ps.length-1)] * (st[k]||0); vals.push(fmtC(v)); }
+      out = ` = ${joinR(vals)}`;
+    }
+    if(el.textContent!==out) el.textContent = out;
+  });
+}
+function updateCalc(){
+  const top = topSheet(); if(!top || top.kind!=='champ') return;
+  const c = IX.champ[top.props.champ]; if(!c) return;
+  const {st, base} = calcFor(c, top.props);
+  const lv = $('#calc-lv'); if(lv) lv.textContent = S.calc.lvl;
+  const g = $('#cstats'); if(g) setHTML(g, statCells(c, st, base));
+  const body = topBody(); if(body) fillCalc(body, st);
+}
+/* 칼바람 보정: 능력치 보정(유리 초록·불리 빨강) + 스킬별 변경 */
+function aramHTML(c){
+  const a = c.a; const sk = k => c.sk.find(s=>s.k===k);
+  const mods = a.m.length ? `<div class="amods">${a.m.map(([l,v,g])=>`<span class="amod ${g?'up':'down'}">${esc(l)} <b>${esc(v)}</b></span>`).join('')}</div>` : '';
+  const ab = a.ab.length ? `<ul class="aab">${a.ab.map(([k,t],i)=>{ const s = k && sk(k); const cont = i>0 && k && a.ab[i-1][0]===k; return `<li>${s && !cont ? skIco(s,28) : '<span class="aab-sp"></span>'}<span>${esc(t)}</span></li>`; }).join('')}</ul>` : '';
+  return `<div class="sec-h">칼바람 보정</div>${mods||ab ? mods+ab : '<div class="none">보정 없음</div>'}`;
+}
+/* 스킬 아이콘: 오른쪽 아래 작은 박스에 P·Q·W·E·R */
+const skIco = (s, px) => `<span class="sico">${ico(s.ss||'skills',s.i,px)}<span class="kbox">${s.k}</span></span>`;
+/* 스킬 한 칸 (베이스 앱 배치): 스킬명 → 그림 + 범위·비용·재사용 대기시간 → 설명. 패시브는 그림 오른쪽에 설명 */
+function skillBlock(c, s){
+  const d = skDetail(c.id, s.k);
+  const meta = d && d.meta && d.meta.length ? `<div class="skm">${d.meta.map(([l,v])=>`<div>${esc(l)}: ${esc(v)}${l==='재사용 대기시간'?cdCalcSpan(v):''}</div>`).join('')}</div>` : '';
+  const desc = !SK ? '<div class="none">세부 수치를 불러오는 중…</div>' : d && d.tt ? `<div class="desc">${calcify(c.id+s.k, d.tt)}</div>` : '<div class="none">세부 정보가 없습니다</div>';
+  return `<section class="skd" id="sk-${s.k}"><h3>${esc(s.n)}</h3>${meta ? `<div class="skd-r">${skIco(s,60)}${meta}</div>${desc}` : `<div class="skd-r">${skIco(s,60)}${desc}</div>`}</section>`;
+}
+
+/* ------------------------------------------------------------ 빌드 모델 */
+function newBuild(champId){
+  const c = IX.champ[champId];
+  return normalize({ id: uid(), champ: champId, title: `${c ? c.n : ''} 빌드`, role:'', mode: S.prefs.nbm==='sr' ? 'sr' : 'aram', it:[], patch: D.patch, created: Date.now(), updated: Date.now() });
+}
+/* 예전 형식(구역별 아이템·스킬 순서·메모)은 읽을 때 새 형식으로 바꾸고, 다음 저장 때 정리 */
+function normalize(b){
+  if(!Array.isArray(b.it)){
+    const o = b.items || {};
+    const flat = [...(o.start||[]),...(o.boots||[]),...(o.core||[]),...(o.situ||[])];
+    b.it = [...new Set(flat)];
+  }
+  b.it = b.it.filter(x=>typeof x==='string').slice(0,40);
+  if(b.max==null){ const p = b.skills && b.skills.pri; b.max = p && ['Q','W','E'].includes(p[0]) ? p[0] : ''; }
+  if(!['Q','W','E','R',''].includes(b.max)) b.max='';
+  delete b.items; delete b.skills; delete b.mu; delete b.note;
+  b.nm = b.nm && typeof b.nm==='object' ? b.nm : {};
+  b.runes = Object.assign({p:'',pr:['','','',''],s:'',sr:[],sh:['','','']}, b.runes||{});
+  if(!Array.isArray(b.runes.pr) || b.runes.pr.length!==4) b.runes.pr=['','','',''];
+  if(!Array.isArray(b.runes.sr)) b.runes.sr=[];
+  if(!Array.isArray(b.runes.sh) || b.runes.sh.length!==3) b.runes.sh=['','',''];
+  b.spells = Array.isArray(b.spells) && b.spells.length===2 ? b.spells : ['',''];
+  b.pin = !!b.pin; b.mode = b.mode==='aram' ? 'aram' : 'sr'; b.title = b.title || '빌드'; b.role = b.role || '';
+  b.patch = b.patch || (D ? D.patch : ''); b.updated = b.updated || Date.now(); b.created = b.created || b.updated;
+  return b;
+}
+/* 빌드 맵: 아이템 목록·구매 가능 여부의 기준 (데이터의 sr·ar = 그 맵 상점에 있는 아이템) */
+const MAPN = {sr:'협곡', aram:'칼바람'};
+const poolKey = b => b && b.mode==='aram' ? 'ar' : 'sr';
+const inPool = (b, id) => { const it = D && D.items[id]; return !it || !!it[poolKey(b)]; };   /* 데이터에 없는 아이템은 따로 '삭제된 아이템'으로 표시 */
+/* 맵 바꾸기: 같은 이름의 그 맵 버전이 있으면 바꿔 담음(예: 오만 → 칼바람 수치판). 없으면 그대로 두고 표시만 */
+function convertMap(b, to){
+  const key = to==='aram' ? 'ar' : 'sr', byName = {};
+  for(const [id, it] of Object.entries(D.items)) if(it[key] && !byName[it.n]) byName[it.n] = id;
+  let moved = 0;
+  b.it = b.it.map(id => { const it = D.items[id]; if(!it || it[key]) return id; const alt = byName[it.n]; if(alt && !b.it.includes(alt)){ moved++; b.nm[alt] = it.n; return alt; } return id; });
+  b.mode = to;
+  return {moved, off: b.it.filter(id => D.items[id] && !D.items[id][key]).length};
+}
+/* 여러 개 고르기: 길게 누르면 시작, 누를 때마다 넣고 빼기. 기기 뒤로 가기·✕·Esc로 끝냄 (뒤로 가기가 앱을 닫지 않도록 기록 한 칸 추가) */
+function selEnter(id){
+  if(S.sel || S.readonly) return;
+  S.sel = new Set([id]);
+  S.selNeedHist = true; S.selHist = false;
+  buzz(15); renderMain();
+}
+function selExit(fromPop){
+  if(!S.sel) return; S.sel = null; S.selNeedHist = false;
+  if(!fromPop && S.selHist){ NAV.exp.push({i:depth(), t:Date.now()}); try{ history.back(); }catch{} }
+  S.selHist = false; renderMain();
+}
+function selToggle(id){
+  if(!S.sel) return; if(S.sel.has(id)) S.sel.delete(id); else S.sel.add(id);
+  if(!S.sel.size) return selExit();
+  buzz(6); renderMain();
+}
+const homeBuildIds = () => [...S.builds.values()].filter(b => { if(!S.q) return true; const c = IX.champ[b.champ]; return match(S.q, b.title, c&&c.n, c&&c.id); }).map(b => b.id);
+/* 설정(폰·PC 공통) 정리: 기본값은 칼바람. 아이템 세트도 여기에 함께 보관 */
+function normSets(a){
+  return (Array.isArray(a) ? a : []).filter(s => s && s.id).slice(0, 60).map(s => ({id:String(s.id), n:String(s.n||'세트').slice(0,30), map:s.map==='sr'?'sr':'aram', it:(Array.isArray(s.it)?s.it:[]).filter(x=>typeof x==='string').slice(0,40), updated:+s.updated||0}));
+}
+function normPrefs(p){ p = p || {}; return {fav: Array.isArray(p.fav) ? [...p.fav] : [], cdm: p.cdm==='sr' ? 'sr' : 'aram', nbm: p.nbm==='sr' ? 'sr' : 'aram', sets: normSets(p.sets)}; }
+/* 다른 맵으로 옮길 때: 같은 이름의 그 맵 버전으로 바꿈 (없으면 그대로) */
+function convertIds(ids, mode){
+  const key = mode==='sr' ? 'sr' : 'ar', byName = {};
+  for(const [id, it] of Object.entries(D.items)) if(it[key] && !byName[it.n]) byName[it.n] = id;
+  const out = [];
+  for(const id of ids){ const it = D.items[id]; let v = id; if(it && !it[key] && byName[it.n]) v = byName[it.n]; if(!out.includes(v)) out.push(v); }
+  return out;
+}
+function toDoc(b){ const o = clone(b); delete o.id; return o; }
+function cur(){ return S.views[S.views.length-1]; }
+function curBuild(){ const v=cur(); return v.name==='build' ? S.builds.get(v.id) : null; }
+function topSheet(){ return S.sheets[S.sheets.length-1]; }
+const cnOf = b => { const c = IX.champ[b.champ]; return c ? c.n : ''; };
+const sortBuilds = list => list.sort((a,b)=> (b.pin-a.pin) || (S.bsort==='new' ? (b.created-a.created) : S.bsort==='name' ? (koCmp(cnOf(a), cnOf(b)) || (b.updated-a.updated)) : (b.updated-a.updated)));
+const buildsOf = champId => sortBuilds([...S.builds.values()].filter(b=>b.champ===champId));
+
+/* ------------------------------------------------------------ [설치형 앱] GitHub 비공개 저장소 동기화
+   Claude 밖(설치형 앱)에서만 사용. 토큰은 이 기기에만 저장. 빌드 전체를 builds.json 한 파일로 주고받음
+   같은 빌드를 두 기기에서 고치면 나중에 고친 쪽, 지운 빌드는 지운 시각 기록으로 다른 기기에도 반영
+   Claude 저장소와 같은 사용법(collection·doc·onSnapshot·set·delete)으로 감싸 나머지 코드는 그대로 사용 */
+const LS_GH = 'ttn.v1.gh', LS_GHM = 'ttn.v1.ghm';
+const inClaude = () => !!(window.claude && window.claude.use);   /* Claude 페이지 안인지 (실행 시점마다 확인) */
+const STANDALONE = (() => { try{ return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }catch{ return false; } })();
+const APP_URL = 'https://1hyun-you.github.io/';   /* 설치형 앱 주소 (GitHub Pages) — Claude 페이지 정보 화면에 안내 */
+const SYNC_REPO = 'tem-tree-sync';
+function ghOwner(){ const m = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i); return m ? m[1] : ''; }
+function ghCfg(){
+  const c = lsGet(LS_GH); if(!c || !c.token) return null;
+  return {token:c.token, owner:c.owner || ghOwner(), repo:c.repo || SYNC_REPO, api:c.api || 'https://api.github.com'};
+}
+const b64e = s => { const u = new TextEncoder().encode(s); let bin = ''; for(let i=0; i<u.length; i+=0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(bin); };
+const b64d = s => { const bin = atob(String(s).replace(/\s/g, '')); const u = new Uint8Array(bin.length); for(let i=0; i<bin.length; i++) u[i] = bin.charCodeAt(i); return new TextDecoder().decode(u); };
+function ghFetch(cfg, path, opt={}){
+  const headers = Object.assign({'Authorization':'Bearer '+cfg.token, 'Accept':'application/vnd.github+json'}, opt.headers||{});
+  return fetch(`${cfg.api}/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}${path}`, Object.assign({cache:'no-store'}, opt, {headers}));
+}
+function ghStore(cfg){
+  const FILE = '/contents/builds.json', DAY = 86400000;
+  const m = lsGet(LS_GHM) || {};
+  const st = {builds:m.builds||{}, del:m.del||{}, prefs:m.prefs||null, prefsT:m.prefsT||0, sha:m.sha||null, etag:m.etag||null, last:m.last||0};
+  let pending = !!m.pending, edits = 0, pushing = false, again = false, pushT = 0, retryT = 0, fail = '', pulled = false, authToast = false;
+  const subs = [], psubs = [];
+  const save = () => lsSet(LS_GHM, {builds:st.builds, del:st.del, prefs:st.prefs, prefsT:st.prefsT, sha:st.sha, etag:st.etag, last:st.last, pending});
+  const status = () => fail==='auth' ? 'error' : fail==='net' ? 'offline' : (pending || pushing) ? 'saving' : pulled ? 'synced' : 'loading';
+  const report = () => { if(S.db!==api) return; if(!S.dirty.size || status()!=='synced') S.sync = status(); renderTop(); };
+  const emit = fromCache => {
+    const docs = Object.entries(st.builds).map(([id, b]) => ({id, exists:true, data:() => b}));
+    subs.forEach(cb => { try{ cb({docs, metadata:{fromCache}}); }catch(e){ console.error(e); } });
+    report();
+  };
+  const emitPrefs = () => { if(st.prefs) psubs.forEach(cb => { try{ cb({exists:true, data:() => st.prefs}); }catch{} }); };
+  function authFail(code){
+    fail = 'auth'; report();
+    if(!authToast){ authToast = true; toast(code===404 ? '동기화 저장소에 접근할 수 없습니다. 설정 화면에서 토큰을 확인해 주세요' : '동기화 토큰이 맞지 않거나 만료되었습니다. 설정 화면에서 다시 연결해 주세요'); }
+  }
+  function netFail(){ fail = 'net'; report(); clearTimeout(retryT); retryT = setTimeout(() => { pull(false).then(() => { if(pending) schedule(0); }); }, 20000); }
+  /* 받은 내용과 이 기기 내용 합치기 */
+  function merge(r){
+    let changed = false, prefsChanged = false, need = false;
+    const rb = r.builds||{}, rd = r.del||{};
+    for(const [id, t] of Object.entries(rd)) if(!(st.del[id] >= t)) st.del[id] = t;
+    for(const [id, t] of Object.entries(st.del)){
+      if(!(rd[id] >= t)) need = true;
+      if(st.builds[id] && (st.builds[id].updated||0) <= t){ delete st.builds[id]; changed = true; }
+    }
+    for(const [id, b] of Object.entries(rb)){
+      if(st.del[id] >= (b.updated||0)) continue;
+      const l = st.builds[id];
+      if(!l || (b.updated||0) > (l.updated||0)){ st.builds[id] = b; changed = true; }
+      else if((l.updated||0) > (b.updated||0)) need = true;
+    }
+    for(const id of Object.keys(st.builds)) if(!rb[id]) need = true;
+    if((r.prefsT||0) > st.prefsT){ st.prefs = r.prefs; st.prefsT = r.prefsT; prefsChanged = true; }
+    else if(st.prefsT > (r.prefsT||0)) need = true;
+    return {changed, prefsChanged, need};
+  }
+  async function pull(force){
+    let res;
+    try{ res = await ghFetch(cfg, FILE, {headers: !force && st.etag ? {'If-None-Match': st.etag} : {}}); }catch{ netFail(); return; }
+    if(res.status===304){ fail = ''; pulled = true; st.last = Date.now(); save(); report(); return; }
+    if(res.status===401 || res.status===403){ authFail(res.status); return; }
+    if(res.status===404){   /* 파일이 아직 없음(첫 사용) → 이 기기 내용으로 만듦. 저장소 자체가 없으면 올릴 때 다시 404 */
+      fail = ''; pulled = true; st.sha = null; st.etag = null; pending = true; save(); report(); schedule(0); return;
+    }
+    if(!res.ok){ netFail(); return; }
+    let j; try{ j = await res.json(); }catch{ netFail(); return; }
+    st.sha = j.sha || null; st.etag = res.headers.get('ETag');
+    let remote = {}; try{ remote = JSON.parse(b64d(j.content||'')); }catch{}
+    const r = merge(remote); fail = ''; pulled = true; st.last = Date.now();
+    if(r.need){ pending = true; schedule(300); }
+    save();
+    if(r.changed) emit(false); else report();
+    if(r.prefsChanged) emitPrefs();
+  }
+  function schedule(ms=1500){ clearTimeout(pushT); pushT = setTimeout(push, ms); }
+  async function push(keep){
+    if(pushing){ again = true; return; }
+    if(!pending) return;
+    pushing = true; report();
+    try{
+      for(let n=0; n<4; n++){
+        for(const [id, t] of Object.entries(st.del)) if(Date.now() - t > 120*DAY) delete st.del[id];   /* 오래된 삭제 기록 정리 */
+        const sent = edits;   /* 이 내용을 만든 시점의 변경 번호: 올리는 사이 새 변경이 생기면 끝난 뒤 한 번 더 올림 */
+        const doc = {app:'템트리 노트', format:1, at:Date.now(), builds:st.builds, del:st.del, prefs:st.prefs, prefsT:st.prefsT};
+        const body = JSON.stringify(Object.assign({message:'빌드 저장', content:b64e(JSON.stringify(doc))}, st.sha ? {sha:st.sha} : {}));
+        let res;
+        try{ res = await ghFetch(cfg, FILE, {method:'PUT', headers:{'Content-Type':'application/json'}, body, keepalive: !!keep && body.length < 60000}); }catch{ netFail(); return; }
+        if(res.ok){ let j = {}; try{ j = await res.json(); }catch{} st.sha = j.content && j.content.sha || st.sha; st.etag = null; if(edits===sent) pending = false; else again = true; fail = ''; st.last = Date.now(); save(); return; }
+        if(res.status===409 || res.status===422){ await pull(true); if(fail) return; continue; }   /* 다른 기기가 먼저 저장 → 받아 합친 뒤 다시 */
+        if(res.status===401 || res.status===403 || res.status===404){ authFail(res.status); return; }
+        netFail(); return;
+      }
+      netFail();
+    } finally { pushing = false; report(); if(again){ again = false; schedule(400); } }
+  }
+  const api = {
+    kind:'github', owner:cfg.owner, repo:cfg.repo, status, last:() => st.last,
+    collection(){ return {onSnapshot(cb){ subs.push(cb); setTimeout(() => emit(true), 0); return () => {}; }}; },
+    doc(path){
+      const [col, id] = path.split('/');
+      return {
+        set(body){ if(col==='builds'){ st.builds[id] = clone(body); delete st.del[id]; } else { st.prefs = clone(body); st.prefsT = Date.now(); } pending = true; edits++; save(); schedule(); report(); return Promise.resolve(); },
+        delete(){ if(col==='builds'){ delete st.builds[id]; st.del[id] = Date.now(); } pending = true; edits++; save(); schedule(); report(); return Promise.resolve(); },
+        onSnapshot(cb){ psubs.push(cb); setTimeout(emitPrefs, 0); return () => {}; },
+      };
+    },
+    sync(){ return pull(true).then(() => { if(pending && !fail) return push(); }); },
+  };
+  /* 여는 순간·앱으로 돌아올 때·45초마다(바뀐 게 없으면 요청 횟수에 포함되지 않는 확인 방식) 받아오고, 앱을 떠날 때 바로 올림 */
+  setTimeout(() => pull(false), 0);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible') pull(false); else if(pending){ clearTimeout(pushT); push(true); } });
+  window.addEventListener('online', () => { pull(false).then(() => { if(pending) schedule(0); }); });
+  setInterval(() => { if(document.visibilityState==='visible' && !pushing) pull(false); }, 45000);
+  return api;
+}
+/* 앱 설치 (크롬·엣지가 설치를 제안할 때 받아 두었다가 정보 화면 버튼으로 실행) */
+let INSTALL = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); INSTALL = e; const t = topSheet(); if(t && t.kind==='about') renderSheet(); });
+window.addEventListener('appinstalled', () => { INSTALL = null; toast('앱을 설치했습니다'); const t = topSheet(); if(t && t.kind==='about') renderSheet(); });
+
+/* ------------------------------------------------------------ 저장소 */
+async function initStore(){
+  const cached = lsGet(LS_CACHE);
+  if(cached && Array.isArray(cached.builds)){ cached.builds.forEach(b=>S.builds.set(b.id, normalize(b))); if(cached.prefs) S.prefs=normPrefs(cached.prefs); }
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch { db = null; }
+  if(!db && !inClaude()){ const c = ghCfg(); if(c && c.owner) db = ghStore(c); }   /* 설치형 앱: 토큰이 있으면 GitHub 동기화 */
+  if(!db){
+    S.sync = 'local'; S.builds = new Map();
+    const loc = lsGet(LS_BUILDS) || {builds:[],prefs:{fav:[]}};
+    (loc.builds||[]).forEach(b=>S.builds.set(b.id, normalize(b))); S.prefs = normPrefs(loc.prefs||{});
+    S.loaded = true; refresh(); return;
+  }
+  S.db = db;
+  db.collection('builds').onSnapshot(snap => {
+    const next = new Map();
+    snap.docs.forEach(d => { if(d.exists) next.set(d.id, normalize(Object.assign(clone(d.data()), {id:d.id}))); });
+    for(const id of S.dirty){ if(S.builds.has(id)) next.set(id, S.builds.get(id)); }
+    const cb = curBuild(); if(cb && S.edit && next.has(cb.id)) next.set(cb.id, cb);  /* 편집 중인 빌드는 화면 상태 유지 */
+    S.builds = next;
+    const first = !S.loaded; S.loaded = true;
+    if(!S.dirty.size) S.sync = snap.metadata && snap.metadata.fromCache ? 'loading' : 'synced';
+    if(first) checkLocalImport();
+    cacheLocal(); refresh();
+  }, () => { S.sync = 'error'; renderTop(); toast('저장소 연결이 끊겼습니다. 새로 고침해 주세요'); });
+  db.doc('meta/prefs').onSnapshot(d => {
+    if(d.exists){ S.prefs = normPrefs(d.data()); cacheLocal(); refresh(); }
+  }, () => {});
+}
+function checkLocalImport(){
+  const loc = lsGet(LS_BUILDS);
+  S.localPending = loc && Array.isArray(loc.builds) ? loc.builds.filter(b => b && b.id && b.champ && !S.builds.has(b.id)) : [];
+}
+/* 기기 저장 + 내용이 실제로 바뀌었을 때만 번호를 올려, 아래에 쌓인 화면이 낡았는지 판단 (한가할 때 갱신) */
+let lastCache = '';
+function cacheLocal(){
+  const json = JSON.stringify({builds:[...S.builds.values()], prefs:S.prefs});
+  if(json !== lastCache){ lastCache = json; S.rev++; idleFresh(); }
+  try{ localStorage.setItem(S.db ? LS_CACHE : LS_BUILDS, json); }catch{}
+}
+/* 변경 기록: 화면은 즉시, 저장은 0.65초 모아서 한 번 */
+function touch(b, {render=true, keepPatch=false}={}){
+  if(S.readonly) return;
+  b.updated = Date.now(); if(!keepPatch) b.patch = D.patch;
+  S.dirty.add(b.id); S.sync = 'saving'; renderTop();
+  clearTimeout(timers[b.id]); timers[b.id] = setTimeout(()=>flush(b.id), 650);
+  cacheLocal();
+  if(render){ if(mainCovered()) markMain(); else renderMain(); }
+}
+function flush(id){
+  clearTimeout(timers[id]); delete timers[id];
+  const b = S.builds.get(id); if(!b) return Promise.resolve();
+  const body = toDoc(b);
+  const p = (chains[id] || Promise.resolve()).then(() => S.db ? S.db.doc('builds/'+id).set(body) : (cacheLocal(), null))
+    .then(() => { if(!timers[id]) S.dirty.delete(id); if(!S.dirty.size) S.sync = S.db ? (S.db.status ? S.db.status() : 'synced') : 'local'; renderTop(); })
+    .catch(e => handleWriteError(e));
+  chains[id] = p; return p;
+}
+function flushAll(){ Object.keys(timers).forEach(flush); }
+function handleWriteError(e){
+  const code = e && e.code;
+  if(code === 'invalid_argument' || code === 'not_granted'){ S.readonly = true; S.edit = false; toast('이 계정에는 저장 권한이 없습니다'); }
+  else if(code === 'quota_exceeded'){ toast('저장 공간이 가득 찼습니다. 오래된 빌드를 지워 주세요'); }
+  else if(code === 'unavailable'){ toast('연결이 불안정합니다. 잠시 후 다시 저장합니다'); }
+  else toast('저장하지 못했습니다. 연결을 확인해 주세요');
+  S.sync = 'error'; refresh();
+}
+async function removeBuild(id){
+  clearTimeout(timers[id]); delete timers[id]; S.dirty.delete(id);
+  S.builds.delete(id); cacheLocal();
+  if(S.db){ try{ await (chains[id]||Promise.resolve()); await S.db.doc('builds/'+id).delete(); }catch(e){ handleWriteError(e); } }
+}
+let prefT;
+function savePrefs(){
+  cacheLocal(); clearTimeout(prefT);
+  prefT = setTimeout(() => { if(S.db) S.db.doc('meta/prefs').set({fav:S.prefs.fav, cdm:S.prefs.cdm==='sr'?'sr':'aram', nbm:S.prefs.nbm==='sr'?'sr':'aram', sets:S.prefs.sets||[]}).catch(handleWriteError); }, 400);
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState==='hidden') flushAll(); });
+window.addEventListener('online', () => { S.offline=false; renderTop(); });
+window.addEventListener('offline', () => { S.offline=true; renderTop(); });
+
+/* ------------------------------------------------------------ 탐색: 기기 뒤로·앞으로, 마우스 옆 버튼, 밀기 제스처를 앱 안에서 한 단계씩 처리
+   기록 한 칸 = 페이지 하나. 앱 안에서 뒤로 갈 때는 화면을 먼저 바꾸고(기다림 없음) 브라우저 기록은 뒤에서 맞춤 */
+const SID = Math.random().toString(36).slice(2, 8);
+let histOK = true;
+const NAV = {fwd: [], hi: 0, exp: [], swipe: null};   /* hi: 브라우저 기록이 있을(곧 갈) 단계, exp: 앱이 직접 움직여 곧 도착할 기록 */
+const depth = () => S.views.length - 1 + S.sheets.length;
+const histSynced = () => histOK && NAV.hi === depth();
+/* 홈에서 기기 뒤로 가기: 첫 번째는 '한 번 더 누르면 종료' 알림, 2초 안에 한 번 더 누르면 종료
+   홈 맨 앞 기록 위에 보호 칸(guard)을 하나 두고, 사용자가 누른 직후에만 추가 (누르지 않고 추가한 기록은 크롬이 건너뜀) */
+const GUARD_ON = () => histOK && !inClaude() && (STANDALONE || matchMedia('(pointer: coarse)').matches);
+function ensureGuard(){
+  if(!GUARD_ON() || depth()!==0 || S.sel) return;
+  const st = history.state; if(st && (st.guard || st.sel || st.i>0)) return;
+  try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{}
+}
+['click','keydown'].forEach(t => document.addEventListener(t, ensureGuard, true));
+document.addEventListener('pointerup', e => { if(e.pointerType!=='mouse') ensureGuard(); }, true);
+function pushHist(){
+  NAV.fwd = [];
+  if(GUARD_ON() && depth()===1){ const cs = history.state; if(cs && cs.i===0 && !cs.guard && !cs.sel){ try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{} } }
+  if(histOK){ try{ history.pushState({ttn:SID, i:depth()}, ''); NAV.hi = depth(); }catch{ histOK = false; } }
+  syncCW();
+}
+function histGo(d){ if(!histOK || !d) return; NAV.hi += d; NAV.exp.push({i:NAV.hi, t:Date.now()}); try{ history.go(d); }catch{} }
+const rewind = k => histGo(-k);
+function stepBack(){
+  if(S.sheets.length){ NAV.fwd.push({t:'s', s:S.sheets.pop()}); return 'sheet'; }
+  if(S.views.length>1){ flushAll(); NAV.fwd.push({t:'v', v:S.views.pop()}); S.edit = false; resetEditState(); return 'view'; }
+  return '';
+}
+function stepForward(){
+  const e = NAV.fwd.pop(); if(!e) return '';
+  if(e.t==='s'){ S.sheets.push(e.s); return 'sheet'; }
+  flushAll(); S.views.push(e.v); S.edit = false; resetEditState(); return 'view';
+}
+function applyNav(dir){ syncPages(dir); syncCW(); }
+window.addEventListener('popstate', e => {
+  const st = e.state, target = st && st.ttn===SID ? st.i : 0, now = Date.now();
+  NAV.exp = NAV.exp.filter(x => now - x.t < 2500);
+  if(NAV.exp.length && NAV.exp[0].i===target){ NAV.exp.shift(); return; }   /* 앱이 이미 화면을 맞춰 둔 이동 */
+  if(S.sel && !(st && st.sel)){ S.selHist = false; selExit(true); if(target===depth()) return; }   /* 여러 개 고르기 중 뒤로 = 고르기 끝 */
+  if(GUARD_ON() && target===0 && depth()===0 && !(st && (st.guard || st.sel))){ S.exitAt = Date.now(); toast('한 번 더 누르면 종료됩니다'); return; }   /* 홈 맨 앞: 다음 뒤로 가기는 앱 종료 */
+  NAV.exp = []; NAV.hi = target;
+  if(S.panel && target < depth()){   /* 팝업이 열려 있으면 화면은 그대로 두고 팝업만 닫은 뒤 기록을 다시 채움 */
+    closePanel(); NAV.fwd = [];
+    if(histOK){ try{ history.pushState({ttn:SID, i:depth()}, ''); NAV.hi = depth(); }catch{} }
+    return;
+  }
+  let dir = '', n = 0, guard = 60;
+  while(depth() > target && guard--){ if(stepBack()) n++; dir = 'back'; }
+  while(depth() < target && NAV.fwd.length && guard--){ if(stepForward()) n++; dir = 'fwd'; }
+  if(depth()!==target) histGo(depth() - target);   /* 기록과 화면이 어긋나면 기록 쪽을 맞춤 */
+  if(n) applyNav(dir); else syncCW();
+});
+function closePanel(){ if(!S.panel) return false; S.panel = null; renderMain(); syncCW(); return true; }
+function navBack(){ if(S.sel){ selExit(); return; } if(closePanel() || !depth()) return; const synced = histSynced(); if(stepBack()){ applyNav('back'); if(synced) rewind(1); } NAV.swipe = null; }
+function navForward(){ if(!NAV.fwd.length) return; const synced = histSynced(); if(stepForward()){ applyNav('fwd'); if(synced) histGo(1); } }
+function resetEditState(){ S.panel=null; S.lastRune=''; }
+function go(view){ flushAll(); S.views.push(view); S.edit = !!view.edit; resetEditState(); pushHist(); syncPages('fwd'); }
+function openSheet(kind, props={}){ S.sheets.push({kind, props}); pushHist(); syncPages('fwd'); }
+function replaceSheet(kind, props={}){ if(!S.sheets.length) return openSheet(kind, props); S.sheets[S.sheets.length-1] = {kind, props}; syncPages('fwd'); }
+function closeSheet(){ navBack(); }
+function closeAllSheets(){
+  const k = S.sheets.length; if(!k) return;
+  const synced = histSynced();
+  while(S.sheets.length) NAV.fwd.push({t:'s', s:S.sheets.pop()});
+  applyNav('back'); if(synced) rewind(k);
+}
+/* 안드로이드 크롬: 기기 뒤로 가기를 페이지가 받을 수 있으면 앱 안에서 한 단계 뒤로 (받지 못하는 환경에서는 영향 없음) */
+let CW = null;
+function syncCW(){
+  if(!('CloseWatcher' in window) || !/Android/i.test(navigator.userAgent)) return;
+  try{
+    if(depth()>0 && !CW){ CW = new CloseWatcher(); CW.onclose = () => { CW = null; navBack(); }; }
+    else if(depth()===0 && CW){ const c = CW; CW = null; c.destroy(); }
+  }catch{ CW = null; }
+}
+const KB = {on:false};
+document.addEventListener('keydown', e => { if(e.key==='Tab' || e.key==='Enter' || e.key===' ') KB.on = true; }, true);
+document.addEventListener('pointerdown', () => { KB.on = false; }, true);
+/* 마우스 옆 버튼(뒤로·앞으로) */
+document.addEventListener('mousedown', e => { if(e.button===3 || e.button===4) e.preventDefault(); });
+document.addEventListener('mouseup', e => { if(e.button===3){ e.preventDefault(); navBack(); } else if(e.button===4){ e.preventDefault(); navForward(); } });
+
+/* ------------------------------------------------------------ 렌더링 */
+function refresh(){
+  if(!D) return;
+  idleFresh();
+  if(DRAG.st && DRAG.st.on){ S.mainDirty = true; return; }   /* 끌어서 옮기는 중에는 다시 그리지 않음 */
+  if(mainCovered()){ markMain(); renderTop(); return; }      /* 위 페이지가 덮고 있으면 한가할 때 그림 */
+  const ae = document.activeElement;
+  if(ae && (ae.tagName==='INPUT' || ae.tagName==='TEXTAREA')){ renderTop(); return; }
+  render();
+}
+function render(){ renderTop(); renderMain(); }
+function renderMain(){ const pg = viewPage(); if(pg) renderView(pg); }
+function dirtyMain(){ PG.forEach(pg => { if(pg.__sec && pg.__src.name!=='home') pg.__sec.key = ''; }); }
+function setHTML(el, html){ if(el.__h !== html){ el.innerHTML = html; el.__h = html; } }
+/* 보기 페이지가 낡았는지: 데이터가 바뀌었거나(번호 비교) 화면 상태만 바뀐 경우 */
+const stale = pg => !!(pg && pg.isView && (pg.__rev !== S.rev || (pg===viewPage() && S.mainDirty)));
+/* 바뀐 부분만 다시 그림: 빌드 화면은 머리·아이템·룬 구역별로 비교해 달라진 구역만 교체 (탭할 때 화면 전체를 다시 배치하지 않음) */
+function renderView(pg){
+  const v = pg.__src, app = pg.app;
+  if(pg===viewPage()) S.mainDirty = false;
+  pg.__rev = S.rev;
+  setHTML(pg.tbar, viewTopHTML(v));
+  if(!D) return;
+  const sec = pg.__sec || (pg.__sec = {key:'', html:{}});
+  const whole = (key, html) => { if(sec.key===key && sec.html.all===html) return; app.innerHTML = html; sec.key = key; sec.html = {all:html}; };
+  if(v.name==='home') renderHome(pg, sec);
+  else if(v.name==='champ') whole('champ:'+v.id, champHTML(v.id));
+  else if(v.name==='build'){
+    const fab = pg.fab; fab.hidden = !!S.readonly; fab.classList.toggle('on', !!S.edit);
+    setHTML(fab, S.edit ? `${ICONS.check}편집 완료` : `${ICONS.pen}편집`);
+    const b = S.builds.get(v.id);
+    if(!b){ whole('loading', '<div class="loading">빌드를 불러오는 중…</div>'); if(S.loaded) setTimeout(() => dropView(v), 0); return; }
+    patchBuild(app, b, sec);
+  }
+}
+/* 보고 있던 빌드가 다른 기기에서 지워짐: 그 화면을 닫음 */
+function dropView(v){
+  const i = S.views.indexOf(v); if(i<1 || S.builds.has(v.id)) return;
+  S.views.length = i; S.sheets = []; S.edit = false; resetEditState(); NAV.fwd = [];
+  applyNav('back'); if(histOK && NAV.hi > depth()) rewind(NAV.hi - depth());
+}
+function patchBuild(app, b, SEC){
+  const E = S.edit && !S.readonly, c = IX.champ[b.champ];
+  const parts = [['b-head', headHTML(b,E,c)], ['b-items', itemsCard(b)], ['b-runes', runesCard(b)]];
+  const key = 'build:'+b.id; const wrap = $('#bv');
+  if(SEC.key!==key || !wrap){
+    app.innerHTML = `<div class="stack${E?' edit':''}" id="bv">${parts.map(x=>x[1]).join('')}</div>`;
+    SEC.key = key; SEC.html = Object.fromEntries(parts);
+    SEC.rk = runeKey(b);
+  } else {
+    wrap.classList.toggle('edit', E);
+    for(const [id,h] of parts){
+      if(SEC.html[id]===h) continue;
+      const el = document.getElementById(id); SEC.html[id] = h; if(!el) continue;
+      if(id==='b-runes' && SEC.rk===runeKey(b)) patchRunes(el, b, E);   /* 같은 계열 안에서 고르기: 표시만 바꿈 (트리 전체 재배치 없음) */
+      else el.outerHTML = h;
+    }
+    SEC.rk = runeKey(b);
+  }
+  $('#b-head').querySelectorAll('[data-act="panel"]').forEach(el => { const on = String(S.panel===el.dataset.v); if(el.getAttribute('aria-expanded')!==on) el.setAttribute('aria-expanded', on); });
+  syncPop(b, c, E);
+}
+const runeKey = (b) => `${b.runes.p}|${b.runes.s}`;
+function patchRunes(root, b, E){
+  const R = b.runes;
+  root.querySelectorAll('.ro').forEach(el => {
+    const d = el.dataset, v = d.v;
+    const on = d.kind ? (d.kind==='p' ? R.p : R.s)===v : d.row!=null ? R.sh[+d.row]===v : d.slot!=null ? R.pr[+d.slot]===v : R.sr.includes(v);
+    if(el.classList.contains('on')!==on){ el.classList.toggle('on', on); el.setAttribute('aria-pressed', on); if(on) bumpEl(el); }
+  });
+  const cap = runeCapHTML(b, E), old = root.querySelector('.rcap');
+  if(old){ if(cap) { if(old.outerHTML!==cap) old.outerHTML = cap; } else old.remove(); }
+  else if(cap) root.insertAdjacentHTML('beforeend', cap);
+}
+function syncHTML(){
+  const m = {loading:'연결 중', synced:'동기화됨', saving:'저장 중', local:'이 기기에만 저장', error:'저장 오류'};
+  const s = S.offline ? 'offline' : S.sync; const label = S.offline ? '오프라인' : (m[S.sync]||'');
+  return `<button class="sync" data-s="${s}" data-act="sync-info" title="${label}" aria-label="저장 상태: ${label}"><i></i><span class="lbl">${label}</span></button>`;
+}
+function viewTopHTML(v){
+  const fullOK = !STANDALONE && document.fullscreenEnabled && !document.fullscreenElement;
+  let html;
+  if(v.name==='home' && S.sel){
+    const ids = homeBuildIds(), all = ids.length && ids.every(id => S.sel.has(id));
+    return `<button class="iconbtn" data-act="sel-cancel" aria-label="고르기 끝내기">${ICONS.close}</button><div class="top-title">${S.sel.size}개 선택</div><button class="iconbtn" data-act="sel-all" aria-pressed="${!!all}" aria-label="${all?'전체 선택 해제':'전체 선택'}">${ICONS.selall}</button><button class="iconbtn danger" data-act="sel-del" aria-label="고른 빌드 삭제">${ICONS.trash}</button>`;
+  }
+  if(v.name==='home'){
+    html = `<div class="top-title"><div class="brand">${ICONS.mark}<b>템트리 노트</b></div></div>${syncHTML()}${D?`<button class="iconbtn" data-act="about" aria-label="설정">${ICONS.gear}</button>`:''}`;
+  } else if(v.name==='champ'){
+    const c=IX.champ[v.id];
+    html = `<button class="iconbtn" data-act="back" aria-label="뒤로">${ICONS.back}</button><div class="top-title">${esc(c?c.n:'')}</div>${syncHTML()}`;
+  } else {
+    const b=S.builds.get(v.id); const c=b&&IX.champ[b.champ];
+    html = `<button class="iconbtn" data-act="back" aria-label="뒤로">${ICONS.back}</button><div class="top-title">${esc(c?c.n+' 빌드':'빌드')}</div>${syncHTML()}${S.readonly?'':`<button class="iconbtn" data-act="build-menu" aria-label="더보기">${ICONS.more}</button>`}`;
+  }
+  if(fullOK) html += `<button class="iconbtn" data-act="fullscreen" aria-label="전체 화면">${ICONS.full}</button>`;
+  return html;
+}
+/* 상단 바: 쌓인 보기 페이지마다 자기 상단 바 (저장 상태 표시 갱신) */
+function renderTop(){ PG.forEach(pg => { if(pg.isView) setHTML(pg.tbar, viewTopHTML(pg.__src)); }); }
+
+/* 홈 */
+const TABS = ['builds','items','champs'], TAB_N = {builds:'내 빌드', items:'아이템', champs:'챔피언'};
+const tabIdx = () => Math.max(0, TABS.indexOf(S.tab));
+const SRCH = (id, ph, v) => `<label class="search">${ICONS.search}<input id="${id}" type="search" autocomplete="off" enterkeyhint="search" placeholder="${ph}" value="${esc(v||'')}"></label>`;
+function homeSkel(){
+  return `<div class="hm" id="hm">
+    <div class="hm-top"><div id="hm-ban" class="stack" style="gap:8px"></div>
+      <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
+    <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
+      <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="hm-head">${SRCH('q-items','아이템 이름 (초성 가능)',S.qi)}<div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div id="it-filters" class="it-pane-f"></div><div id="it-list"></div></div></section>
+      <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
+    </div></div>
+    <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
+    <div class="setbar" id="setbar" hidden><div class="wrap">
+      <div class="sb-h"><input id="f-setname" class="sb-name" maxlength="30" enterkeyhint="done" aria-label="세트 이름"><span class="sb-meta" id="sb-meta"></span><button class="iconbtn danger" data-act="set-del" aria-label="세트 삭제">${ICONS.trash}</button></div>
+      <div id="sb-tray"></div>
+      <div class="sb-act"><button class="btn" data-act="it-collect">담기 끝</button><button class="btn primary" data-act="set-apply" id="sb-apply">빌드에 적용</button></div>
+    </div></div>
+  </div>`;
+}
+const HM = {ik:'', ck:''};
+function renderHome(pg, sec){
+  const app = pg.app;
+  if(sec.key!=='home' || !app.querySelector('#hm')){ pg.classList.add('home-pg'); app.innerHTML = homeSkel(); sec.key = 'home'; sec.html = {}; HM.ik = HM.ck = ''; }
+  const q = s => app.querySelector(s), hm = q('#hm');
+  hm.style.setProperty('--td', S.motion==='fast' ? '.17s' : '.28s');
+  hm.classList.toggle('col', !!(S.icol && S.tab==='items'));
+  setHTML(q('#hm-ban'), homeBanners());
+  app.querySelectorAll('.hm-seg [data-act=tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tab)));
+  setHTML(q('#home-list'), buildsListHTML()); setHTML(q('#hm-sync'), syncBanHTML());
+  /* 아이템·챔피언 목록은 조건이 같으면 다시 만들지 않음 (고르기·담기 등 잦은 갱신에서 부담 줄임) */
+  const cs = S.icol ? curSet() : null, ik = `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${cs?cs.id+':'+cs.it.join():''}`;
+  setHTML(q('#it-row'), itemRowHTML()); setHTML(q('#it-sets'), setsRowHTML());
+  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-filters'), itemFiltersHTML()); setHTML(q('#it-list'), itemsListHTML()); }
+  const ck = `${S.rev}|${D&&D.rev}|${S.role}|${S.qc}`;
+  if(HM.ck!==ck){ HM.ck = ck; setHTML(q('#home-filters'), homeFilters()); setHTML(q('#champ-list'), champsListHTML()); }
+  q('#hm-fab').hidden = !(S.tab==='builds' && !S.sel && !S.readonly);
+  const s = curSet(), on = !!(S.icol && S.tab==='items' && s), bar = q('#setbar'); bar.hidden = !on;
+  if(on){
+    const nm = q('#f-setname'); if(document.activeElement!==nm && nm.value!==s.n) nm.value = s.n;
+    setHTML(q('#sb-meta'), `${MAPN[s.map]} · ${s.it.length}개`);
+    setHTML(q('#sb-tray'), s.it.length ? `<div class="tray" data-sort="set" style="--n:${Math.max(6, s.it.length)}">${s.it.map(id=>{ const it=IX.item[id]; return `<button class="tb" data-drag data-act="set-rm" data-id="${id}" aria-label="${esc(it?it.n:'아이템')} 빼기">${icoFluid('items', it?it.i:-1)}</button>`; }).join('')}</div>` : `<div class="sb-empty">위 목록에서 아이템을 누르면 여기에 차례로 담깁니다</div>`);
+    q('#sb-apply').disabled = !s.it.length;
+  }
+  if(!(HS.st && HS.st.on)) placeTrack(0);
+}
+/* 아이템 탭: 맵(기본 칼바람)·분류·능력치·이름 필터, '세트 담기'를 켜면 누르는 아이템이 세트에 차례로 담김 */
+const curSet = () => (S.prefs.sets||[]).find(s => s.id===S.iset) || null;
+const setById = id => (S.prefs.sets||[]).find(s => s.id===id) || null;
+function newSet(){
+  const used = new Set((S.prefs.sets||[]).map(s => s.n)); let k = (S.prefs.sets||[]).length + 1; while(used.has(`세트 ${k}`)) k++;
+  const s = {id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), n:`세트 ${k}`, map:S.imap, it:[], updated:Date.now()};
+  S.prefs.sets = [...(S.prefs.sets||[]), s]; S.iset = s.id; savePrefs(); return s;
+}
+const curSetSavedMsg = () => { const s = (S.prefs.sets||[]).find(x => x.id===S.iset); return s ? `‘${s.n}’ 세트를 저장했습니다` : '담기를 마쳤습니다'; };
+function dropEmptySet(){ const s = curSet(); if(s && !s.it.length){ S.prefs.sets = S.prefs.sets.filter(x => x!==s); S.iset = null; savePrefs(); } }
+function setTouch(s){ s.updated = Date.now(); savePrefs(); renderMain(); }
+function itemRowHTML(){
+  return `<div class="seg xs" role="group" aria-label="맵">${['sr','aram'].map(m=>`<button data-act="it-map" data-v="${m}" aria-pressed="${S.imap===m}">${MAPN[m]}</button>`).join('')}</div>
+    ${S.readonly||S.icol?'':`<button class="btn sm" data-act="it-collect" aria-pressed="false">세트 담기</button>`}`;
+}
+function setsRowHTML(){
+  const sets = S.prefs.sets||[]; if(!sets.length || S.readonly) return '';
+  return `<div class="chips it-sets" aria-label="내 아이템 세트"><button class="chip" data-act="set-new">+ 새 세트</button>${sets.map(s=>`<button class="chip set-chip" data-act="set-open" data-id="${s.id}" aria-pressed="${!!(S.icol && S.iset===s.id)}">${esc(s.n)} <span class="n">${s.it.length}</span></button>`).join('')}</div>`;
+}
+function itemFiltersHTML(){
+  const n = itemsTabList().length, on = S.istats.length || S.itier!=='all' || S.qi;
+  return `<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="it-tier" data-v="${k}" aria-pressed="${S.itier===k}">${l}</button>`).join('')}</div>
+    ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="it-stat" data-v="${k}" aria-pressed="${S.istats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="fbar"><span>${MAPN[S.imap]} 아이템 ${n}개</span>${on?'<button class="linkbtn" data-act="it-reset">필터 초기화</button>':''}</div>`;
+}
+const itemsTabList = () => filterItems(S.imap==='sr'?'sr':'ar', S.itier, S.istats, S.qi, S.icol && curSet() ? curSet().it : []);
+function itemsListHTML(){
+  if(!D) return '';
+  const list = itemsTabList(), s = S.icol ? curSet() : null, inS = new Set(s ? s.it : []);
+  if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 필터를 줄여 보세요.</div>`;
+  return lazyGrid(list, 'pgrid', ([id,it])=>`<button class="pit ${it.tier==='legend'?'legend':''}${inS.has(id)?' in':''}" data-act="it-tap" data-id="${id}"${s?` aria-pressed="${inS.has(id)}"`:''}>${itemIco(id,44)}<span class="nm">${esc(it.n)}</span><span class="g">${fmtGold(it.g)}</span>${inS.has(id)?`<span class="chk" aria-hidden="true">${s.it.indexOf(id)+1}</span>`:''}</button>`);
+}
+function toggleSetItem(id){
+  if(S.readonly) return;
+  const s = curSet() || newSet(), i = s.it.indexOf(id);
+  if(i>=0) s.it.splice(i, 1);
+  else { if(s.it.length>=40){ toast('세트에는 40개까지 담을 수 있습니다'); return; } s.it.push(id); }
+  buzz(i>=0 ? 5 : 8); setTouch(s);
+}
+/* 시트에서 바로 빌드 화면으로: 시트 자리를 빌드 화면으로 바꿔 기록 칸 수는 그대로 */
+function sheetToBuild(id, edit){
+  flushAll(); S.sheets.pop(); S.views.push({name:'build', id, edit:!!edit}); S.edit = !!edit; resetEditState(); NAV.fwd = [];
+  syncPages('fwd'); syncCW();
+}
+function applyListHTML(s, tab){
+  if(tab==='new') return cpickListHTML('apply-new', S.qa);
+  let list = sortBuilds([...S.builds.values()]);
+  if(S.qa) list = list.filter(b=>{ const c=IX.champ[b.champ]; return match(S.qa, b.title, c&&c.n, c&&c.id); });
+  if(!list.length) return `<div class="none" style="padding:12px 0">${S.builds.size?'검색 결과가 없습니다.':'아직 빌드가 없습니다. ‘새 빌드 만들기’를 눌러 보세요.'}</div>`;
+  return `<div class="alist">${list.map(b=>{ const c=IX.champ[b.champ]; return `<button class="arow" data-act="apply-to" data-id="${b.id}">${champIco(c,40)}<span class="m"><b>${esc(b.title)}</b><span class="small muted">${MAPN[b.mode]} · 아이템 ${b.it.length}개</span></span>${b.mode!==s.map?`<span class="w">${MAPN[b.mode]} 버전으로</span>`:''}</button>`; }).join('')}</div>`;
+}
+function cpickListHTML(act, qv){
+  const qq = qv===undefined ? S.qp : qv, fav = new Set(S.prefs.fav);
+  let cs = D.champs;
+  if(qq) cs = cs.filter(c=>match(qq, c.n, c.id, c.t)).sort((a,b)=>rankOf(qq,a.n)-rankOf(qq,b.n));
+  else cs = [...cs.filter(c=>fav.has(c.id)), ...cs.filter(c=>!fav.has(c.id))];
+  if(!cs.length) return `<div class="none" style="padding:12px 0">검색 결과가 없습니다.</div>`;
+  return lazyGrid(cs, 'champ-grid', c=>`<button class="ctile" data-act="${act}" data-id="${c.id}" aria-label="${esc(c.n)}">${champIco(c,58)}${fav.has(c.id)?'<span class="fav" aria-hidden="true">★</span>':''}<span class="n">${esc(c.n)}</span></button>`);
+}
+/* 탭 위치: 손가락을 따라 움직일 때는 dx만큼 */
+function placeTrack(dx){
+  const tr = $('#hm-track'), ind = $('#hm-ind'); if(!tr) return;
+  const W = tr.parentElement.clientWidth || innerWidth, p = tabIdx() - (dx||0) / W;
+  tr.style.transform = `translate3d(${-Math.round(p*W*10)/10}px,0,0)`;
+  ind.style.transform = `translateX(${p*100}%)`;
+}
+addEventListener('resize', () => { const hm = $('#hm'); if(hm){ hm.classList.add('drag'); placeTrack(0); requestAnimationFrame(() => hm.classList.remove('drag')); } });
+function switchTab(t){
+  if(!TABS.includes(t)) return;
+  const prev = S.tab; S.tab = t;
+  if(prev!==t){ if(S.sel) selExit(); buzz(5); }
+  const pg = PG[0]; if(pg && pg.isView && pg.__src.name==='home') renderView(pg);
+}
+function homeBanners(){
+  const lp = S.localPending.length;
+  return `${inClaude() && APP_URL ? `<div class="banner info"><span>이 페이지는 패치 데이터 갱신이 중단되었습니다. 최신 패치는 설치형 앱에서 확인하세요.</span><a class="btn sm primary" href="${APP_URL}" target="_blank" rel="noopener">앱 열기</a></div>` : ''}${lp?`<div class="banner info"><span>이 기기에만 저장된 빌드 ${lp}개가 있습니다. 계정으로 옮기면 다른 기기에서도 보입니다.</span><button class="btn sm primary" data-act="import-local">계정으로 옮기기</button></div>`:''}`;
+}
+function syncBanHTML(){
+  return S.sync==='local' ? (inClaude() ? `<div class="banner"><span>지금 화면에서는 동기화를 쓸 수 없어 이 기기에만 저장됩니다. claude.ai에 로그인한 상태로 열면 폰과 PC가 연결됩니다.</span></div>` : `<div class="banner"><span>동기화가 꺼져 있어 이 기기에만 저장됩니다.</span><button class="btn sm" data-act="open-sync">동기화 설정</button></div>`) : '';
+}
+function homeFilters(){
+  const opts = [['all','전체'],['fav','즐겨찾기'],['mine','빌드 있음'],...Object.entries(TAG_N)];
+  return opts.map(([k,l])=>`<button class="chip" data-act="role" data-v="${k}" aria-pressed="${S.role===k}">${l}</button>`).join('');
+}
+function buildsListHTML(){
+  {
+    if(!S.loaded && !S.builds.size) return `<div class="loading">저장한 빌드를 불러오는 중…</div>`;
+    let list = sortBuilds([...S.builds.values()]);
+    if(S.q) list = list.filter(b=>{ const c=IX.champ[b.champ]; return match(S.q, b.title, c&&c.n, c&&c.id); });
+    if(!list.length){
+      if(S.builds.size) return `<div class="empty"><b>검색 결과가 없습니다</b><span>빌드 이름이나 챔피언 이름, 초성으로 찾을 수 있습니다.</span></div>`;
+      return `<div class="empty"><b>아직 저장한 빌드가 없습니다</b><span>챔피언을 고르고 아이템, 룬, 소환사 주문, 선마 스킬을 한 화면에 정리할 수 있습니다.</span><button class="btn primary" data-act="new-build-pick">새 빌드 만들기</button></div>`;
+    }
+    return `<div class="blist">${list.map(bcardHTML).join('')}</div>`;
+  }
+}
+function champsListHTML(){
+  const fav = new Set(S.prefs.fav);
+  const has = new Set([...S.builds.values()].map(b=>b.champ));
+  let cs = D.champs;
+  if(S.role==='fav') cs = cs.filter(c=>fav.has(c.id));
+  else if(S.role==='mine') cs = cs.filter(c=>has.has(c.id));
+  else if(S.role!=='all') cs = cs.filter(c=>c.tags.includes(S.role));
+  if(S.qc) cs = cs.filter(c=>match(S.qc, c.n, c.id, c.t)).sort((a,b)=>rankOf(S.qc,a.n)-rankOf(S.qc,b.n));
+  if(S.role==='all' && !S.qc) cs = [...cs.filter(c=>fav.has(c.id)), ...cs.filter(c=>!fav.has(c.id))];
+  if(!cs.length){
+    const msg = S.role==='fav' ? ['즐겨찾는 챔피언이 없습니다','챔피언 화면에서 ☆ 즐겨찾기를 누르면 여기에 모입니다.'] : S.role==='mine' ? ['빌드가 있는 챔피언이 없습니다','챔피언을 골라 첫 빌드를 만들어 보세요.'] : ['검색 결과가 없습니다','이름 일부나 초성으로도 찾을 수 있습니다.'];
+    return `<div class="empty"><b>${msg[0]}</b><span>${msg[1]}</span></div>`;
+  }
+  return `${lazyGrid(cs, 'champ-grid', c=>`<button class="ctile" data-act="open-champ" data-id="${c.id}" aria-label="${esc(c.n)}${has.has(c.id)?' (빌드 있음)':''}">
+    ${champIco(c,58)}${has.has(c.id)?'<span class="has" aria-hidden="true"></span>':''}${fav.has(c.id)?'<span class="fav" aria-hidden="true">★</span>':''}
+    <span class="n">${esc(c.n)}</span></button>`)}`;
+}
+/* 빌드 카드: 초상화 아래 챔피언 이름 / 제목·날짜 / 아이템 / 핵심 룬·주문·선마 */
+function bcardHTML(b){
+  const c = IX.champ[b.champ];
+  const ks = b.runes.pr[0];
+  const n = b.it.length;
+  const on = !!(S.sel && S.sel.has(b.id));
+  return `<button class="bcard${on?' sel':''}" data-act="open-build" data-id="${b.id}"${S.sel?` aria-pressed="${on}"`:''}>
+    ${S.sel?`<span class="bc-chk" aria-hidden="true">${on?ICONS.check:''}</span>`:''}
+    <span class="bc-por">${champIco(c,56)}<span class="bc-cn">${esc(c?c.n:b.champ)}</span></span>
+    <span class="bc-main">
+      <span class="bc-top">${ks&&IX.rune[ks]?runeIco(ks,24):'<span class="ks-ph" aria-hidden="true"></span>'}<span class="bcard-title">${b.pin?'<span class="pin" aria-label="대표 빌드">★</span>':''}${esc(b.title)}</span></span>
+      ${n?`<span class="bc-items" style="--n:${Math.max(6,Math.min(n,8))}">${b.it.slice(0, n>8?7:8).map(id=>`<span class="bi">${icoFluid('items', IX.item[id]?IX.item[id].i:-1)}</span>`).join('')}${n>8?`<span class="bi more" aria-label="외 ${n-7}개">+${n-7}</span>`:''}</span>`:'<span class="muted small">아이템 미정</span>'}
+    </span>
+  </button>`;
+}
+
+/* 챔피언 */
+function champHTML(id){
+  const c = IX.champ[id]; if(!c) return '<div class="empty"><b>챔피언을 찾을 수 없습니다</b></div>';
+  const bs = buildsOf(id); const fav = S.prefs.fav.includes(id);
+  return `<div class="stack">
+    <div class="chero"><button class="chero-por" data-act="champ-info" data-champ="${id}" aria-label="${esc(c.n)} 능력치·스킬 보기">${champIco(c,76)}</button><div style="min-width:0;flex:1"><h1>${esc(c.n)}</h1><div class="t">${esc(c.t)}</div></div>
+      <button class="btn sm favbtn" data-act="fav" data-id="${id}" aria-pressed="${fav}">${fav?'★ 즐겨찾기':'☆ 즐겨찾기'}</button></div>
+    <section class="stack" style="gap:10px"><div class="card-h" style="margin:0"><h2 style="font-size:16px">내 빌드</h2>${S.readonly?'':`<button class="btn primary sm" data-act="new-build" data-id="${id}">+ 새 빌드</button>`}</div>
+      ${bs.length?`<div class="blist">${bs.map(bcardHTML).join('')}</div>`:`<div class="empty"><b>${esc(c.n)} 빌드가 아직 없습니다</b><span>새 빌드를 만들면 아이템, 룬, 소환사 주문, 선마 스킬을 한 화면에서 정할 수 있습니다.</span>${S.readonly?'':`<button class="btn primary" data-act="new-build" data-id="${id}">+ 새 빌드 만들기</button>`}</div>`}
+    </section>
+    <section class="card"><div class="card-h"><h2>능력치·스킬</h2></div>
+      <div class="sklist"><button class="skrow" data-act="champ-info" data-champ="${id}" data-k="stats">${champIco(c,40)}<span class="m"><span class="nm">기본 능력치</span></span><span class="chev" aria-hidden="true">›</span></button>${c.sk.map(s=>`<button class="skrow" data-act="champ-info" data-champ="${id}" data-k="${s.k}">${ico(s.ss||'skills',s.i,40)}<span class="m"><span class="nm"><span class="key">${SKEY(s.k)}</span>${esc(s.n)}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join('')}</div></section>
+  </div>`;
+}
+
+/* 빌드: 열람과 편집이 같은 배치. 편집 때는 항목을 누르면 그 자리에서 바뀜 */
+function headHTML(b, E, c){
+  /* 열람·편집 모두 같은 자리·같은 크기: 빈 칸은 보이지 않는 자리 표시로 유지 */
+  const spells = b.spells.map((id,i)=>{
+    const sp = IX.spell[id];
+    if(!E && !sp) return `<span class="sp ph" aria-hidden="true"><span class="ico" style="--px:40px"></span></span>`;
+    return `<button class="sp" data-act="${E?'panel':'spell-info'}" data-v="sp${i}" data-id="${id}" aria-label="소환사 주문 ${sp?esc(sp.n):'선택'}">${sp?spellIco(id,40):'<span class="ico ico-missing" style="--px:40px">+</span>'}</button>`;
+  }).join('');
+  const mk = c && b.max ? c.sk.find(s=>s.k===b.max) : null;
+  const mx = mk
+    ? `<button class="mx on mxs" data-act="${E?'panel':'champ-info'}" data-v="max" data-k="${b.max}" aria-label="선마 ${b.max} ${esc(mk.n)}">${skIco(mk,40)}<span>선마</span></button>`
+    : (E ? `<button class="mx" data-act="panel" data-v="max">+ 선마</button>` : `<span class="mx ph" aria-hidden="true">+ 선마</span>`);
+  return `<section class="bh" id="b-head">
+      <button class="bh-por" data-act="champ-info" data-champ="${b.champ}" aria-label="${esc(c?c.n:'')} 능력치·스킬 보기">${champIco(c,68)}</button>
+      <div class="bh-main">
+        ${E?`<input id="f-title" class="ttl" maxlength="60" enterkeyhint="done" value="${esc(b.title)}" aria-label="빌드 이름">`:`<h1 class="ttl">${b.pin?'<span class="pin" aria-label="대표 빌드">★</span>':''}${esc(b.title)}</h1>`}
+        <div class="spl">${spells}${mx}${E ? `<button class="mx mp" data-act="build-map" aria-label="맵 ${MAPN[b.mode]}, 누르면 ${MAPN[b.mode==='aram'?'sr':'aram']}(으)로 변경">${MAPN[b.mode]}</button>` : `<span class="mx mp" title="이 빌드의 맵">${MAPN[b.mode]}</span>`}</div>
+      </div>
+    </section>`;
+}
+/* 주문·선마 고르기: 화면을 밀지 않는 작은 팝업. 한 번 띄운 팝업은 내용만 바꿔 다시 나타나는 움직임 없음 */
+const cdOf = s => S.prefs.cdm==='aram' ? (s.ar ? s.acd : '') : (s.sr ? s.cd : '');
+function popInner(b, c){
+  if(S.panel && S.panel.startsWith('sp')){
+    const slot = +S.panel.slice(2), aram = S.prefs.cdm==='aram';
+    return `<div class="pop-h"><span>재사용 대기시간</span><div class="seg xs" role="group" aria-label="쿨타임 기준"><button data-act="cd-mode" data-v="sr" aria-pressed="${!aram}">협곡</button><button data-act="cd-mode" data-v="aram" aria-pressed="${aram}">칼바람</button></div></div>
+      <div class="pop-grid" role="listbox" aria-label="소환사 주문 선택">${D.spells.map(s=>{ const cd = cdOf(s); return `<button class="spopt ${cd?'':'na'}" role="option" data-act="spell-pick" data-v="${s.id}" aria-selected="${b.spells[slot]===s.id}">${spellIco(s.id,36)}<span class="nm">${esc(s.n)}</span><small>${cd?cd+'초':'—'}</small></button>`; }).join('')}</div>`;
+  }
+  if(S.panel==='max' && c) return c.sk.filter(s=>s.k!=='P').map(s=>`<button class="mxo" role="option" data-act="set-max" data-k="${s.k}" aria-selected="${b.max===s.k}">${skIco(s,36)}<span class="nm">${esc(s.n)}</span><span class="ck" aria-hidden="true">${b.max===s.k?'✓':''}</span></button>`).join('');
+  return '';
+}
+let popKind = '';
+function syncPop(b, c, E){
+  const host = $('#bv'); let layer = $('#pop-layer');
+  const kind = E && S.panel ? (S.panel.startsWith('sp') ? 'sp' : S.panel) : '';
+  if(!kind || !host){
+    if(layer){ const pop = layer.querySelector('.pop'); layer.id = ''; if(pop) pop.id = ''; layer.querySelector('.pop-bg').remove();
+      if(pop && !REDUCE()) pop.animate([{opacity:1, transform:'none'},{opacity:0, transform:'translateY(-4px)'}], {duration:110, easing:'ease-in'}).onfinish = () => layer.remove(); else layer.remove(); }
+    popKind = ''; return;
+  }
+  if(!layer || layer.parentElement!==host || popKind!==kind){
+    if(layer) layer.remove();
+    layer = document.createElement('div'); layer.id = 'pop-layer';
+    layer.innerHTML = `<div class="pop-bg" data-act="pop-close"></div><div class="pop ${kind==='sp'?'pop-sp':'pop-mx'}" id="pop" role="dialog" aria-label="${kind==='sp'?'소환사 주문 선택':'선마 스킬 선택'}"></div>`;
+    host.appendChild(layer); popKind = kind;
+  }
+  setHTML($('#pop'), popInner(b, c));
+  placePop();
+}
+/* 팝업 위치: 누른 순간(화면 배치가 끝난 상태)에 재 두고, 그린 뒤에는 다시 재지 않음 */
+function popPos(v){
+  const host = $('#bv'), a = host && host.querySelector(`#b-head [data-v="${v}"]`); if(!a) return null;
+  const h = host.getBoundingClientRect(), r = a.getBoundingClientRect();
+  return {x: r.left - h.left, y: r.bottom - h.top + 8, w: h.width};
+}
+function placePop(){
+  const pop = $('#pop'), at = S.popAt; if(!pop || !at) return;
+  const pw = popKind==='sp' ? Math.min(304, at.w) : 224;
+  const left = Math.round(Math.min(Math.max(0, at.x), Math.max(0, at.w - pw))) + 'px', top = Math.round(at.y) + 'px';
+  if(pop.style.left !== left) pop.style.left = left;
+  if(pop.style.top !== top) pop.style.top = top;
+}
+/* 아이템·룬 구역은 열람·편집에서 같은 HTML (편집 전환 때 다시 그리지 않음). 누를 때 동작만 모드에 따라 달라짐 */
+function itemsCard(b){
+  const tiles = b.it.map(id=>{
+    const it = IX.item[id];
+    const off = it && !inPool(b, id);
+    return `<button class="ib ${it&&it.tier==='legend'?'legend':''} ${it?'':'miss'}${off?' off':''}" data-drag data-act="item-info" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'삭제된 아이템'))}${off?` · ${MAPN[b.mode]} 상점에 없음`:''}">${icoFluid('items', it?it.i:-1)}</button>`;
+  });
+  tiles.push(S.readonly ? `<span class="ib add ph" aria-hidden="true"></span>` : `<button class="ib add ${b.it.length?'opt':''}" data-act="pick-start" aria-label="아이템 추가">+</button>`);
+  return `<section class="card" id="b-items"><div class="igrid" data-sort="build">${tiles.join('')}</div></section>`;
+}
+function runeTile(id, on, attrs, extra=''){
+  const r = IX.rune[id] || IX.style[id] || D.runes.shards[id];
+  return `<button class="ro ${on?'on':''} ${extra}" ${attrs} aria-pressed="${on}" aria-label="${esc(r?r.n:'')}">${icoFluid('runes', r?r.i:-1, 'clear')}</button>`;
+}
+function runeCapHTML(b, E){
+  const last = E && S.lastRune && (IX.rune[S.lastRune] || D.runes.shards[S.lastRune]);
+  return last ? `<div class="rcap" aria-live="polite"><span class="rn">${esc(last.n)}</span>${last.ld || last.d || esc(last.val||'')}</div>` : '';
+}
+function runesCard(b){
+  const R = b.runes;
+  const P = IX.style[R.p] || null, Sx = IX.style[R.s] || null;
+  const styleRow = (sel, kind, exclude) => D.runes.styles.filter(s=>s.id!==exclude).map(s=>runeTile(s.id, sel===s.id, `data-act="rune" data-role="style" data-kind="${kind}" data-v="${s.id}"`)).join('');
+  const none = (v, e) => `<div class="none" style="text-align:center;padding:10px 0"><span class="v-only">${v}</span><span class="e-only">${e}</span></div>`;
+  const left = `<div class="rt-sty">${styleRow(R.p,'p','')}</div>` + (P
+    ? P.slots.map((slot,si)=>`<div class="rt-row ${si===0?'k':''}">${slot.map(id=>runeTile(id, R.pr[si]===id, `data-act="rune" data-role="pri" data-slot="${si}" data-v="${id}"`, si===0?'key':'')).join('')}</div>`).join('')
+    : none('룬 미정', '핵심 룬 계열을 고르세요'));
+  const shards = `<div class="rt-sh">${D.runes.shardRows.map((row,ri)=>row.ids.map(id=>runeTile(id, R.sh[ri]===id, `data-act="rune" data-role="shard" data-row="${ri}" data-v="${id}"`)).join('')).join('')}</div>`;
+  const right = P
+    ? `<div class="rt-sty">${styleRow(R.s,'s',R.p)}</div>${Sx?Sx.slots.slice(1).map(slot=>`<div class="rt-row">${slot.map(id=>runeTile(id, R.sr.includes(id), `data-act="rune" data-role="sub" data-v="${id}"`)).join('')}</div>`).join(''):none('보조 룬 미정', '보조 계열 선택')}${shards}`
+    : shards;
+  return `<section class="card" id="b-runes"><div class="runes"><div class="rt">${left}</div><div class="rt">${right}</div></div>${runeCapHTML(b, S.edit && !S.readonly)}</section>`;
+}
+
+/* ------------------------------------------------------------ 페이지 쌓기
+   보기(홈·챔피언·빌드)와 정보 페이지(챔피언 정보·아이템·룬·주문·아이템 추가 등)를 한 줄로 쌓음.
+   새 페이지는 오른쪽에서 들어오고, 바로 아래 페이지는 그대로 남아 있다가 밀어서 뒤로 갈 때 곧바로 드러남 (다시 그리지 않음) */
+const PG = [];
+const MENU = {buildMenu:1};   /* 페이지가 아닌 아래 작은 메뉴 */
+const isMenu = s => !!(s && MENU[s.kind]);
+const PAR = 0.28, T_PUSH = 300, T_POP = 250, EASE = 'cubic-bezier(.32,.72,0,1)';
+const topPage = () => PG[PG.length-1];
+const topBody = () => { const p = topPage(); return p ? p.body : null; };
+const viewPage = () => PG[S.views.length-1];
+const pickerPage = () => PG.find(p => p.__src.kind==='picker');
+const dimOf = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dim')) || .16;
+const tx = x => `translate3d(${Math.round(x*10)/10}px,0,0)`;
+function makePage(src){
+  const pg = document.createElement('section'); pg.className = 'page'; pg.__src = src; pg.isView = !src.kind;
+  if(pg.isView){
+    const bld = src.name==='build';
+    pg.innerHTML = `<header class="top"><div class="wrap tbar"></div></header><div class="pg-b vb"><div class="wrap app${bld?' narrow':''}"></div></div>${bld?'<button class="fab" id="fab" data-act="toggle-edit"></button>':''}<div class="pg-dim"></div>`;
+    if(bld) pg.classList.add('has-fab');
+  } else {
+    pg.setAttribute('role', 'dialog');
+    pg.innerHTML = `<header class="top"><div class="wrap narrow tbar"></div></header><div class="pg-t" hidden></div><div class="pg-b sb"></div><div class="pg-f" hidden></div><div class="pg-dim"></div>`;
+  }
+  pg.tbar = pg.querySelector('.tbar'); pg.body = pg.querySelector('.pg-b'); pg.app = pg.querySelector('.app'); pg.fab = pg.querySelector('.fab');
+  pg.ptop = pg.querySelector('.pg-t'); pg.foot = pg.querySelector('.pg-f'); pg.dim = pg.querySelector('.pg-dim');
+  return pg;
+}
+/* 화면 이동 움직임: 진행 중에 다른 이동이 오면 즉시 끝 상태로 맞추고 새 이동 시작 (겹쳐서 꼬이지 않음) */
+let RUN = [];
+function runAnim(list, done){
+  const job = {over:false};
+  job.anims = list.filter(x => x[0]).map(([el, kf, o]) => el.animate(kf, Object.assign({easing:EASE}, o, {duration:Math.round((o.duration||0) * MOF())})));
+  job.fin = () => { if(job.over) return; job.over = true; RUN = RUN.filter(j => j!==job); job.anims.forEach(a => a.cancel()); if(done) done(); };
+  RUN.push(job);
+  Promise.all(job.anims.map(a => a.finished)).then(job.fin, () => {});
+  return job;
+}
+function finishAnims(){ RUN.slice().forEach(j => j.fin()); }
+function syncPages(dir){
+  const want = [...S.views, ...S.sheets.filter(s => !isMenu(s))], stack = $('#stack');
+  finishAnims();
+  if(SW.st){ if(SW.st.press) SW.st.press.classList.remove('nopress'); SW.st = null; }   /* 밀던 중 기기 뒤로 등으로 바뀌면 밀기 중단 */
+  const boot = stack.querySelector('.boot'); if(boot) boot.remove();
+  const oldTop = topPage();
+  let i = 0; while(i < PG.length && i < want.length && PG[i].__src===want[i]) i++;
+  const gone = PG.splice(i), added = [];
+  for(let j=i; j<want.length; j++){ const pg = makePage(want[j]); stack.appendChild(pg); PG.push(pg); added.push(pg); }
+  added.forEach(pg => pg.isView ? renderView(pg) : fillSheetPage(pg));
+  const top = topPage();
+  if(stale(top) && !added.includes(top)) renderView(top);   /* 다시 드러난 보기가 낡았으면 움직이기 전에 갱신 */
+  PG.forEach((pg, k) => { const d = PG.length-1-k; pg.classList.toggle('under', d===1); pg.classList.toggle('deep', d>1); pg.inert = d>0; pg.style.transform = ''; pg.dim.style.opacity = ''; });
+  gone.forEach(g => { g.classList.add('leaving'); g.classList.remove('under','deep'); g.inert = true; g.querySelectorAll('[id]').forEach(el => el.removeAttribute('id')); });   /* 나가는 페이지의 id는 떼서 새 페이지와 겹치지 않게 */
+  document.body.classList.toggle('fab-on', !!(top && top.isView && top.__src.name==='build'));
+  const sw = NAV.swipe; NAV.swipe = null;
+  const W = stack.clientWidth || innerWidth;
+  if(!dir || REDUCE() || !top || (!added.length && !gone.length)){ gone.forEach(g => g.remove()); }
+  else if(added.length){
+    /* 쌓기: 새 페이지가 오른쪽에서 들어오고, 덮이는 페이지는 왼쪽으로 조금 밀리며 어두워짐 */
+    const prev = PG[PG.length-2], list = [[top, [{transform:tx(W)},{transform:tx(0)}], {duration:T_PUSH}]];
+    if(prev && prev===oldTop) list.push([prev, [{transform:tx(0)},{transform:tx(-PAR*W)}], {duration:T_PUSH}], [prev.dim, [{opacity:0},{opacity:dimOf()}], {duration:T_PUSH}]);
+    runAnim(list, () => gone.forEach(g => g.remove()));
+    if(KB.on){ const bk = top.querySelector('.top [data-act=back]'); if(bk) bk.focus({preventScroll:true}); }
+  } else {
+    /* 꺼내기: 맨 위 페이지가 오른쪽으로 빠지고 아래 페이지가 제자리로. 밀던 중이면 손가락 위치·속도에서 이어서 */
+    const out = gone[gone.length-1]; gone.slice(0, -1).forEach(g => g.remove());
+    const from = sw ? sw.p : 0, k = from / W;
+    const dur = sw ? Math.max(140, Math.min(280, (W - from) / Math.max(sw.v, .8))) : T_POP;
+    out.style.transform = '';
+    runAnim([[out, [{transform:tx(from)},{transform:tx(W)}], {duration:dur, fill:'forwards'}],
+             [top, [{transform:tx(-PAR*W*(1-k))},{transform:tx(0)}], {duration:dur}],
+             [top.dim, [{opacity:dimOf()*(1-k)},{opacity:0}], {duration:dur}]], () => out.remove());
+  }
+  renderMenu();
+  idleFresh();
+}
+/* 바로 아래 페이지를 한가한 때 최신으로 (밀어서 뒤로 갈 때 이미 맞는 내용이 보이게) */
+let idleT = 0;
+const ric = window.requestIdleCallback ? (f => requestIdleCallback(f, {timeout:500})) : (f => setTimeout(f, 200));
+function idleFresh(){
+  if(idleT) return;
+  idleT = ric(() => { idleT = 0; if(SW.st || (DRAG.st && DRAG.st.on)) return idleFresh(); const u = PG[PG.length-2]; if(stale(u)) renderView(u); });
+}
+const mainCovered = () => { const t = topPage(); return !!(t && !t.isView); };
+function markMain(){ S.mainDirty = true; idleFresh(); }
+/* 정보 페이지 내용 채우기 (같은 페이지를 다시 채울 때는 스크롤 위치 유지) */
+function fillSheetPage(pg){
+  const top = pg.__src, r = SHEETS[top.kind](top.props);
+  const fresh = !pg.__filled; pg.__filled = true;
+  const body = pg.body, keep = fresh ? (r.scroll||0) : body.scrollTop;
+  pg.setAttribute('aria-label', r.label || '');
+  const nested = S.sheets.indexOf(top) > 0;
+  setHTML(pg.tbar, `<button class="iconbtn" data-act="back" aria-label="뒤로">${ICONS.back}</button><div class="top-title">${r.title}</div>${nested?`<button class="iconbtn" data-act="close-all" aria-label="모두 닫기">${ICONS.close}</button>`:''}`);
+  pg.ptop.innerHTML = r.top || ''; pg.ptop.hidden = !r.top;
+  body.innerHTML = r.body;
+  if(r.after) r.after(body);
+  pg.foot.innerHTML = r.foot || ''; pg.foot.hidden = !r.foot;
+  if(r.anchor && (fresh || top.props.rejump)){ top.props.rejump = false; const el = body.querySelector(r.anchor); if(el) body.scrollTop = Math.max(0, el.offsetTop - 12); }
+  else if(keep) body.scrollTop = keep;
+  if(top.kind==='champ') requestAnimationFrame(spy);
+  if(r.select && fresh){ const el = pg.querySelector(r.select); if(el){ el.focus({preventScroll:true}); el.select(); } }
+}
+/* 지금 맨 위 정보 페이지(또는 메뉴) 내용만 다시 채움 */
+function renderSheet(){
+  const top = topSheet(); if(!top) return;
+  if(isMenu(top)) return renderMenu();
+  const pg = topPage(); if(pg && pg.__src===top) fillSheetPage(pg);
+}
+/* ------------------------------------------------------------ 빌드 메뉴 (아래에서 올라오는 작은 메뉴) */
+let sheetCloseT = 0;
+function closeSheetRoot(root){
+  clearTimeout(sheetCloseT); root.classList.remove('closing');
+  if(isMenu(topSheet())) return;
+  root.hidden = true; root.innerHTML = '';
+}
+function renderMenu(){
+  const root = $('#sheet'), top = topSheet();
+  document.body.classList.toggle('menu-on', isMenu(top));
+  if(!isMenu(top)){
+    if(!root.hidden && !root.classList.contains('closing')){
+      const sh = root.querySelector('.sheet'), bd = root.querySelector('.backdrop');
+      if(sh && !REDUCE()){
+        /* 닫힘: 아래로 내려가며 사라짐 (끌어 내리던 위치에서 이어서) */
+        root.classList.add('closing');
+        const from = sh.style.transform || 'translateY(0)'; sh.style.transform = '';
+        const desk = matchMedia('(min-width:720px)').matches;
+        sh.animate(desk ? [{opacity:1, transform:'none'},{opacity:0, transform:'scale(.97)'}] : [{transform:from},{transform:'translateY(100%)'}], {duration:desk?150:200, easing:'cubic-bezier(.4,0,1,1)', fill:'forwards'});
+        if(bd) bd.animate([{opacity:getComputedStyle(bd).opacity},{opacity:0}], {duration:200, fill:'forwards'});
+        sheetCloseT = setTimeout(() => closeSheetRoot(root), 210);
+      } else closeSheetRoot(root);
+    }
+    return;
+  }
+  if(root.classList.contains('closing')){ clearTimeout(sheetCloseT); root.classList.remove('closing'); root.hidden = true; root.innerHTML = ''; }
+  const r = SHEETS[top.kind](top.props);
+  let sh = root.querySelector('.sheet');
+  if(root.hidden || !sh){
+    root.hidden = false;
+    root.innerHTML = `<div class="backdrop" data-act="close-all"></div><div class="sheet anim" role="dialog" aria-modal="true"><div class="sheet-grip" aria-hidden="true"></div><div class="sheet-h"></div><div class="sheet-b"></div></div>`;
+    sh = root.querySelector('.sheet');
+    sh.addEventListener('animationend', () => sh.classList.remove('anim'), {once:true});
+    if(!REDUCE()) root.querySelector('.backdrop').animate([{opacity:0},{opacity:1}], {duration:200});
+    hideToast();
+  }
+  sh.setAttribute('aria-label', r.label || '');
+  sh.querySelector('.sheet-h').innerHTML = `<h2>${r.title}</h2><button class="iconbtn" data-act="close-all" aria-label="닫기">${ICONS.close}</button>`;
+  sh.querySelector('.sheet-b').innerHTML = r.body;
+}
+/* [설치형 앱] 정보 화면: 앱 설치 안내 */
+function installHTML(){
+  const body = STANDALONE ? `<div class="small muted">설치된 앱으로 실행 중입니다.</div>`
+    : INSTALL ? `<div class="small muted" style="margin-bottom:8px">설치하면 주소창 없이 전체 화면으로 열리고, 앱 목록·홈 화면에 아이콘이 생깁니다.</div><button class="btn primary block" data-act="install">앱 설치</button>`
+    : `<ol class="steps"><li>폰: 크롬 오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’</li><li>PC: 크롬·엣지 주소창 오른쪽의 설치 아이콘</li></ol>`;
+  return `<div><div class="sec-t">앱으로 설치</div>${body}</div>`;
+}
+/* [설치형 앱] 정보 화면: 동기화 연결 */
+function syncSecHTML(){
+  const g = S.db && S.db.kind==='github' ? S.db : null;
+  if(g){
+    const t = g.last(); const when = t ? new Date(t).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) : '아직 없음';
+    const stt = {synced:'정상', saving:'올리는 중', offline:'오프라인 · 연결되면 자동으로 올림', error:'연결 문제 · 토큰 확인 필요', loading:'확인 중'}[g.status()] || '';
+    return `<div id="sec-sync"><div class="sec-t">동기화</div><dl class="kv" style="margin-bottom:10px"><dt>저장소</dt><dd>${esc(g.owner)}/${esc(g.repo)} (비공개)</dd><dt>상태</dt><dd>${stt}</dd><dt>마지막 확인</dt><dd>${when}</dd></dl>
+      <div class="btn-row"><button class="btn" data-act="gh-sync">지금 동기화</button><button class="btn danger" data-act="gh-off">연결 끊기</button></div>
+      ${g.status()==='error' ? `<div style="margin-top:10px">${tokenFormHTML('새 토큰으로 다시 연결')}</div>` : ''}</div>`;
+  }
+  const make = 'https://github.com/settings/personal-access-tokens/new?' + new URLSearchParams({name:'템트리 노트 동기화', description:`템트리 노트 빌드 기록 저장소(${SYNC_REPO}) 전용`, expires_in:'none', contents:'write'}).toString();
+  return `<div id="sec-sync"><div class="sec-t">동기화</div><div class="small muted" style="margin-bottom:8px">GitHub 비공개 저장소(${esc(ghOwner()||'사용자')}/${SYNC_REPO}) 전용 토큰을 붙여 넣으면 폰과 PC의 빌드가 자동으로 맞춰집니다. 이 기기에 있던 빌드도 함께 올라갑니다. 토큰은 이 기기 안에만 저장됩니다.</div>
+    <ol class="steps" style="margin-bottom:10px"><li>아래 ‘토큰 만들기’ (이름·권한이 미리 채워진 GitHub 화면)</li><li>Repository access → Only select repositories → ${SYNC_REPO} 선택</li><li>맨 아래 Generate token → 나온 토큰 복사</li><li>아래 칸에 붙여 넣고 연결</li></ol>
+    <a class="btn block" href="${make}" target="_blank" rel="noopener" style="margin-bottom:8px">토큰 만들기 (GitHub)</a>${tokenFormHTML('연결')}</div>`;
+}
+const tokenFormHTML = label => `<input id="f-token" class="tok" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_로 시작하는 토큰" aria-label="동기화 토큰"><button class="btn primary block" data-act="gh-on" style="margin-top:8px">${label}</button>`;
+/* 아이템 능력치 한 줄: 베이스 앱처럼 "체력 400" 그대로 */
+function statLine(line){ return `<li>${esc(line)}</li>`; }
+/* 하위 아이템 조직도 */
+function treeNode(id, ctx, depth){
+  const it = IX.item[id]; if(!it) return '';
+  const kids = (it.from||[]).filter(x=>IX.item[x]);
+  const px = depth===0 ? 44 : depth===1 ? 38 : 32;
+  const node = depth===0
+    ? `<span class="tn root">${itemIco(id,px)}<span>${fmtGold(it.g)}</span></span>`
+    : `<button class="tn" data-act="item-info" data-id="${id}" data-ctx="${ctx}" aria-label="${esc(it.n)} ${fmtGold(it.g)}골드">${itemIco(id,px)}<span>${fmtGold(it.g)}</span></button>`;
+  return `<li>${node}${kids.length?`<ul>${kids.map(k=>treeNode(k,ctx,depth+1)).join('')}</ul>`:''}</li>`;
+}
+const SHEETS = {
+  item(p){
+    const it = IX.item[p.id]; const b = curBuild(); const ctx = p.ctx||'';
+    const canToggle = b && !S.readonly && (ctx==='picker' || (ctx==='build' && S.edit));
+    const inB = b ? b.it.includes(p.id) : false;
+    const st = ctx==='itab' && S.icol && !S.readonly ? curSet() : null, inSt = !!(st && st.it.includes(p.id));
+    const foot = canToggle ? `<button class="btn ${inB?'danger':'primary'} block" data-act="item-toggle" data-id="${p.id}" data-ctx="${ctx}">${inB?'빌드에서 빼기':'빌드에 담기'}</button>`
+      : st ? `<button class="btn ${inSt?'danger':'primary'} block" data-act="set-toggle-info" data-id="${p.id}">${inSt?'세트에서 빼기':'세트에 담기'}</button>` : '';
+    if(!it) return {title:'아이템 정보', body:`<div class="none">현재 패치에 없는 아이템입니다${b&&b.nm[p.id]?` (${esc(b.nm[p.id])})`:''}.</div>`, foot};
+    const kids = it.from.filter(x=>IX.item[x]), into = it.into.filter(x=>IX.item[x]);
+    let comp = '';
+    if(kids.length || into.length){
+      const open = S.treeOpen;
+      const intoRow = into.length ? `<div>${kids.length?'<div class="mini-h">상위 아이템</div>':''}<div class="irow">${into.map(id=>`<button class="tn" data-act="item-info" data-id="${id}" data-ctx="${ctx}" aria-label="${esc(IX.item[id].n)}">${itemIco(id,38)}<span>${fmtGold(IX.item[id].g)}</span></button>`).join('')}</div></div>` : '';
+      comp = `<div class="comp"><button class="tgl" data-act="tree-toggle" aria-expanded="${open}">${kids.length?'하위 아이템':'상위 아이템'}<span class="chev" aria-hidden="true">▾</span></button>${open?`${kids.length?`<div class="tree"><ul>${treeNode(p.id,ctx,0)}</ul></div>`:''}${intoRow}`:''}</div>`;
+    }
+    const body = `<div class="idet">${itemIco(p.id,64)}<div style="min-width:0"><h3>${esc(it.n)}</h3><div class="price">합계 ${fmtGold(it.g)}g${it.from.length?` (기본 ${fmtGold(it.b)}g)`:''}${it.s?` (판매 ${fmtGold(it.s)}g)`:''}</div></div></div>
+      ${it.st.length?`<ul class="stat-col">${it.st.map(statLine).join('')}</ul>`:''}
+      ${it.d?`<div class="desc">${it.d}</div>`:''}
+      ${comp}`;
+    return {title:'아이템 정보', label:it.n, body, foot};
+  },
+  /* 챔피언 정보: 기본 능력치 + 패시브·Q·W·E·R 전체를 한 번에 스크롤 */
+  champ(p){
+    const c = IX.champ[p.champ]; if(!c) return {title:'챔피언 정보', body:''};
+    if(!SK) loadSkills();
+    const bb = p.bid && S.builds.get(p.bid);
+    const {st, base} = calcFor(c, p);
+    const top = `<div class="jump" role="navigation" aria-label="바로 가기"><button class="txt" data-act="jump" data-to="sk-stats">능력치</button>${c.sk.map(s=>`<button class="${p.max===s.k?'mxk':''}" data-act="jump" data-to="sk-${s.k}" aria-label="${SKEY(s.k)} ${esc(s.n)}">${skIco(s,30)}</button>`).join('')}</div>
+      <div class="calc-row"><label class="lv" for="calc-lvl">레벨 <b id="calc-lv">${S.calc.lvl}</b></label><input id="calc-lvl" type="range" min="1" max="18" step="1" value="${S.calc.lvl}">${bb?`<button class="chip sm" data-act="calc-items" aria-pressed="${S.calc.items}">빌드 아이템</button>`:''}</div>`;
+    const body = `<div class="idet">${champIco(c,64)}<div style="min-width:0"><h3>${esc(c.n)}</h3><div class="small muted">${esc(c.t)}</div></div></div>
+      <div id="sk-stats" class="csec"><div class="sec-h">능력치</div><div class="cstats" id="cstats">${statCells(c, st, base)}</div>${bb?'<div class="foot-note">빌드 아이템 기본 능력치와 파편 합산 · 아이템 고유 효과 제외</div>':''}</div>
+      ${c.a?`<div class="csec">${aramHTML(c)}</div>`:''}
+      ${c.sk.map(s=>skillBlock(c,s)).join('')}`;
+    const anchor = p.k==='stats' ? '#sk-stats' : p.k ? '#sk-'+p.k : '';
+    return {title:'챔피언 정보', label:`${c.n} 정보`, top, body, anchor, after: root => fillCalc(root, st)};
+  },
+  picker(){
+    const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
+    const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
+      <label class="search">${ICONS.search}<input id="q-item" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(P.q)}"></label>
+      <div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="pick-tier" data-v="${k}" aria-pressed="${P.tier===k}">${l}</button>`).join('')}</div>
+      ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="pick-stat" data-v="${k}" aria-pressed="${P.stats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
+      <div class="fbar" id="pick-count">${pickCountHTML(b)}</div>
+      <div id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div>`;
+    const after = P.defer ? () => { P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); } : null;
+    return {title:'아이템 추가', label:'아이템 추가', top:`<div id="pick-tray">${trayHTML(b)}</div>`, body, foot: pickFootHTML(b), scroll: P.scroll||0, after};
+  },
+  info(p){ return {title:esc(p.title), label:p.name, body:`<div class="idet">${p.icon||''}<div style="min-width:0">${p.kicker?`<div class="k">${esc(p.kicker)}</div>`:''}<h3>${esc(p.name)}</h3>${p.sub?`<div class="small muted">${esc(p.sub)}</div>`:''}</div></div><div class="desc">${p.html||''}</div>${p.note?`<div class="foot-note">${esc(p.note)}</div>`:''}`}; },
+  copy(p){ return {title:esc(p.title), body:`<div class="small muted">${esc(p.hint||'아래 내용을 길게 눌러 전체 선택 후 복사하세요.')}</div><textarea id="f-copy" class="note-input" style="min-height:220px;font-size:12.5px" readonly>${esc(p.text)}</textarea>`, select:'#f-copy'}; },
+  restore(){ return {title:'백업으로 복원', body:`<div class="small muted">‘전체 백업 복사’로 저장해 둔 내용을 붙여넣으세요. 같은 빌드는 백업 내용으로 덮어쓰고, 지금 있는 다른 빌드는 그대로 둡니다.</div><textarea id="f-restore" class="note-input" style="min-height:200px;font-size:12.5px" placeholder='{"app":"템트리 노트", ...}'></textarea>`, foot:`<button class="btn primary block" data-act="do-restore">복원</button>`}; },
+  about(p){
+    const nb = S.builds.size, nf = S.prefs.fav.length;
+    const syncText = S.sync==='local' ? '이 기기에만 저장 (동기화 꺼짐)' : !S.db ? '연결 중' : S.db.kind==='github' ? 'GitHub 비공개 저장소 · 폰과 PC 자동 동기화' : 'claude.ai 계정에 저장 · 폰과 PC 자동 동기화';
+    const seg = (k, opts, cur, label) => `<div class="seg xs" role="group" aria-label="${label}">${opts.map(([v,l]) => `<button data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
+    const row = (name, sub, ctl) => `<div class="set-row"><div class="lab"><b>${name}</b>${sub?`<span>${sub}</span>`:''}</div>${ctl}</div>`;
+    const MAP = [['sr','협곡'],['aram','칼바람']];
+    const body = `<div><div class="sec-t">화면</div><div class="set">
+        ${row('테마', '', seg('theme', [['system','시스템'],['light','라이트'],['dark','다크']], S.theme||'system', '테마'))}
+        ${SCALE_OK() ? row('화면 크기', '글자·아이콘 크기', seg('scale', [['90','작게'],['100','보통'],['110','크게'],['120','최대']], String(S.scale||100), '화면 크기')) : ''}
+        ${row('화면 전환', '페이지 넘김 움직임', seg('motion', [['normal','기본'],['fast','빠르게'],['off','끔']], S.motion||'normal', '화면 전환'))}
+      </div></div>
+      <div><div class="sec-t">목록</div><div class="set">
+        ${row('시작 화면', '앱을 열 때 처음 보이는 탭', seg('start', [['builds','내 빌드'],['items','아이템'],['champs','챔피언']], S.start||'builds', '시작 화면'))}
+        ${row('빌드 정렬', '대표 빌드는 항상 맨 위', seg('bsort', [['upd','수정순'],['new','생성순'],['name','이름순']], S.bsort||'upd', '빌드 정렬'))}
+      </div></div>
+      <div><div class="sec-t">동작</div><div class="set">
+        ${row('진동 반응', '누르기·끌기·밀기 때', seg('haptic', [['on','켬'],['off','끔']], S.haptic!==false?'on':'off', '진동 반응'))}
+        ${navigator.wakeLock ? row('화면 꺼짐 방지', '앱 사용 중 켜짐 유지', seg('wake', [['on','켬'],['off','끔']], S.wake?'on':'off', '화면 꺼짐 방지')) : ''}
+      </div></div>
+      <div><div class="sec-t">빌드 기본값</div><div class="set">
+        ${row('새 빌드 맵', '빌드마다 편집 화면에서 변경', seg('nbm', MAP, S.prefs.nbm==='sr'?'sr':'aram', '새 빌드 맵'))}
+        ${row('주문 대기시간', '소환사 주문 쿨타임 기준', seg('cdm', MAP, S.prefs.cdm==='sr'?'sr':'aram', '주문 대기시간 기준'))}
+      </div><div class="set-note">빌드 기본값은 폰과 PC에 함께 적용되고, 나머지 설정은 기기마다 따로 저장됩니다.</div></div>
+      ${OFF_OK() ? (() => { const o = (lsGet(LS_UI)||{}).offline, P = S.prefetching, ready = o && o.rev===D.rev;
+        const sub = P ? `받는 중 ${P.n}/${P.all}` : ready ? `준비됨 · 그림 ${o.mb}MB` : o ? '데이터가 바뀌어 다시 받기 필요' : '그림·스킬 정보를 미리 받아 둠';
+        return `<div><div class="sec-t">오프라인</div><div class="set">${row('오프라인 준비', sub, `<button class="btn sm" data-act="prefetch"${P?' disabled':''}>${ready?'다시 받기':'받기'}</button>`)}</div></div>`; })() : ''}
+      ${inClaude() ? (APP_URL ? `<div><div class="sec-t">설치형 앱</div><div class="small muted" style="margin-bottom:8px">전체 화면·기기 뒤로 가기가 되는 설치형 앱 주소입니다. 크롬에서 열어 ‘앱 설치’를 누르세요.</div><a class="btn block" href="${APP_URL}" target="_blank" rel="noopener">설치형 앱 열기</a></div>` : '') : installHTML()}
+      ${inClaude() ? '' : syncSecHTML()}
+      <div><div class="sec-t">백업</div><div class="small muted" style="margin-bottom:8px">빌드 전체를 텍스트로 복사해 메모장 등에 보관할 수 있습니다.</div><div class="btn-row"><button class="btn" data-act="backup">전체 백업 복사</button>${S.readonly?'':'<button class="btn" data-act="restore">백업으로 복원</button>'}</div></div>
+      <div><div class="sec-t">정보</div><dl class="kv"><dt>패치</dt><dd>${esc(D.patch)} (Data Dragon ${esc(D.v)})</dd><dt>스킬 수치</dt><dd>${esc(D.sv||'미포함')} 기준</dd>${D.aramSrc?`<dt>칼바람 보정</dt><dd>${esc(D.aramSrc)} 패치 기준</dd>`:''}<dt>데이터 갱신</dt><dd>${esc(D.built)} · ${inClaude() ? '이 페이지는 갱신 중단 (설치형 앱에서 매주 갱신)' : '매주 금요일 오전 자동 확인'}</dd><dt>구성</dt><dd>챔피언 ${D.champs.length}명 · 아이템 ${new Set(Object.values(D.items).map(i=>i.n)).size}개 · 룬 ${Object.keys(D.runes.r).length}개</dd><dt>저장</dt><dd>${syncText}</dd><dt>내 기록</dt><dd>빌드 ${nb}개 · 즐겨찾기 ${nf}명</dd></dl></div>
+      <div><a class="btn block" href="${PATCH_NOTES}" target="_blank" rel="noopener">공식 패치 노트 열기</a></div>
+      <div class="foot-note">아이템·룬·챔피언 데이터와 이미지는 Riot Games 공개 데이터(Data Dragon), 스킬 세부 수치는 CommunityDragon 게임 데이터, 칼바람 보정치는 aramnerfs.com(공식 패치 노트 정리) 기준입니다. 칼바람 소환사 주문 재사용 대기시간은 칼바람 나락 오라(소환사 주문 가속 70)를 적용한 값입니다. 일부 아이템 효과는 공식 데이터에 수치가 없어 문구만 표시됩니다. 능력치 파편 수치는 공식 데이터에 없어 최근 알려진 값으로 표시합니다. 승률 기반 추천 빌드는 제공하지 않습니다.</div>`;
+    return {title:'설정', body, anchor: p && p.to ? '#'+p.to : ''};
+  },
+  applySet(p){
+    const s = setById(p.sid); if(!s) return {title:'세트 적용', body:'<div class="none">세트를 찾을 수 없습니다.</div>'};
+    const tab = S.atab==='new' ? 'new' : 'build';
+    const body = `<div class="aset" aria-label="세트 아이템">${s.it.map(id=>`<span class="bi">${icoFluid('items', IX.item[id]?IX.item[id].i:-1)}</span>`).join('')}</div>
+      <div class="seg sm" role="group" aria-label="적용 방식"><button data-act="apply-tab" data-v="build" aria-pressed="${tab==='build'}">기존 빌드에 적용</button><button data-act="apply-tab" data-v="new" aria-pressed="${tab==='new'}">새 빌드 만들기</button></div>
+      ${SRCH('q-apply', tab==='build'?'빌드·챔피언 검색':'챔피언 검색 (예: 가렌, ㄱㄹ)', S.qa)}
+      <div class="small muted">${tab==='build'?'고른 빌드의 아이템을 이 세트로 통째로 바꿉니다. 맵이 다르면 그 맵 버전으로 바꿔 담고, 바꾼 뒤 알림에서 되돌릴 수 있습니다.':`고른 챔피언으로 이 세트를 담은 ${MAPN[s.map]} 빌드를 새로 만듭니다.`}</div>
+      <div id="apply-list">${applyListHTML(s, tab)}</div>`;
+    return {title:esc(s.n)+' 적용', label:'세트 적용', body};
+  },
+  champPick(){
+    return {title:'새 빌드 · 챔피언 고르기', label:'챔피언 고르기', body:`${SRCH('q-cpick','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qp)}<div id="cpick-list">${cpickListHTML('pick-champ-new')}</div>`};
+  },
+  buildMenu(p){
+    const b = curBuild(); if(!b) return {title:'',body:'', auto:true};
+    const body = p.confirm
+      ? `<p style="margin:0">‘${esc(b.title)}’ 빌드를 삭제합니다. 삭제 직후 알림에서 되돌릴 수 있습니다.</p><div class="btn-row"><button class="btn" data-act="close-sheet">취소</button><button class="btn danger-fill" data-act="del-build">삭제</button></div>`
+      : `<div class="menu">
+          <button class="btn block" data-act="pin-build">${b.pin?'대표 빌드 해제':'대표 빌드로 지정 (목록 맨 위)'}</button>
+          <button class="btn block" data-act="dup-build">이 빌드 복제</button>
+          <button class="btn block" data-act="copy-text">텍스트로 복사 (메신저 공유용)</button>
+          <button class="btn block" data-act="copy-itemset">롤 클라이언트용 아이템 세트 복사</button>
+          <button class="btn danger block" data-act="ask-del">빌드 삭제</button></div>`;
+    return {title:esc(b.title), body, auto:true};
+  }
+};
+/* 아이템 목록: 협곡·칼바람 아이템을 함께 보여 주고, 이름이 같은 항목은 하나만 */
+function pickerItems(b){ const P = S.picker; return filterItems(poolKey(b), P.tier, P.stats, P.q, b.it); }
+/* 맵 상점 아이템 + 이미 담긴 아이템, 분류·능력치·이름 조건 */
+function filterItems(pref, tier, stats, q, keep){
+  const byName = new Map();
+  for(const [id,it] of Object.entries(D.items)) if(it[pref] && !byName.has(it.n)) byName.set(it.n, id);
+  for(const id of keep||[]){ const it = D.items[id]; if(it) byName.set(it.n, id); }
+  let list = [...byName.values()].map(id=>[id, D.items[id]]);
+  if(tier==='legend') list = list.filter(([,it])=>it.tier==='legend');
+  else if(tier==='boots') list = list.filter(([,it])=>it.c.includes('boots'));
+  else if(tier==='start') list = list.filter(([,it])=>it.c.includes('start'));
+  if(stats.length) list = list.filter(([id])=>stats.every(k=>IX.istat[id].has(k)));
+  if(q) list = list.filter(([,it])=>match(q, it.n));
+  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
+  return list;
+}
+function trayHTML(b){
+  if(!b.it.length) return `<div class="tray-empty">아이템을 누르면 여기에 순서대로 담깁니다</div>`;
+  const bumpId = S.picker && S.picker.bump;
+  return `<div class="tray" data-sort="tray" style="--n:${Math.max(8,b.it.length)}">${b.it.map(id=>{ const it=IX.item[id]; return `<button class="tb${id===bumpId?' pin-in':''}${it&&!inPool(b,id)?' off':''}" data-drag data-act="tray-del" data-id="${id}" aria-label="${esc(it?it.n:(b.nm[id]||'아이템'))} 빼기">${icoFluid('items', it?it.i:-1)}</button>`; }).join('')}</div>`;
+}
+/* 아이템 추가 창: 누른 칸 하나와 위쪽 목록·아래 미리보기만 바꿈 (288칸 전체를 다시 그리지 않음) */
+function markPit(id, on){
+  const el = document.querySelector(`#pick-grid .pit[data-id="${id}"]`); if(!el) return;
+  el.classList.toggle('in', on); el.setAttribute('aria-pressed', on);
+  const chk = el.querySelector('.chk');
+  if(on && !chk) el.insertAdjacentHTML('beforeend', '<span class="chk" aria-hidden="true">✓</span>'); else if(!on && chk) chk.remove();
+}
+function updatePickerLight(b){
+  const pp = pickerPage(), t = $('#pick-tray'), f = pp && pp.foot;
+  if(t) setHTML(t, trayHTML(b)); if(f) setHTML(f, pickFootHTML(b));
+  if(S.picker) S.picker.bump = '';
+}
+function pickCountHTML(b){
+  const P = S.picker; const n = pickerItems(b).length;
+  return P.stats.length||P.tier!=='all'||P.q ? `<span>${P.stats.length>1 ? P.stats.map(k=>STAT_LABEL[k]).join('+')+' 모두 있는 ' : P.stats.length ? STAT_LABEL[P.stats[0]]+' ' : ''}아이템 ${n}개</span><button class="linkbtn" data-act="pick-reset">필터 초기화</button>` : '';
+}
+function pickGridHTML(b){
+  const list = pickerItems(b); const inB = new Set(b.it);
+  if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 능력치 필터를 줄여 보세요.</div>`;
+  return `${lazyGrid(list, 'pgrid', ([id,it])=>`<button class="pit ${it.tier==='legend'?'legend':''} ${inB.has(id)?'in':''}${inPool(b,id)?'':' off'}" data-act="pick-toggle" data-id="${id}" aria-pressed="${inB.has(id)}">${itemIco(id,44)}<span class="nm">${esc(it.n)}</span><span class="g">${fmtGold(it.g)}</span>${inB.has(id)?'<span class="chk" aria-hidden="true">✓</span>':''}</button>`)}`;
+}
+function pickFootHTML(b){
+  const P = S.picker; const it = P.last && IX.item[P.last];
+  const prev = it
+    ? `<button class="pprev" data-act="pick-info" data-id="${P.last}" aria-label="${esc(it.n)} 상세 보기">${itemIco(P.last,36)}<span class="info"><span class="nm" style="display:block">${esc(it.n)}</span><span class="statl" style="display:block">${esc(it.st.join(' · ') || it.pt || '')}</span></span><span class="chev" aria-hidden="true">›</span></button>`
+    : `<div class="pprev"></div>`;
+  return `${prev}<button class="btn primary" data-act="close-all">완료</button>`;
+}
+function updatePicker(){
+  const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
+  const pp=pickerPage(), g=$('#pick-grid'), c=$('#pick-count'), t=$('#pick-tray'), f=pp&&pp.foot;
+  if(g) g.innerHTML = pickGridHTML(b); if(c) c.innerHTML = pickCountHTML(b); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
+}
+
+/* ------------------------------------------------------------ 동작 */
+function editB(fn, opts){ const b = curBuild(); if(!b || S.readonly) return; fn(b); touch(b, opts); }
+function buildText(b){
+  const c = IX.champ[b.champ]; const L = [`[${c?c.n:''}] ${b.title} (${b.role?ROLE_N[b.role]+', ':''}${b.patch} 패치 기준)`];
+  if(b.it.length) L.push(`아이템: ${b.it.map(id=>IX.item[id]?IX.item[id].n:(b.nm[id]||id)).join(' → ')}`);
+  if(b.spells.some(Boolean)) L.push(`소환사 주문: ${b.spells.map(id=>IX.spell[id]?IX.spell[id].n:'-').join(' / ')}`);
+  if(b.max) L.push(`선마: ${b.max}`);
+  const R=b.runes; if(R.p){ const ns = id => IX.rune[id]?IX.rune[id].n:''; L.push(`룬: ${IX.style[R.p]?IX.style[R.p].n:''}(${R.pr.filter(Boolean).map(ns).join(', ')})${R.s?` / ${IX.style[R.s]?IX.style[R.s].n:''}(${R.sr.map(ns).join(', ')})`:''}`); }
+  if(R.sh.some(Boolean)) L.push(`파편: ${R.sh.map(id=>id&&D.runes.shards[id]?D.runes.shards[id].n:'-').join(' / ')}`);
+  return L.join('\n');
+}
+function itemSetJSON(b){
+  const c = IX.champ[b.champ];
+  const counts = new Map(); b.it.filter(id=>IX.item[id]).forEach(id=>counts.set(id,(counts.get(id)||0)+1));
+  return JSON.stringify({title:b.title.slice(0,75), associatedMaps:[11,12], associatedChampions: c?[Number(c.key)]:[], blocks:[{type:'아이템', items:[...counts].map(([id,count])=>({id, count}))}], map:'any', mode:'any', preferredItemSlots:[], sortrank:0, startedFrom:'blank', type:'custom'});
+}
+function copyText(text, okMsg, title, hint){
+  const fb = () => { if(S.sheets.length) replaceSheet('copy',{title, text, hint}); else openSheet('copy',{title, text, hint}); };
+  try{ navigator.clipboard.writeText(text).then(()=>{ toast(okMsg); buzz(8); if(S.sheets.length) closeAllSheets(); }, fb); }catch{ fb(); }
+}
+function restoreBuilds(arr){
+  let n = 0;
+  for(const raw of arr){
+    if(!raw || typeof raw!=='object' || !raw.champ || !IX.champ[raw.champ]) continue;
+    const b = normalize(clone(raw)); b.id = typeof raw.id==='string' && /^[A-Za-z0-9_\-]{1,60}$/.test(raw.id) ? raw.id : uid();
+    S.builds.set(b.id, b); touch(b, {render:false, keepPatch:true}); n++;
+  }
+  return n;
+}
+function runeInfo(id){
+  const r = IX.rune[id]; if(!r) return;
+  openSheet('info',{title:'룬 정보', name:r.n, html: r.ld || r.d, icon: runeIco(id,56)});
+}
+
+const ACT = {
+  noop(){},
+  'open-sync'(){ openSheet('about', {to:'sec-sync'}); },
+  install(){ const e = INSTALL; if(!e){ toast('브라우저 메뉴에서 ‘앱 설치’를 눌러 주세요'); return; } e.prompt(); (e.userChoice || Promise.resolve()).finally(() => { INSTALL = null; renderSheet(); }); },
+  async 'gh-on'(){
+    const inp = $('#f-token'); const token = (inp && inp.value || '').trim();
+    if(!token){ toast('토큰을 붙여 넣어 주세요'); return; }
+    const prev = lsGet(LS_GH) || {};
+    const cfg = {token, owner:prev.owner || ghOwner(), repo:prev.repo || SYNC_REPO, api:prev.api || 'https://api.github.com'};
+    if(!cfg.owner){ toast('앱 주소에서 GitHub 사용자 이름을 찾지 못했습니다'); return; }
+    toast('연결 확인 중');
+    let res; try{ res = await ghFetch(cfg, ''); }catch{ toast('연결할 수 없습니다. 인터넷 연결을 확인해 주세요'); return; }
+    if(res.status===401){ toast('토큰이 맞지 않습니다. 다시 복사해 붙여 넣어 주세요'); return; }
+    if(!res.ok){ toast(`${cfg.repo} 저장소에 접근할 수 없습니다. 토큰의 저장소 선택을 확인해 주세요`); return; }
+    /* 이 기기에만 있던 빌드는 동기화 저장소로 함께 올림 (다른 기기 내용과 합쳐짐) */
+    if(!(S.db && S.db.kind==='github')){
+      const loc = lsGet(LS_BUILDS) || {builds:[], prefs:{fav:[]}}, builds = {};
+      (loc.builds||[]).forEach(b => { if(b && b.id && b.champ) builds[b.id] = toDoc(normalize(clone(b))); });
+      lsSet(LS_GHM, {builds, del:{}, prefs:normPrefs(loc.prefs||{}), prefsT:1, pending:true});
+      if(loc.builds && loc.builds.length) lsSet(LS_BUILDS+'.bak', loc);
+      lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}});
+    }
+    lsSet(LS_GH, Object.assign(prev, {token, owner:cfg.owner, repo:cfg.repo}));
+    buzz(10); location.reload();
+  },
+  'gh-sync'(){ if(!(S.db && S.db.sync)) return; toast('동기화 중'); S.db.sync().then(() => { renderSheet(); toast(S.db.status()==='synced' ? '동기화했습니다' : S.db.status()==='error' ? '연결 문제가 있습니다. 토큰을 확인해 주세요' : '연결되면 자동으로 올립니다'); }); },
+  'gh-off'(){
+    toast('연결을 끊으면 이 기기에만 저장됩니다', {label:'끊기', fn(){
+      flushAll(); lsSet(LS_BUILDS, {builds:[...S.builds.values()], prefs:S.prefs});
+      try{ localStorage.removeItem(LS_GH); localStorage.removeItem(LS_GHM); localStorage.removeItem(LS_CACHE); }catch{}
+      location.reload();
+    }});
+  },
+  'sync-info'(){
+    const s = S.offline ? 'offline' : S.sync;
+    toast({synced:'동기화됨 · 폰과 PC 자동 저장', saving:'저장 중', local:'이 기기에만 저장 (동기화 꺼짐)', error:'저장 오류 · 연결 확인 필요', offline:'오프라인 · 연결되면 자동 저장', loading:'저장소 연결 중'}[s] || '저장 상태 확인 중');
+  },
+  back: navBack,
+  reload(){ location.reload(); },
+  'toast-act'(){ const f=S.toastFn; S.toastFn=null; $('#toast').hidden=true; if(f) f(); },
+  fullscreen(){ try{ const p=document.documentElement.requestFullscreen(); if(p&&p.catch) p.catch(()=>toast('이 화면에서는 전체 화면을 쓸 수 없습니다')); }catch{ toast('이 화면에서는 전체 화면을 쓸 수 없습니다'); } },
+  about(){ openSheet('about'); },
+  haptic(){ S.haptic = S.haptic===false; uiSet('haptic', S.haptic); renderSheet(); buzz(12); },
+  prefetch(){ prefetchAll(); },
+  'new-build-pick'(){ if(S.readonly) return; S.qp = ''; openSheet('champPick'); },
+  'pick-champ-new'(el){ const b = newBuild(el.dataset.id); S.builds.set(b.id, b); touch(b, {render:false}); sheetToBuild(b.id, true); },
+  'it-map'(el){
+    const v = el.dataset.v==='sr' ? 'sr' : 'aram'; if(v===S.imap) return; S.imap = v; uiSet('imap', v);
+    const st = S.icol ? curSet() : null; if(st && st.map!==v){ st.it = convertIds(st.it, v); st.map = v; setTouch(st); } else renderMain();
+    buzz(5);
+  },
+  'it-tier'(el){ S.itier = el.dataset.v; renderMain(); },
+  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; renderMain(); },
+  'it-reset'(){ S.istats = []; S.itier = 'all'; S.qi = ''; const i = $('#q-items'); if(i) i.value = ''; renderMain(); },
+  'it-collect'(){
+    if(S.readonly) return;
+    if(S.icol){ dropEmptySet(); S.icol = false; renderMain(); toast(curSetSavedMsg()); return; }
+    S.icol = true; const st = curSet(); if(st) S.imap = st.map; else newSet(); renderMain(); buzz(8);
+  },
+  'set-new'(){ if(S.readonly) return; dropEmptySet(); S.icol = true; newSet(); renderMain(); buzz(8); },
+  'set-open'(el){ if(S.iset!==el.dataset.id) dropEmptySet(); S.iset = el.dataset.id; S.icol = true; const st = curSet(); if(st) S.imap = st.map; renderMain(); buzz(6); },
+  'it-tap'(el){ if(S.icol) toggleSetItem(el.dataset.id); else openSheet('item', {id:el.dataset.id, ctx:'itab'}); },
+  'set-toggle-info'(el){ toggleSetItem(el.dataset.id); renderSheet(); },
+  'set-rm'(el){ const st = curSet(); if(!st) return; st.it = st.it.filter(x => x!==el.dataset.id); buzz(5); setTouch(st); },
+  'set-del'(){
+    const st = curSet(); if(!st) return; const saved = clone(st), at = S.prefs.sets.indexOf(st);
+    S.prefs.sets = S.prefs.sets.filter(x => x!==st); S.iset = null; S.icol = false; savePrefs(); renderMain(); buzz([12,40,12]);
+    if(saved.it.length) toast(`‘${saved.n}’ 세트를 삭제했습니다`, {label:'되돌리기', fn(){ const a = [...(S.prefs.sets||[])]; a.splice(Math.min(at, a.length), 0, saved); S.prefs.sets = a; savePrefs(); renderMain(); toast('세트를 되살렸습니다'); }});
+  },
+  'set-apply'(){ const st = curSet(); if(!st || !st.it.length) return; S.qa = ''; S.atab = 'build'; openSheet('applySet', {sid:st.id}); },
+  'apply-tab'(el){ S.atab = el.dataset.v==='new' ? 'new' : 'build'; S.qa = ''; renderSheet(); },
+  'apply-to'(el){
+    const sh = topSheet(), st = sh && setById(sh.props.sid), b = S.builds.get(el.dataset.id); if(!st || !b || S.readonly) return;
+    const prev = [...b.it], prevNm = clone(b.nm);
+    b.it = convertIds(st.it, b.mode); b.it.forEach(id => { if(IX.item[id]) b.nm[id] = IX.item[id].n; });
+    touch(b, {render:false}); sheetToBuild(b.id, false); buzz(10);
+    toast('빌드 아이템을 세트로 바꿨습니다', {label:'되돌리기', fn(){ b.it = prev; b.nm = prevNm; touch(b); toast('되돌렸습니다'); }});
+  },
+  'apply-new'(el){
+    const sh = topSheet(), st = sh && setById(sh.props.sid); if(!st || S.readonly) return;
+    const b = newBuild(el.dataset.id); b.mode = st.map; b.it = [...st.it]; b.it.forEach(id => { if(IX.item[id]) b.nm[id] = IX.item[id].n; });
+    S.builds.set(b.id, b); touch(b, {render:false}); sheetToBuild(b.id, true); buzz(10);
+    toast('세트를 담은 새 빌드를 만들었습니다');
+  },
+  'sel-cancel'(){ selExit(); },
+  'sel-all'(){ if(!S.sel) return; const ids = homeBuildIds(); if(ids.every(id => S.sel.has(id))) return selExit(); ids.forEach(id => S.sel.add(id)); buzz(8); renderMain(); },
+  'sel-del'(){
+    if(!S.sel || !S.sel.size || S.readonly) return;
+    const saved = [...S.sel].map(id => S.builds.get(id)).filter(Boolean).map(b => clone(b));
+    selExit();
+    saved.forEach(b => removeBuild(b.id));
+    buzz([12,40,12]); render();
+    toast(`빌드 ${saved.length}개를 삭제했습니다`, {label:'되돌리기', fn(){ saved.forEach(s => { const r = normalize(clone(s)); S.builds.set(r.id, r); touch(r, {keepPatch:true, render:false}); }); render(); toast(`빌드 ${saved.length}개를 되살렸습니다`); }});
+  },
+  'build-map'(el){
+    const b = curBuild(); if(!b || S.readonly) return;
+    const to = el.dataset.v || (b.mode==='aram' ? 'sr' : 'aram'); if(to===b.mode) return;
+    let r; editB(x => { r = convertMap(x, to); });
+    if(S.picker && S.picker.bid===b.id){ S.picker.scroll = 0; renderSheet(); }
+    toast(`${MAPN[to]} 빌드로 변경${r.off ? ` · 상점에 없는 아이템 ${r.off}개` : r.moved ? ` · ${r.moved}개 ${MAPN[to]} 버전으로` : ''}`);
+    buzz(10);
+  },
+  async set(el){
+    const k = el.dataset.k, v = el.dataset.v;
+    if(el.getAttribute('aria-pressed')==='true') return;
+    if(k==='theme'){ S.theme = v; uiSet('theme', v); applyTheme(); }
+    else if(k==='motion'){ S.motion = v; uiSet('motion', v); applyTheme(); }
+    else if(k==='haptic'){ S.haptic = v==='on'; uiSet('haptic', S.haptic); }
+    else if(k==='wake'){
+      S.wake = v==='on'; uiSet('wake', S.wake);
+      const ok = await wakeSync();
+      if(S.wake && !ok){ S.wake = false; uiSet('wake', false); toast('이 화면에서는 화면 꺼짐 방지를 쓸 수 없습니다'); }
+    }
+    else if(k==='nbm' || k==='cdm'){ S.prefs[k] = v==='sr' ? 'sr' : 'aram'; savePrefs(); }
+    else if(k==='scale'){ S.scale = +v; uiSet('scale', S.scale); applyScale(); }
+    else if(k==='start'){ S.start = v; uiSet('start', v); }
+    else if(k==='bsort'){ S.bsort = v; uiSet('bsort', v); S.rev++; }
+    renderSheet(); buzz(8);
+  },
+  backup(){
+    const text = JSON.stringify({app:'템트리 노트', format:2, exported:new Date().toISOString(), patch:D.patch, prefs:S.prefs, builds:[...S.builds.values()]});
+    copyText(text, `빌드 ${S.builds.size}개를 백업으로 복사했습니다`, '전체 백업', '아래 내용을 전체 선택해 복사한 뒤 메모장 등에 보관하세요.');
+  },
+  restore(){ replaceSheet('restore'); },
+  'do-restore'(){
+    const ta = $('#f-restore'); let data;
+    try{ data = JSON.parse((ta&&ta.value||'').trim()); }catch{ toast('백업 형식이 아닙니다. 복사한 내용을 그대로 붙여넣어 주세요'); return; }
+    const arr = Array.isArray(data) ? data : (data && Array.isArray(data.builds) ? data.builds : null);
+    if(!arr){ toast('백업에서 빌드를 찾지 못했습니다'); return; }
+    const n = restoreBuilds(arr);
+    if(data.prefs && Array.isArray(data.prefs.fav)){ S.prefs.fav = [...new Set([...S.prefs.fav, ...data.prefs.fav.filter(id=>IX.champ[id])])]; savePrefs(); }
+    markMain(); closeAllSheets(); toast(n ? `빌드 ${n}개를 복원했습니다` : '복원할 빌드가 없습니다');
+  },
+  'import-local'(){
+    const n = restoreBuilds(S.localPending); S.localPending = [];
+    lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}}); render(); toast(`빌드 ${n}개를 계정으로 옮겼습니다`);
+  },
+  tab(el){ switchTab(el.dataset.v); },
+  role(el){ S.role = el.dataset.v; HM.ck = ''; setHTML($('#home-filters'), homeFilters()); setHTML($('#champ-list'), champsListHTML()); uiSet('role', S.role); },
+  'open-champ'(el){ warmChamp(el.dataset.id); go({name:'champ', id:el.dataset.id}); },
+  'open-build'(el){ if(S.sel){ selToggle(el.dataset.id); return; } const b = S.builds.get(el.dataset.id); if(b) warmChamp(b.champ); go({name:'build', id:el.dataset.id}); },
+  fav(el){ const id=el.dataset.id; const f=new Set(S.prefs.fav); const on=!f.has(id); on?f.add(id):f.delete(id); S.prefs.fav=[...f]; savePrefs(); render(); buzz(8); toast(on?'즐겨찾기에 추가했습니다':'즐겨찾기에서 뺐습니다'); },
+  /* 챔피언 정보 (초상화·선마·스킬 목록 어디서 눌러도 같은 창) */
+  'champ-info'(el){ const b=curBuild(); const champ=el.dataset.champ || (b&&b.champ); if(!champ) return; loadSkills(); openSheet('champ',{champ, k:el.dataset.k||'', max: b&&b.champ===champ ? b.max : '', bid: b&&b.champ===champ ? b.id : ''}); },
+  'calc-items'(el){ buzz(6); S.calc.items = !S.calc.items; el.setAttribute('aria-pressed', S.calc.items); uiSet('citems', S.calc.items); updateCalc(); },
+  jump(el){ const body=topBody(); const t=body && body.querySelector('#'+el.dataset.to); if(!t) return; const smooth = !REDUCE(); body.scrollTo({top:Math.max(0,t.offsetTop-12), behavior:smooth?'smooth':'auto'}); },
+  'new-build'(el){ if(S.readonly) return; const b=newBuild(el.dataset.id); S.builds.set(b.id,b); touch(b,{render:false}); go({name:'build', id:b.id, edit:true}); },
+  'toggle-edit'(){ if(S.sheets.length) closeAllSheets(); S.edit=!S.edit; resetEditState(); buzz(10); bumpEl(viewPage() && viewPage().fab); if(!S.edit){ const t=$('#f-title'); if(t) t.blur(); flushAll(); toast('저장했습니다'); } render(); },
+  'build-menu'(){ openSheet('buildMenu',{}); },
+  'ask-del'(){ topSheet().props.confirm=true; renderSheet(); },
+  async 'del-build'(){
+    const b=curBuild(); if(!b) return; const saved = clone(b); const id=b.id;
+    const synced = histSynced(); const k = S.sheets.length + 1;
+    const pr = removeBuild(id);   /* 목록에서 먼저 빼고 화면을 닫아, 드러나는 목록에 지운 빌드가 보이지 않게 */
+    S.sheets=[]; S.views.pop(); S.edit=false; resetEditState(); NAV.fwd = []; S.mainDirty = true; applyNav('back'); if(synced) rewind(k); buzz([12,40,12]);
+    await pr; render();
+    toast('빌드를 삭제했습니다', {label:'되돌리기', fn(){ const r=normalize(saved); S.builds.set(r.id, r); touch(r,{keepPatch:true}); toast('빌드를 되살렸습니다'); }});
+  },
+  'dup-build'(){ const b=curBuild(); if(!b) return; const n=normalize(clone(b)); n.id=uid(); n.title=b.title+' 사본'; n.pin=false; n.created=Date.now(); S.builds.set(n.id,n); touch(n,{render:false}); closeAllSheets(); S.views[S.views.length-1]={name:'build',id:n.id}; S.edit=true; resetEditState(); syncPages('fwd'); toast('복제본을 만들었습니다. 이름을 바꿔 보세요'); },
+  'pin-build'(){ const b=curBuild(); if(!b) return; b.pin=!b.pin; touch(b,{keepPatch:true}); closeAllSheets(); toast(b.pin?'대표 빌드로 지정했습니다':'대표 빌드를 해제했습니다'); },
+  'copy-text'(){ const b=curBuild(); if(b) copyText(buildText(b), '빌드를 텍스트로 복사했습니다', '텍스트로 복사'); },
+  'copy-itemset'(){ const b=curBuild(); if(b) copyText(itemSetJSON(b), '아이템 세트를 복사했습니다', '아이템 세트', '롤 클라이언트 컬렉션 → 아이템 → 아이템 세트 가져오기 → 붙여넣기에 사용하세요.'); },
+  /* 주문·선마: 그 자리에서 펼쳐 고르기 */
+  panel(el){ const v=el.dataset.v; S.panel = S.panel===v ? null : v; S.popAt = S.panel ? popPos(v) : null; renderMain(); },
+  'pop-close'(){ S.panel=null; renderMain(); },
+  'cd-mode'(el){ S.prefs.cdm = el.dataset.v==='aram' ? 'aram' : 'sr'; savePrefs(); renderMain(); buzz(5); },
+  'pick-start'(){ if(S.readonly) return; if(!S.edit){ S.edit=true; resetEditState(); render(); buzz(10); } ACT.pick(); },
+  'spell-pick'(el){ const v=el.dataset.v; const slot=S.panel==='sp1'?1:0; const next = popPos('sp1'); editB(b=>{ const o=1-slot; if(b.spells[o]===v) b.spells[o]=b.spells[slot]; b.spells[slot]=v; }, {render:false}); const b=curBuild(); S.panel = (slot===0 && b && !b.spells[1]) ? 'sp1' : null; S.popAt = S.panel ? next : null; renderMain(); buzz(6); bumpEl($(`#b-head [data-v="sp${slot}"]`)); },
+  'spell-info'(el){ const s=IX.spell[el.dataset.id]; if(!s) return;
+    const sub = `재사용 대기시간 협곡 ${s.sr && s.cd ? s.cd+'초' : '사용 불가'} · 칼바람 ${s.ar && s.acd ? s.acd+'초' : '사용 불가'}`;
+    openSheet('info',{title:'주문 정보', name:s.n, sub, html:s.d, icon:spellIco(s.id,56)}); },
+  'set-max'(el){ const k=el.dataset.k; S.panel=null; editB(b=>{ b.max = b.max===k ? '' : k; }); buzz(6); bumpEl($('#b-head .mx')); },
+  /* 아이템: 누르면 정보(편집 중엔 빼기 버튼 포함), 끌면 순서 변경 */
+  'item-info'(el){ openSheet('item',{id:el.dataset.id, ctx: el.dataset.ctx || (S.edit && !S.readonly && el.closest('#b-items') ? 'build' : '')}); },
+  'item-toggle'(el){ const id=el.dataset.id, ctx=el.dataset.ctx; const b=curBuild(); if(!b||S.readonly) return;
+    const i=b.it.indexOf(id); const name=IX.item[id]?IX.item[id].n:(b.nm[id]||'아이템');
+    if(i>=0) b.it.splice(i,1); else { b.it.push(id); if(IX.item[id]) b.nm[id]=IX.item[id].n; }
+    touch(b,{render:false}); markMain();
+    if(ctx==='picker'){ if(S.picker) S.picker.last=id; markPit(id, i<0); updatePickerLight(b); closeSheet(); return; }
+    closeAllSheets(); buzz(i>=0 ? [8,30,8] : 8);
+    if(i>=0) toast(`${name}${eul(name)} 뺐습니다`, {label:'되돌리기', fn(){ const bb=S.builds.get(b.id); if(!bb||bb.it.includes(id)) return; bb.it.splice(Math.min(i,bb.it.length),0,id); touch(bb); }});
+    else toast(`${name}${eul(name)} 담았습니다`); },
+  'tree-toggle'(){ S.treeOpen=!S.treeOpen; uiSet('tree', S.treeOpen); renderSheet(); },
+  pick(){ const b=curBuild(); if(!b) return; S.panel=null; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'all', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
+  'pick-tier'(el){ S.picker.tier=el.dataset.v; S.picker.scroll=0; renderSheet(); const bd=topBody(); if(bd) bd.scrollTop=0; },
+  'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; el.setAttribute('aria-pressed', P.stats.includes(k)); updatePicker(); uiSet('stats', P.stats); },
+  'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='all'; P.q=''; uiSet('stats', []); S.picker.scroll=0; renderSheet(); },
+  'pick-toggle'(el){ const id=el.dataset.id; const P=S.picker; const b=P&&S.builds.get(P.bid); if(!b||S.readonly) return;
+    const i=b.it.lastIndexOf(id); if(i>=0) b.it.splice(i,1); else { b.it.push(id); b.nm[id]=IX.item[id].n; }
+    P.last=id; P.bump = i<0 ? id : ''; touch(b,{render:false}); markMain(); markPit(id, i<0); updatePickerLight(b); buzz(i<0 ? 8 : 5); },
+  'tray-del'(el){ const P=S.picker; const b=P&&S.builds.get(P.bid); if(!b||S.readonly) return; const id=el.dataset.id; const i=b.it.indexOf(id); if(i<0) return;
+    b.it.splice(i,1); touch(b,{render:false}); markMain(); markPit(id, false); updatePickerLight(b); buzz(5); },
+  'pick-info'(el){ const body=topBody(); if(body) S.picker.scroll=body.scrollTop; openSheet('item',{id:el.dataset.id, ctx:'picker'}); },
+  /* 룬: 전체 트리에서 바로 선택 */
+  'rune-style'(el){ const v=el.dataset.v, kind=el.dataset.kind; S.lastRune=''; editB(b=>{ const R=b.runes;
+    if(kind==='p'){ if(R.p===v) return; R.p=v; R.pr=['','','','']; if(R.s===v){R.s='';R.sr=[];} if(!R.sh.some(Boolean)) R.sh=['5008','5008','5011']; }
+    else { if(R.s===v) return; R.s=v; R.sr=[]; } }); },
+  'rune-pick'(el){ const si=+el.dataset.slot, v=el.dataset.v; S.lastRune=v; editB(b=>{ b.runes.pr[si]=v; }); buzz(6); },
+  'rune-sub'(el){ const v=el.dataset.v; S.lastRune=v; editB(b=>{ const R=b.runes; const Sx=IX.style[R.s]; if(!Sx) return;
+    const rowOf = id => Sx.slots.findIndex(s=>s.includes(id));
+    if(R.sr.includes(v)){ R.sr=R.sr.filter(x=>x!==v); return; }
+    const row=rowOf(v); R.sr=R.sr.filter(x=>rowOf(x)!==row); R.sr.push(v); if(R.sr.length>2) R.sr.shift(); }); },
+  'shard-pick'(el){ S.lastRune=el.dataset.v; editB(b=>{ b.runes.sh[+el.dataset.row]=el.dataset.v; }); buzz(6); },
+  'shard-info'(el){ const s=D.runes.shards[el.dataset.v]; if(s) openSheet('info',{title:'파편 정보', name:s.n, html:esc(s.val||''), icon:runeIco(el.dataset.v,56)}); },
+  'rune-info'(el){ runeInfo(el.dataset.v || el.dataset.id); },
+  rune(el){ const r = el.dataset.role, E = S.edit && !S.readonly;
+    if(r==='style'){ if(E){ ACT['rune-style'](el); buzz(6); } }
+    else if(r==='sub' && E){ ACT['rune-sub'](el); buzz(6); }
+    else if(r==='shard') ACT[E ? 'shard-pick' : 'shard-info'](el);
+    else if(r==='pri'){ if(E) ACT['rune-pick'](el); else runeInfo(el.dataset.v); }
+    else if(r==='sub'){ if(E) ACT['rune-sub'](el); else runeInfo(el.dataset.v); } },
+  'close-sheet': closeSheet,
+  'close-all': closeAllSheets,
+};
+const LP = {t:0, id:'', x:0, y:0, fired:0, armed:false, skip:false};   /* armed: 이번 누르기에서 길게 누르기가 일어남, skip: 그 누르기 끝의 클릭 한 번 무시 */
+const lpTarget = e => { const c = e.target.closest && e.target.closest('.bcard[data-act=open-build]'); return c && !S.readonly && S.tab==='builds' && cur().name==='home' && !S.sheets.length ? c : null; };
+function lpFire(id){ LP.fired = Date.now(); LP.armed = true; if(S.sel) selToggle(id); else selEnter(id); }
+document.addEventListener('pointerdown', e => {
+  if(e.pointerType==='mouse' && e.button>0) return;
+  LP.skip = false; LP.armed = false;
+  const c = lpTarget(e); if(!c) return;
+  clearTimeout(LP.t); LP.id = c.dataset.id; LP.x = e.clientX; LP.y = e.clientY;
+  LP.t = setTimeout(() => { LP.t = 0; lpFire(LP.id); }, 450);
+}, true);
+document.addEventListener('pointermove', e => { if(LP.t && Math.hypot(e.clientX-LP.x, e.clientY-LP.y) > 10){ clearTimeout(LP.t); LP.t = 0; } }, true);
+['pointerup','pointercancel'].forEach(t => document.addEventListener(t, () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } if(LP.armed){ LP.armed = false; LP.skip = true; } selHistNow(); }, true));
+document.addEventListener('contextmenu', () => setTimeout(selHistNow, 0), true);
+function selHistNow(){
+  if(!S.selNeedHist) return; S.selNeedHist = false; if(!S.sel || !histOK) return;
+  const cs = history.state;
+  try{
+    if(GUARD_ON() && cs && cs.i===0 && !cs.guard && !cs.sel) history.pushState({ttn:SID, i:0, guard:1}, '');
+    history.pushState({ttn:SID, i:depth(), sel:1}, ''); S.selHist = true;
+  }catch{ S.selHist = false; }
+}
+document.addEventListener('scroll', () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } }, true);
+document.addEventListener('contextmenu', e => {
+  const c = lpTarget(e); if(!c) return;
+  e.preventDefault();
+  if(LP.t){ clearTimeout(LP.t); LP.t = 0; lpFire(c.dataset.id); }      /* 손가락: 길게 누르기 메뉴 대신 고르기 */
+  else if(Date.now() - LP.fired > 700) lpFire(c.dataset.id);          /* 마우스 오른쪽 클릭 */
+});
+document.addEventListener('click', e => {
+  if(Date.now() - DRAG.end < 250){ e.preventDefault(); return; }   /* 끌기 직후의 클릭은 무시 */
+  if(LP.skip){ LP.skip = false; if(e.target.closest && e.target.closest('.bcard')){ e.preventDefault(); return; } }
+  if(HS.skip){ HS.skip = false; if(e.target.closest && e.target.closest('#hm-view')){ e.preventDefault(); return; } }   /* 탭을 민 손가락을 뗄 때의 클릭은 무시 */   /* 길게 누른 그 손가락을 뗄 때의 클릭은 무시 */
+  const el = e.target.closest('[data-act]'); if(!el || el.disabled) return;
+  const f = ACT[el.dataset.act]; if(f){ e.preventDefault(); f(el, e); }
+});
+let qT;
+document.addEventListener('input', e => {
+  const t = e.target; const b = curBuild();
+  const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
+  if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
+  else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
+  else if(t.id==='q-items'){ S.qi=t.value; HM.ik=''; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), f=$('#it-filters'); if(l) setHTML(l, itemsListHTML()); if(f) setHTML(f, itemFiltersHTML()); },80); }
+  else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
+  else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
+  else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
+  else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(updatePicker,80); }
+  else if(t.id==='calc-lvl'){ const v = Math.min(18, Math.max(1, +t.value||1)); if(v!==S.calc.lvl) buzz(3); S.calc.lvl = v; updateCalc(); }
+  else if(t.id==='f-title' && b){ b.title=t.value.slice(0,60)||'빌드'; touch(b,{render:false}); }
+});
+document.addEventListener('change', e => { if(e.target && e.target.id==='calc-lvl') uiSet('lvl', S.calc.lvl); });
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape' && S.sel && !S.sheets.length) selExit();
+  else if(e.key==='Escape' && S.sheets.length) navBack();
+  else if(e.key==='Escape' && S.panel){ S.panel=null; renderMain(); }
+  if(e.key==='Enter' && e.target && (e.target.id==='f-title' || e.target.type==='search')) e.target.blur();
+});
+document.addEventListener('focusout', e => { if(e.target && e.target.id==='f-title') setTimeout(renderTop,0); });
+document.addEventListener('fullscreenchange', renderTop);
+window.addEventListener('resize', () => { if(S.panel){ S.panel = null; renderMain(); } });
+
+/* 챔피언 정보: 지금 보고 있는 구역을 바로 가기 줄에 표시 */
+let spyT = 0;
+function spy(){
+  const pg = topPage(); if(!pg || pg.__src.kind!=='champ') return;
+  const body = pg.body, bar = pg.ptop.querySelector('.jump'); if(!bar) return;
+  const secs = [...body.querySelectorAll('#sk-stats,.skd')]; let curId = secs.length ? secs[0].id : '';
+  for(const el of secs){ if(el.offsetTop - 60 <= body.scrollTop) curId = el.id; }
+  if(body.scrollTop + body.clientHeight >= body.scrollHeight - 4 && secs.length) curId = secs[secs.length-1].id;
+  bar.querySelectorAll('button').forEach(b => { const on = String(b.dataset.to===curId); if(b.getAttribute('aria-current')!==on) b.setAttribute('aria-current', on); });
+}
+document.addEventListener('scroll', e => { const t = e.target; if(t && t.classList && t.classList.contains('sb') && !spyT){ spyT = requestAnimationFrame(()=>{ spyT=0; spy(); }); } }, true);
+
+/* ------------------------------------------------------------ 끌어서 순서 바꾸기 (빌드 화면 아이템 줄, 아이템 추가 창 위쪽) */
+const DRAG = {st:null, end:0};
+function dragTiles(box){ return [...box.querySelectorAll(':scope > [data-drag]')]; }
+function flipMove(box, fn){
+  const tiles = dragTiles(box); const before = new Map(tiles.map(t=>[t, t.getBoundingClientRect()]));
+  fn();
+  if(REDUCE()) return;
+  for(const t of tiles){ const a=before.get(t), b=t.getBoundingClientRect(); const dx=a.left-b.left, dy=a.top-b.top; if(!dx && !dy) continue;
+    t.style.transition='none'; t.style.transform=`translate(${dx}px,${dy}px)`; t.getBoundingClientRect(); t.style.transition='transform .16s ease-out'; t.style.transform=''; }
+}
+function dragStart(d, e){
+  const r = d.tile.getBoundingClientRect();
+  d.on = true; d.slots = dragTiles(d.box).map(t=>{ const q=t.getBoundingClientRect(); return [q.left+q.width/2, q.top+q.height/2]; });
+  d.dx = e.clientX - r.left; d.dy = e.clientY - r.top;
+  const g = d.tile.cloneNode(true); g.classList.add('ghost'); g.removeAttribute('data-act'); g.style.width=r.width+'px'; g.style.height=r.height+'px';
+  document.body.appendChild(g); d.ghost = g; d.tile.classList.add('ph');
+  buzz(10);
+}
+function dragMove(d, e){
+  d.ghost.style.transform = `translate(${e.clientX-d.dx}px,${e.clientY-d.dy}px) scale(1.08)`;
+  let k=0, best=Infinity; d.slots.forEach(([x,y],i)=>{ const v=(x-e.clientX)**2+(y-e.clientY)**2; if(v<best){ best=v; k=i; } });
+  const tiles = dragTiles(d.box); const cur = tiles.indexOf(d.tile); if(k===cur) return;
+  buzz(7);   /* 한 칸 옮겨질 때마다 짧은 진동 */
+  const rest = tiles.filter(t=>t!==d.tile);
+  flipMove(d.box, () => { if(k>=rest.length) rest[rest.length-1].after(d.tile); else rest[k].before(d.tile); });
+}
+function dragFinish(cancel){
+  const d = DRAG.st; DRAG.st = null; if(!d || !d.on) return;
+  DRAG.end = Date.now(); d.ghost.remove(); d.tile.classList.remove('ph'); if(!cancel) buzz(6);
+  const ids = dragTiles(d.box).map(t=>t.dataset.id);
+  if(d.box.dataset.sort==='set'){ const st = curSet(); if(!cancel && st && ids.join()!==st.it.join()){ st.it = ids; setTouch(st); } else renderMain(); return; }
+  const tray = d.box.dataset.sort==='tray';
+  const b = tray ? (S.picker && S.builds.get(S.picker.bid)) : curBuild();
+  if(cancel || !b || S.readonly || ids.join()===b.it.join()){ if(tray) updatePicker(); else if(S.mainDirty || cancel) renderMain(); return; }
+  b.it = ids;
+  if(tray){ touch(b,{render:false}); markMain(); updatePicker(); } else touch(b);
+}
+document.addEventListener('pointerdown', e => {
+  if(e.button>0 || DRAG.st) return;
+  const tile = e.target.closest('[data-drag]'); const box = tile && tile.parentElement;
+  if(!box || !box.dataset.sort || S.readonly) return;
+  if(box.dataset.sort==='build' && !S.edit) return;
+  DRAG.st = {tile, box, id:e.pointerId, x:e.clientX, y:e.clientY, on:false};
+});
+document.addEventListener('pointermove', e => {
+  const d = DRAG.st; if(!d || e.pointerId!==d.id) return;
+  if(!d.on){ if(Math.hypot(e.clientX-d.x, e.clientY-d.y) < 7) return; dragStart(d, e); }
+  e.preventDefault(); dragMove(d, e);
+}, {passive:false});
+document.addEventListener('pointerup', e => { if(DRAG.st && e.pointerId===DRAG.st.id) dragFinish(false); });
+document.addEventListener('pointercancel', e => { if(DRAG.st && e.pointerId===DRAG.st.id) dragFinish(true); });
+
+/* ------------------------------------------------------------ 손가락 제스처 (터치 전용)
+   어느 페이지든 오른쪽으로 밀면 뒤로: 미는 순간부터 바로 아래 이전 페이지가 드러나고, 손을 떼면 그 즉시 아래 페이지를 조작할 수 있음
+   넘어가는 기준 = 거리와 속도를 함께 봄
+   · 빠르게 튕기면(초당 400px 이상) 30px만 밀어도 넘어감 → 한 손 엄지로 가볍게
+   · 천천히 밀면 손을 뗄 때의 관성까지 더해 화면 폭의 약 30%(90~150px)를 넘겨야 넘어감 → 실수로 넘어가지 않게
+   · 넘긴 뒤라도 왼쪽으로 되돌리며 놓으면 취소
+   · 대각선으로 미는 엄지 동작도 인정(가로 기준 약 50°까지), 세로 스크롤이 먼저면 스크롤
+   빌드 메뉴는 윗부분을 아래로 끌어 닫기 (같은 거리·속도 기준) */
+const SW = {st:null}, SD = {st:null};
+const SWIPE = {slop:10, angle:.85, flingV:.4, flingMin:30, distK:.3, distMin:90, distMax:150, proj:120, backV:-.2};
+const swipeDist = W => Math.max(SWIPE.distMin, Math.min(SWIPE.distMax, W * SWIPE.distK));
+function swipeBlocked(t){
+  if(t.closest('input, textarea, select, .pop, .pop-bg')) return true;
+  const dr = t.closest('[data-drag]'), box = dr && dr.parentElement;
+  if(box && (box.dataset.sort==='tray' || (box.dataset.sort==='build' && S.edit && !S.readonly))) return true;
+  const hs = t.closest('.chips, .tree, .tray');
+  return !!(hs && hs.scrollWidth > hs.clientWidth + 2);
+}
+/* 손을 떼기 직전 약 0.09초 동안의 평균 속도 (마지막 한 칸만 보면 손이 멈칫할 때 속도가 0으로 잡힘) */
+function relVel(g, t, v){
+  g.vs.push([t, v]);
+  const r = g.vs.filter(s => t - s[0] <= 90); if(r.length < 2) return 0;
+  const a = r[0], b = r[r.length-1]; return b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0;
+}
+const keepVs = g => { if(g.vs.length > 16) g.vs.splice(0, g.vs.length - 16); };
+document.addEventListener('pointerdown', e => {
+  if(e.pointerType!=='touch' || DRAG.st || SW.st || SD.st) return;
+  if(isMenu(topSheet())){
+    const sh = $('#sheet .sheet'); if(!sh || $('#sheet').classList.contains('closing')) return;
+    if(!e.target.closest('.sheet-grip, .sheet-h')) return;
+    SD.st = {id:e.pointerId, x:e.clientX, y:e.clientY, on:false, vs:[[e.timeStamp, e.clientY]], sh};
+    return;
+  }
+  const pg = topPage();
+  if(PG.length < 2 || !pg || S.panel || e.clientX < 12 || !pg.contains(e.target) || swipeBlocked(e.target)) return;
+  SW.st = {id:e.pointerId, x:e.clientX, y:e.clientY, on:false, vs:[[e.timeStamp, e.clientX]], pg, t:e.target};
+}, {passive:true});
+function swipeBegin(w){
+  finishAnims();
+  const under = PG[PG.length-2];
+  if(w.pg!==topPage() || !under){ SW.st = null; return false; }
+  if(stale(under)) renderView(under);   /* 드러날 페이지를 최신으로 (대부분 이미 한가할 때 갱신돼 있음) */
+  w.under = under; w.W = $('#stack').clientWidth || innerWidth; w.dimv = dimOf(); w.on = true;
+  w.press = w.t && w.t.closest('button, .bcard, .ctile, .ro, .pit, .tn'); if(w.press) w.press.classList.add('nopress');
+  return true;
+}
+function swipeMove(w, x){
+  const p = Math.max(0, Math.min(w.W, x - w.x)), k = p / w.W; w.p = p;
+  w.pg.style.transform = tx(p);
+  w.under.style.transform = tx(-PAR * w.W * (1 - k));
+  w.under.dim.style.opacity = String(w.dimv * (1 - k));
+  const th = swipeDist(w.W);
+  if(!w.armed && p >= th){ w.armed = true; buzz(8); } else if(w.armed && p < th - 16) w.armed = false;
+}
+function swipeCancel(w){
+  const p = w.p || 0, k = p / w.W, W = w.W;
+  w.pg.style.transform = ''; w.under.style.transform = ''; w.under.dim.style.opacity = '';
+  if(w.press) w.press.classList.remove('nopress');
+  if(REDUCE() || p < 1) return;
+  const dur = Math.max(160, Math.min(260, 120 + p * .6));
+  runAnim([[w.pg, [{transform:tx(p)},{transform:tx(0)}], {duration:dur}],
+           [w.under, [{transform:tx(-PAR*W*(1-k))},{transform:tx(-PAR*W)}], {duration:dur}],
+           [w.under.dim, [{opacity:w.dimv*(1-k)},{opacity:w.dimv}], {duration:dur}]]);
+}
+document.addEventListener('pointermove', e => {
+  const w = SW.st, d = SD.st;
+  if(w && e.pointerId===w.id){
+    const dx = e.clientX - w.x, dy = e.clientY - w.y;
+    w.vs.push([e.timeStamp, e.clientX]); keepVs(w);
+    if(!w.on){
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      if((ay > SWIPE.slop && ay > ax) || dx < -SWIPE.slop){ SW.st = null; return; }   /* 세로 스크롤 또는 왼쪽으로 밀기 */
+      w.claim = dx > 3 && dx > ay;   /* 오른쪽 가로 움직임이 보이면 브라우저 몫으로 넘기지 않음 */
+      if(dx < SWIPE.slop || ax < ay * SWIPE.angle) return;
+      if(!swipeBegin(w)) return;
+    }
+    swipeMove(w, e.clientX);
+  } else if(d && e.pointerId===d.id){
+    const dy = e.clientY - d.y, dx = e.clientX - d.x;
+    d.vs.push([e.timeStamp, e.clientY]); keepVs(d);
+    if(!d.on){ if(Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)){ SD.st = null; return; } if(dy < 8) return; d.on = true; d.bd = $('#sheet .backdrop'); d.h = d.sh.offsetHeight; }
+    const p = Math.max(0, dy); d.p = p;
+    d.sh.style.transform = `translateY(${p}px)`; if(d.bd) d.bd.style.opacity = String(1 - Math.min(.8, p / d.h));
+    const th = Math.min(120, d.h * .35);
+    if(!d.armed && p >= th){ d.armed = true; buzz(8); } else if(d.armed && p < th - 12) d.armed = false;
+  }
+}, {passive:true});
+function gestureEnd(e, cancel){
+  const w = SW.st, d = SD.st;
+  if(w && e.pointerId===w.id){
+    SW.st = null; if(!w.on) return;
+    const v = cancel ? 0 : relVel(w, e.timeStamp, e.clientX), p = w.p || 0;
+    const commit = !cancel && v > SWIPE.backV && ((v >= SWIPE.flingV && p >= SWIPE.flingMin) || p + v * SWIPE.proj >= swipeDist(w.W));
+    if(w.press) w.press.classList.remove('nopress');
+    if(w.pg!==topPage()){ w.pg.style.transform = ''; w.under.style.transform = ''; w.under.dim.style.opacity = ''; return; }
+    if(commit){ NAV.swipe = {p, v}; navBack(); }
+    else swipeCancel(w);
+  } else if(d && e.pointerId===d.id){
+    SD.st = null; if(!d.on) return;
+    const v = cancel ? 0 : relVel(d, e.timeStamp, e.clientY), p = d.p || 0, th = Math.min(120, d.h * .35);
+    if(!cancel && v > -.2 && ((v >= .45 && p >= 24) || p + v * 120 >= th)){ closeAllSheets(); if(d.bd) d.bd.style.opacity = ''; }
+    else {
+      d.sh.animate([{transform:`translateY(${p}px)`},{transform:'none'}], {duration:200, easing:EASE});
+      d.sh.style.transform = ''; if(d.bd){ d.bd.animate([{opacity:d.bd.style.opacity||1},{opacity:1}], {duration:200}); d.bd.style.opacity = ''; }
+    }
+  }
+}
+/* 밀기가 시작되면 그 터치를 앱이 가져감: 브라우저가 이 움직임을 스크롤·튕기기로 처리하지 않게 해서
+   손을 뗀 뒤 첫 번째 누름이 '튕기기 멈춤'으로 먹히는 문제(뒤로 간 직후 화면이 안 눌리는 증상)를 막음 */
+document.addEventListener('touchmove', e => { if(((SW.st && (SW.st.on || SW.st.claim)) || (SD.st && SD.st.on)) && e.cancelable) e.preventDefault(); }, {passive:false});
+document.addEventListener('pointerup', e => gestureEnd(e, false), {passive:true});
+document.addEventListener('pointercancel', e => gestureEnd(e, true), {passive:true});
+
+/* 홈 탭 밀기: 가로로 밀면 이웃 탭이 손가락을 따라 들어오고, 화면 폭 25% 이상 또는 빠르게 튕기면 넘어감 */
+const HS = {st:null, skip:false};
+function hsBlocked(t){
+  if(t.closest('input, textarea, select, .setbar, [data-drag]')) return true;
+  const hs = t.closest('.chips, .tray'); return !!(hs && hs.scrollWidth > hs.clientWidth + 2);
+}
+document.addEventListener('pointerdown', e => {
+  HS.skip = false;
+  if(e.pointerType!=='touch' || HS.st || DRAG.st || SW.st || depth()>0 || S.sel) return;
+  const v = e.target.closest && e.target.closest('#hm-view'); if(!v || hsBlocked(e.target)) return;
+  HS.st = {id:e.pointerId, x:e.clientX, y:e.clientY, on:false, vs:[[e.timeStamp, e.clientX]], W:v.clientWidth||innerWidth};
+}, {passive:true});
+document.addEventListener('pointermove', e => {
+  const g = HS.st; if(!g || e.pointerId!==g.id) return;
+  const dx = e.clientX - g.x, dy = e.clientY - g.y;
+  g.vs.push([e.timeStamp, e.clientX]); keepVs(g);
+  if(!g.on){
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if(ay > 10 && ay > ax){ HS.st = null; return; }
+    g.claim = ax > 3 && ax > ay;
+    if(ax < 10 || ax < ay * 1.2) return;
+    g.on = true; g.x = e.clientX; const hm = $('#hm'); if(hm) hm.classList.add('drag');
+    if(LP.t){ clearTimeout(LP.t); LP.t = 0; }
+  }
+  let d = e.clientX - g.x; const i = tabIdx();
+  if((i===0 && d>0) || (i===TABS.length-1 && d<0)) d *= .3;   /* 끝 탭에서는 살짝만 끌림 */
+  g.d = d; placeTrack(d);
+}, {passive:true});
+function hsEnd(e, cancel){
+  const g = HS.st; if(!g || e.pointerId!==g.id) return; HS.st = null;
+  if(!g.on) return;
+  HS.skip = true;
+  const hm = $('#hm'); if(hm) hm.classList.remove('drag');
+  const v = cancel ? 0 : relVel(g, e.timeStamp, e.clientX), d = g.d || 0; let i = tabIdx();
+  if(!cancel && (d < -g.W*.25 || (v < -.4 && d < -30))) i++;
+  else if(!cancel && (d > g.W*.25 || (v > .4 && d > 30))) i--;
+  i = Math.max(0, Math.min(TABS.length-1, i));
+  if(TABS[i]!==S.tab) switchTab(TABS[i]); else placeTrack(0);
+}
+document.addEventListener('touchmove', e => { if(HS.st && (HS.st.on || HS.st.claim) && e.cancelable) e.preventDefault(); }, {passive:false});
+document.addEventListener('pointerup', e => hsEnd(e, false), {passive:true});
+document.addEventListener('pointercancel', e => hsEnd(e, true), {passive:true});
+
+/* ------------------------------------------------------------ 시작 */
+/* 이미지 미리 해독: 처음 쓰일 때 멈칫하지 않게. 스킬 그림은 그 챔피언 묶음만 */
+const WARM = {};
+function warmSheet(name){
+  const sh = D && D.sheets[name]; if(!sh) return; const src = `${sh.url}?v=${sh.h||D.v}`; if(WARM[src]) return;
+  const i = new Image(); i.src = src; WARM[src] = i; if(i.decode) i.decode().catch(()=>{});
+}
+function warmChamp(id){ const c = IX.champ[id]; if(c && c.ss) warmSheet(c.ss); }
+function indexData(){
+  for(const k of Object.keys(IX)) IX[k] = {};
+  D.champs.forEach(c=>{ IX.champ[c.id]=c; c.sk.forEach(s => { s.ss = c.ss || 'skills'; }); });
+  for(const [id,it] of Object.entries(D.items)){
+    IX.item[id]=it; (IX.nameToItem[it.n] ||= []).push(id);
+    const set = new Set(); it.st.forEach(line=>{ const n=line.replace(/\s*[+\-]?[\d.,]+%?\s*$/,'').trim(); if(STAT_NAME[n]) set.add(STAT_NAME[n]); }); IX.istat[id]=set;
+  }
+  D.runes.styles.forEach(s=>{ IX.style[s.id]=s; s.slots.forEach((slot,si)=>slot.forEach(id=>{ IX.runeStyle[id]={n:s.n, slot:si}; })); });
+  Object.assign(IX.rune, D.runes.r);
+  D.spells.forEach(s=>IX.spell[s.id]=s);
+}
+async function boot(hot){
+  const ui = lsGet(LS_UI) || {}; if(ui.role) S.role = ui.role; if(ui.tree) S.treeOpen = true;
+  if(ui.lvl>=1 && ui.lvl<=18) S.calc.lvl = ui.lvl; if(ui.citems===false) S.calc.items = false; S.haptic = ui.haptic !== false;
+  S.scale = [90,110,120].includes(ui.scale) ? ui.scale : 100; S.bsort = ui.bsort==='new' || ui.bsort==='name' ? ui.bsort : 'upd'; S.start = ['items','champs'].includes(ui.start) ? ui.start : 'builds'; S.tab = S.start; S.imap = ui.imap==='sr' ? 'sr' : 'aram';
+  S.theme = ui.theme==='light' || ui.theme==='dark' ? ui.theme : 'system'; S.motion = ui.motion==='fast' || ui.motion==='off' ? ui.motion : 'normal'; S.wake = ui.wake===true;
+  applyTheme(); applyScale(); if(S.wake) wakeSync();
+  if(hot && Array.isArray(hot.views) && hot.views.length && hot.views[0].name==='home'){ S.views = hot.views; if(hot.tab) S.tab = hot.tab; }
+  try{ history.replaceState({ttn:SID, i:0}, ''); }catch{ histOK = false; }
+  /* [오프라인] 마지막으로 받은 데이터로 먼저 열고, 새 데이터는 뒤에서 받아 내용이 바뀌었을 때만 교체
+     내용 지문(rev)으로 비교: 날짜·버전이 같아도 내용이 다르면 교체 (지문 없는 예전 저장본은 쓰지 않고 새로 받음) */
+  let cached = null; try{ const raw = localStorage.getItem(LS_DATA); cached = raw ? JSON.parse(raw) : null; }catch{ cached = null; }
+  const okShape = c => !!(c && c.v && c.sheets && Array.isArray(c.champs));
+  if(okShape(cached) && cached.rev){ D = cached; indexData(); }
+  const fresh = fetch('data.json?t=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.text() : null).then(t => { if(!t) return null; const j = JSON.parse(t); j.__raw = t; return j; }).catch(() => null);
+  const keep = j => { try{ localStorage.setItem(LS_DATA, j.__raw); }catch{} delete j.__raw; };
+  if(!D){
+    let j = await fresh;
+    if(!j && okShape(cached)) j = cached;   /* 새로 받지 못하면 예전 저장본이라도 사용 */
+    if(!j){ $('#stack').innerHTML = `<div class="boot"><div class="empty"><b>패치 데이터를 불러오지 못했습니다</b><span>네트워크 연결을 확인한 뒤 다시 시도해 주세요.</span><button class="btn primary" data-act="reload">다시 시도</button></div></div>`; return; }
+    if(j.__raw) keep(j); D = j; indexData();
+  } else {
+    fresh.then(j => {
+      if(!j || (j.rev && j.rev===D.rev)) return;
+      keep(j); D = j; indexData(); SK = null; skLoading = null; S.rev++; dirtyMain();
+      PG.forEach(pg => pg.isView ? renderView(pg) : fillSheetPage(pg)); renderMenu();
+    });
+  }
+  syncPages('');
+  (window.requestIdleCallback || ((f)=>setTimeout(f, 800)))(() => ['champs','items','runes','spells'].forEach(warmSheet), {timeout:2000});
+  await initStore();
+  if(S.tab==='builds' && S.loaded && !S.builds.size && S.views.length===1) S.tab='champs';   /* 빌드가 하나도 없으면 챔피언부터 */
+  render();
+  setTimeout(loadSkills, 2500);
+}
+const hot = window.claude && window.claude.hot;
+try{ if(hot && typeof hot.snapshot==='function') hot.snapshot(() => ({views:S.views, tab:S.tab})); }catch{}
+if(hot && typeof hot.ready==='function') hot.ready(boot); else boot((hot && hot.data) || {});
+})();
+</script>
+
+<script>if('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
+</body>
+</html>

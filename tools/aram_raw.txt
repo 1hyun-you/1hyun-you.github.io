@@ -1,0 +1,174 @@
+# source: https://www.aramnerfs.com/ (Patch 26.19 표기) · 형식: 이름|주는 피해|받는 피해|기타 능력치|스킬 변경(; 구분, 첫 글자 P/Q/W/E/R = 스킬 키)
+Aatrox|+5%|0%|||
+Ahri|0%|0%|Healing done reduced by 10%||
+Akali|0%|-5%|Energy regeneration increased by 20%, Tenacity increased by 20%|PAP ratio 55% → 65% AP; QAP ratio 60% → 70% AP; RFirst dash AP ratio 30% → 40%; Second dash AP ratio 30% → 40%; Cooldown 120-60s → 90-60s
+Akshan|+5%|-5%||WScoundrel duration 60s → 10s
+Alistar|-5%|+5%|Healing done reduced by 20%|
+Ambessa|0%|+5%|||
+Amumu|0%|0%|||
+Anivia|+5%|0%|||
+Annie|-5%|+5%|Shielding done reduced by 10%|
+Aphelios|0%|0%|||
+Ashe|+5%|0%||WCooldown 18-4s → 18-14s
+Aurelion Sol|0%|0%||ECooldown 12s → 14s
+Aurora|0%|0%|Ability haste increased by 10|
+Azir|0%|-5%|Total attack speed increased by 2.5%, Ability haste increased by 20|WAzir will start the game with one point already ranked in Arise!, allowing him to allocate the other two to his other abilities
+Bard|+15%|-15%|Healing done increased by 20%|PChime spawn rate every 50s → 30s (initial spawn unchanged); WRecharge timer 18s → 10s
+Bel'Veth|+5%|-5%|Tenacity increased by 20%|PBel'Veth gains 1 → 2 stacks from nearby siege minion deaths; REnhanced Void Corals spawn from nearby turrets being destroyed; Void Coral duration 15s → 40s
+Blitzcrank|0%|0%|||
+Brand|-5%|+10%|Ability haste reduced by 10|
+Braum|0%|0%|||
+Briar|+5%|0%|Healing done increased by 10%|EDamage reduction 35% → 55%
+Caitlyn|0%|0%||QAD ratio 125-205% → 125-185% AD
+Camille|+5%|-5%|Healing done increased by 20%, Shielding done increased by 10%, Ability haste increased by 10|
+Cassiopeia|0%|0%|||
+Cho'Gath|0%|+10%|||
+Corki|0%|-10%|Ability haste reduced by 20|
+Darius|+5%|0%|||
+Diana|0%|0%|||
+Dr. Mundo|-10%|+5%|Healing done reduced by 10%|
+Draven|+5%|-5%||PBase gold per kill 25 → 40; Stacks lost on death 50% → 30%
+Ekko|+10%|0%|Tenacity increased by 20%|
+Elise|+5%|-10%|Tenacity increased by 10%|
+Evelynn|+10%|-10%|Tenacity increased by 20%|RCooldown 120-80s → 100-60s
+Ezreal|0%|0%|||
+Fiddlesticks|-5%|+5%|||
+Fiora|0%|-5%|||
+Fizz|+5%|-5%|Tenacity increased by 10%|
+Galio|-10%|+5%|||
+Gangplank|+5%|0%||QNew Effect: Passively gains 1 Silver Serpents per second
+Garen|0%|-5%||WBonus resistances on-kill 0.2 → 0.4; Number of enemy kills needed to reach the maximum amount 150 → 75
+Gnar|+5%|-5%|Total attack speed increased by 2.5%|
+Gragas|0%|-5%|||
+Graves|0%|0%|||
+Gwen|+2%|0%||QFinal snip AP ratio 35% → 40% AP; RCooldown 120-80s → 110-70s
+Hecarim|+5%|-10%|Healing done increased by 20%, Ability haste increased by 10|ECooldown 20-16s → 16-12s
+Heimerdinger|-10%|+10%|||
+Hwei|-5%|0%||Deals 80% damage to minions (60% total)
+Illaoi|-5%|+5%|Healing done reduced by 20%|
+Irelia|+5%|0%|Ability haste increased by 20|
+Ivern|-5%|0%|Shielding done reduced by 10%|
+Janna|-5%|+5%|Healing done reduced by 10%|QCooldown 14s → 16s
+Jarvan IV|0%|0%|||
+Jax|+5%|-3%|||
+Jayce|+5%|0%|||
+Jhin|-5%|+5%|||
+Jinx|-10%|+5%|||
+K'Sante|+5%|0%|||
+Kai'Sa|0%|-10%|Total attack speed increased by 2.5%|QBonus AD ratio 55% → 65% bonus AD
+Kalista|+10%|-10%|||
+Karma|0%|0%||QSoulflare; Bonus primary damage 40-220 → 40-190
+Karthus|-7%|+5%||PDuration 7s → 5s
+Kassadin|0%|-5%||EBase damage 70-190 → 80-220; AP ratio 70% → 75% AP
+Katarina|0%|0%|Tenacity increased by 20%, Ability haste increased by 10|
+Kayle|-5%|+10%|||
+Kayn|0%|0%|Healing done reduced by 20%, Tenacity increased by 20%|PLocked form cooldown 1 minute; Shadow Assassin combat timer 8s → 4s; Transformation no longer restores full health and mana; QBonus AD ratio per hit 85% → 95% bonus AD; Total bonus AD ratio 170% → 190% bonus AD; EShadow Assassin cooldown 10s → 7s
+Kennen|0%|0%|Energy regeneration increased by 20%|
+Kha'Zix|+10%|-10%|Healing done increased by 20%, Tenacity increased by 20%|
+Kindred|+10%|-10%|Total attack speed increased by 2.5%|
+Kled|+5%|0%||PRemoved: No longer generates Courage while at the allied spawn
+Kog'Maw|-8%|+10%||QResistances reduction 16-32% → 15-27%; WTarget health ratio 3-6% → 2.5-4.5% of target's maximum health
+LeBlanc|+10%|-10%|Ability haste increased by 20|
+Lee Sin|+5%|-5%|Healing done increased by 10%, Shielding done increased by 20%, Energy regeneration increased by 20%|
+Leona|-5%|+5%|||
+Lillia|-5%|+5%||ECooldown 12s → 18-14s
+Lissandra|-5%|+5%|||
+Locke|0%|0%|||
+Lucian|+5%|-5%|Tenacity increased by 20%, Ability haste increased by 10|
+Lulu|0%|0%|||
+Lux|-10%|+10%|Shielding done reduced by 10%|RCooldown 60-40s → 80-60s
+Malphite|0%|0%|||
+Malzahar|-10%|+10%||Deals 80% damage to minions (60% total)
+Maokai|-15%|+10%||PCooldown reduction 4s → 3s; QCooldown 7-5s → 8-6s; EAP ratio 25% → 20% AP; Total enhanced AP ratio 50% → 40% AP
+Master Yi|0%|0%|||
+Mel|0%|0%|Ability haste reduced by 10|WCooldown 38-26s → 45-41s
+Milio|0%|0%|Healing done reduced by 5%, Shielding done reduced by 10%, Ability haste reduced by 10|
+Miss Fortune|-5%|+5%|||
+Mordekaiser|0%|0%|||
+Morgana|-5%|+10%|||
+Naafiri|+10%|0%|Ability haste increased by 10|
+Nami|-5%|+5%|||
+Nasus|-10%|+5%||QPer-kill stacks 3 → 6; Per-large-kill stacks 12 → 24
+Nautilus|-5%|+10%|||
+Neeko|0%|0%|||
+Nidalee|+10%|0%|||
+Nilah|0%|0%|||
+Nocturne|+10%|-10%|Healing done increased by 20%|
+Nunu & Willump|+10%|-10%|Healing done increased by 10%, Shielding done increased by 20%, Tenacity increased by 20%|QNon-champion heal AP ratio 90% → 110% AP; WMinimum AP ratio 80% → 67% AP; Maximum AP ratio 135% → 200% AP
+Olaf|+5%|0%|||
+Orianna|0%|0%|||
+Ornn|-10%|+5%||PNew Effect: Forging an item puts Living Forge on a 120-s cooldown; He cannot upgrade the items of allies during this cooldown
+Pantheon|0%|0%|||
+Poppy|0%|0%|||
+Pyke|+10%|-10%|Tenacity increased by 20%|
+Qiyana|+15%|-10%|Tenacity increased by 20%, Ability haste increased by 20|WNew Effect: Targeting a Health Relic on Howling Abyss grants the River Element
+Quinn|+10%|-10%|Total attack speed increased by 2.5%, Tenacity increased by 20%|
+Rakan|0%|-5%|Ability haste increased by 10|
+Rammus|0%|0%|||
+Rek'Sai|+5%|-10%|||
+Rell|-5%|0%|Shielding done reduced by 10%|
+Renata Glasc|-5%|+5%|||
+Renekton|0%|0%|Healing done increased by 10%|
+Rengar|+5%|-8%|Tenacity increased by 20%|QUnempowered AD ratio 5% → 10-25% AD; Empowered AD ratio 20% → 40% AD; EBonus AD ratio 80% → 100% bonus AD; RCooldown 100-80s → 90-70s
+Riven|+5%|-8%|||
+Rumble|0%|0%|||
+Ryze|+5%|-5%|||
+Samira|0%|0%|||
+Sejuani|0%|0%|||
+Senna|-8%|+5%|||
+Seraphine|0%|+20%|Healing done reduced by 20%, Shielding done reduced by 20%, Ability haste reduced by 20|
+Sett|0%|+10%|||PHealth regeneration is halved; WGrit cap 50% → 35% maximum health; Damage base Grit ratio 25% → 20%; Cooldown 18-12s → 18-14s
+Shaco|+5%|0%||PBonus AD ratio 20% → 40% bonus AD; QBonus AD ratio 60% → 85% bonus AD; Cooldown 13-11s → 12-8s; WLimited to 6 Boxes active; EBonus AD ratio 80% → 100% bonus AD
+Shen|-5%|+5%|||
+Shyvana|0%|-5%||PAlternative Innate: While alive, Shyvana gains 1.5 bonus armor, 1.5 bonus magic resistance, and 0.2 bonus Fury regeneration whenever a large minion dies within 1400 units of her, or when she is healed by a health relic's area of effect on the enemy's side of the map
+Singed|0%|+8%||PBonus movement speed per stack 25% → 20%; Cooldown per target 8s → 10s
+Sion|-10%|+10%|Ability haste reduced by 10|PLife steal 100% → 50%; WBonus health per lesser unit kill 4 → 3; Bonus health per greater unit kill 15 → 8; Shield health ratio 8-16% → 6-10% maximum health
+Sivir|-7%|+5%||QCooldown 10-8s → 14-10s
+Skarner|0%|0%|||
+Smolder|0%|+2%|Ability haste reduced by 10|
+Sona|0%|0%||PMaximum Accelerando stacks 120 → 60; Maximum basic ability haste 60 → 30; QCooldown 8s → 10s; WCooldown 10s → 13s; Base heal 30-90 → 45-90; Heal AP ratio 30% → 20% AP; Aura base shield 25-105 → 65-105; Shield AP ratio 25% → 20% AP
+Soraka|0%|0%|Ability haste increased by 10|QTotal heal 60-120 → 75-135; Heal AP ratio 30% → 40% AP; WHealth cost 10% → 5% maximum health
+Swain|-5%|+15%|Healing done reduced by 20%|
+Sylas|+5%|0%|||
+Syndra|+5%|0%|Ability haste increased by 5|
+Tahm Kench|0%|+5%|||
+Taliyah|0%|0%|||
+Talon|+5%|-5%|Tenacity increased by 20%|QBonus AD ratio 100% → 115% bonus AD; WOutgoing bonus AD ratio 40% → 50% bonus AD; Incoming bonus AD ratio 90% → 100% bonus AD; EPer-wall cooldown 10 to 6s; RCooldown 100-60s → 80-60s
+Taric|0%|+10%|||
+Teemo|-5%|+10%|Ability haste reduced by 15|RTrap duration 180s; Base damage 200-450 → 180-400; Total AP ratio 50% → 40% AP; Slow 20% at all ranks; Deals 66% damage to minions (50% total); Maximum charges 3 to 5
+Thresh|0%|+5%||PStacks per soul 1 → 2
+Tristana|+5%|-5%|||
+Trundle|0%|+5%|||
+Tryndamere|+10%|-10%|Healing done increased by 20%|
+Twisted Fate|0%|0%|||
+Twitch|0%|-5%|||
+Udyr|0%|0%|||
+Urgot|0%|+5%|||
+Varus|0%|0%|||
+Vayne|0%|-5%|||
+Veigar|-7%|+10%||PStacks per champion takedown 5 → 3; ECooldown 20-14s → 23-17s
+Vel'Koz|-5%|+5%|||
+Vex|-5%|0%|||
+Vi|+5%|-5%|||
+Viego|+5%|0%|||
+Viktor|0%|0%||PStacks per takedown 20 → 8; Stacks per large minion 10 → 5; New Effect: Passively generates 1 stack every 5s
+Vladimir|0%|+5%|Healing done reduced by 10%|
+Volibear|0%|0%||EShield health ratio 14% → 11% of his maximum health
+Warwick|+5%|-5%||QCooldown 8-6s → 6s at all ranks
+Wukong|0%|0%||WCooldown 22-18s → 20-16s; RCooldown 130-90s → 140-100s
+Xayah|+5%|0%|Total attack speed increased by 3%|
+Xerath|-7%|+5%|||
+Xin Zhao|-5%|0%|||
+Yasuo|0%|0%|Total attack speed increased by 2.5%|WCooldown 25-17s → 27-19s
+Yone|+5%|-3%|Total attack speed increased by 2.5%|
+Yorick|0%|0%||PDeaths required for a grave 5 at all levels; QAD ratio 50% → 30% AD; Heal health ratio 6-10% → 4-8% of his missing health
+Yunara|0%|0%||ERegular bonus movement speed 40 to 60%; RCooldown 100-80s → 80-60s
+Yuumi|0%|0%|||
+Zaahen|-5%|+5%|||
+Zac|0%|-4%|Healing done increased by 10%|
+Zed|+5%|-5%|Energy regeneration increased by 20%, Tenacity increased by 20%|
+Zeri|+10%|-5%||QZeri will start the game with one point already allocated in Burst Fire!, allowing her to allocate the other two to her other abilities; ECooldown 24-18s → 20-16s
+Ziggs|-8%|+20%|Ability haste reduced by 20|Deals 80% damage to minions (60% total); PDamage to structures 150%; QAP ratio 60-80% → 60-70% AP; WTower execute threshold 12.5 to 22.5% of turret's maximum health; EFirst hit AP ratio 25-45% → 25-35% AP; Field duration 7s
+Zilean|+5%|-5%||PCooldown 120s → 90s; WCooldown 14-6s → 13-5s; ECooldown 15s → 13s; RHeal AP ratio 200% → 250% AP
+Zoe|+10%|-5%|||
+Zyra|-10%|+5%|Ability haste reduced by 10|
