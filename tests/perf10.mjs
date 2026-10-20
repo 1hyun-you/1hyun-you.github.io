@@ -48,7 +48,6 @@ out.push(await tap('.ib.add','아이템 추가'));
 out.push(await tap('#pick-grid .pit:nth-child(3)','아이템 담기'));
 out.push(await tap('#pick-grid .pit:nth-child(3)','아이템 빼기'));
 out.push(await tap('#pick-grid .pit:nth-child(5)','아이템 담기2'));
-out.push(await tap('[data-act=if-panel][data-c=pk]','능력치 펼치기'));
 out.push(await tap('[data-act=pick-stat][data-v=ap]','필터 켜기'));
 out.push(await swipe('추가→빌드 밀기', 120, 330));
 out.push(await tap('.ib[data-act=item-info]','아이템 정보'));

@@ -55,7 +55,8 @@ patch = f"{int(major) + 10}.{minor}"  # 16.20 -> 26.20 (2025년부터 연도 표
 
 # ---------------------------------------------------------------- 텍스트 정리
 # Riot 설명문 태그 → 화면 색상 구분 클래스
-#   kn 효과 이름(금색)  km 마법 피해(하늘색)  kap 주문력 계수(보라)  kp 물리·공격력·공격 속도(주황)  kt 고정 피해  kh 회복·체력
+#   색은 롤 능력치 색 기준. kn 효과 이름(금색)  km 마법 피해  kap 주문력  kp 물리 피해  kad 공격력  kas 공격 속도  kcr 치명타  kpen 물리 관통
+#   kmp 마법 관통  kls 흡혈  khp 체력  kt 고정 피해  kh 회복
 #   ks 보호막  kc 상태 이상  ksp 속도  kmn 마나  ka 방어력  kr 마법 저항력
 #   kb 강조  kg 골드  ki 규칙·보조 설명  kl 레벨 비례  kd 경고
 TAG_CLASS = {
@@ -65,13 +66,13 @@ TAG_CLASS = {
     "tap": "kn", "hold": "kn",
     "b": "kb", "strong": "kb", "attention": "kb", "keyword": "kb", "keywordstealth": "kb", "onhit": "kb",
     "lol-uikit-tooltipped-keyword": "kb", "buffedstat": "kb",
-    "magicdamage": "km", "scaleap": "kap", "magicpen": "km",
-    "physicaldamage": "kp", "scalead": "kp", "scalelethality": "kp", "armorpen": "kp", "scalecrit": "kp",
+    "magicdamage": "km", "scaleap": "kap", "magicpen": "kmp",
+    "physicaldamage": "kp", "scalead": "kad", "scalelethality": "kpen", "armorpen": "kpen", "scalecrit": "kcr",
     "truedamage": "kt",
-    "healing": "kh", "scalehealth": "kh", "health": "kh", "lifesteal": "kh", "omnivamp": "kh", "statgood": "kh",
+    "healing": "kh", "scalehealth": "khp", "health": "khp", "lifesteal": "kls", "omnivamp": "kls", "statgood": "kh",
     "shield": "ks",
     "status": "kc", "slow": "kc",
-    "speed": "ksp", "attackspeed": "kp", "ms": "ksp",
+    "speed": "ksp", "attackspeed": "kas", "ms": "ksp",
     "scalemana": "kmn",
     "scalearmor": "ka", "scalemr": "kr",
     "gold": "kg",
@@ -312,8 +313,8 @@ def fill(text, mapping, dv, max_rank, extra):
     return TOKEN.sub(repl, text or ""), vals
 
 
-RATIO_CLASS = [("마법 저항력", "kr"), ("주문력", "kap"), ("공격력", "kp"), ("방어력", "ka"), ("체력", "kh"),
-               ("마나", "kmn"), ("이동 속도", "ksp"), ("공격 속도", "kp")]
+RATIO_CLASS = [("마법 저항력", "kr"), ("주문력", "kap"), ("공격력", "kad"), ("방어력", "ka"), ("체력", "khp"),
+               ("마나", "kmn"), ("이동 속도", "ksp"), ("공격 속도", "kas")]
 
 
 def fmt_value(v):

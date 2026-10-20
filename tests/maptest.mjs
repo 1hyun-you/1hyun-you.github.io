@@ -22,6 +22,8 @@ await openBuild('파이크');
 check('빌드 머리 맵 표시', (await p.evaluate(() => document.querySelector('.mx.mp').textContent)) === '협곡');
 await top('#fab'); await p.waitForTimeout(300);
 await top('[data-act=pick-start]'); await p.waitForTimeout(700);
+check('아이템 추가 기본 분류 완성', (await p.evaluate(() => document.querySelector('[data-act=pick-tier][aria-pressed=true]').dataset.v))==='legend');
+await top('[data-act=pick-tier][data-v=all]'); await p.waitForTimeout(300);   // 아래 맵별 목록 확인은 전체 기준
 let ids = await grid();
 const srBad = ids.filter(id => !D.items[id].sr && !['6697','6696','6699','3814','6698','3009'].includes(id));
 check('협곡 목록: 협곡 상점 아이템만', srBad.length===0, `${ids.length}개${srBad.length?' 섞임 '+srBad.slice(0,5):''}`);
@@ -42,7 +44,7 @@ check('맵 바꾸기 알림', /칼바람 빌드로 변경/.test(await p.locator(
 check('아이템 추가 화면 맵 표시', (await p.evaluate(() => document.querySelector('.pick-map .lbl').textContent)).includes('칼바람'));
 await p.screenshot({path:OUT+'map-ar-picker.png'});
 // ---- 칼바람 상점에 없는 아이템: 협곡으로 돌아가 수호 천사·제어 와드 담고 다시 칼바람
-await top('[data-act=build-map][data-v=sr]'); await p.waitForTimeout(500);
+await top('[data-act=build-map][data-v=sr]'); await p.waitForTimeout(500); await top('[data-act=pick-tier][data-v=all]'); await p.waitForTimeout(300);
 for(const id of ['3026','2055']) { await p.evaluate(id => document.querySelector(`#pick-grid [data-id="${id}"]`).click(), id); await p.waitForTimeout(150); }
 await top('[data-act=build-map][data-v=aram]'); await p.waitForTimeout(600);
 const offTray = await p.evaluate(() => [...document.querySelectorAll('#pick-tray .tb.off')].map(e => e.dataset.id));
