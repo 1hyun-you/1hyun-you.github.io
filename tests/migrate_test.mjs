@@ -1,0 +1,24 @@
+/* 이전한 빌드가 새 기기(빈 상태)에서 토큰 연결만으로 보이는지 시험 */
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const SITE='http://127.0.0.1:8770/', GH='http://127.0.0.1:8771';
+await fetch(GH+'/__seed', {method:'PUT', body: fs.readFileSync('/home/claude/tem-tree-sync/builds.json')});
+const browser = await chromium.launch(); const errs = []; const log = [];
+const ctx = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true});
+await ctx.addInitScript(() => { try{ if(!localStorage.getItem('ttn.v1.gh')) localStorage.setItem('ttn.v1.gh', JSON.stringify({owner:'tester', api:'http://127.0.0.1:8771'})); }catch{} });
+const p = await ctx.newPage(); p.on('pageerror', e => errs.push(''+e)); p.on('console', m => { if(m.type()==='error' && !/TUNNEL|fonts/.test(m.text())) errs.push(m.text()); });
+await p.goto(SITE); await p.waitForTimeout(1500);
+const top = sel => p.evaluate(sel => { const t=[...document.querySelectorAll('#stack > .page:not(.leaving)')].pop(); const el=t.querySelector(sel); if(el) el.click(); return !!el; }, sel);
+log.push('연결 전 목록 수: '+await p.evaluate(() => document.querySelectorAll('.bcard-title').length));
+await top('[data-act=about]'); await p.waitForTimeout(450);
+await p.fill('#f-token', 'github_pat_TEST'); await top('[data-act=gh-on]'); await p.waitForTimeout(2500);
+await top('[data-act=back]'); await p.waitForTimeout(500);
+log.push('연결 후 목록: '+await p.evaluate(() => [...document.querySelectorAll('.bcard-title')].map(e=>e.textContent).join(', ')));
+log.push('상태: '+await p.evaluate(() => document.querySelector('.sync').dataset.s));
+const st = await (await fetch(GH+'/__state')).json();
+log.push('저장소 빌드 수: '+Object.keys(st.doc.builds).length+' · 올리기 '+st.puts+' · 설정 '+JSON.stringify(st.doc.prefs));
+await p.screenshot({path:'migrate_list.png'});
+await p.evaluate(() => document.querySelector('[data-act=open-build]').click()); await p.waitForTimeout(700);
+await p.screenshot({path:'migrate_build.png'});
+console.log(log.join('\n')); console.log('ERRORS', JSON.stringify(errs));
+await browser.close();
