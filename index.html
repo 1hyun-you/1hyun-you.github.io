@@ -23,8 +23,9 @@
   --bg:#ECEFF2; --surface:#FFFFFF; --surface-2:#F2F4F6; --raise:#FFFFFF; --line:#D3D9DF; --line-strong:#B9C2CA;
   --fg:#121A21; --muted:#56626D; --gold:#87651F; --gold-soft:#F3EAD6; --on-gold:#FFFFFF;
   --warn:#A44E14; --warn-soft:#FBE9D9; --danger:#B3261E; --ok:#2B7A52; --toast-act:#E6C47A;
-  --fg-2:#2A323A; --c-ap:#5B4BD3;
-  --c-mag:#0A78BE; --c-phy:#B35A0A; --c-heal:#2A7A3B; --c-shield:#4F6478; --c-cc:#9238A0; --c-spd:#147570; --c-mana:#1E6CB5; --c-ar:#876707; --c-mr:#6B3EBF;
+  --fg-2:#2A323A; --c-ap:#5E4EFF;
+  --c-mag:#00749E; --c-phy:#B34E00; --c-heal:#187B3C; --c-shield:#4F6478; --c-cc:#9238A0; --c-spd:#397B00; --c-mana:#00779E; --c-ar:#707000; --c-mr:#007A7A;
+  --c-ad:#996300; --c-as:#746C0B; --c-crit:#CC3700; --c-pen:#D62100; --c-ls:#CC2051; --c-mpen:#BD1ABD; --c-ah:#1E7869; --c-hp:#177C3B; --c-true:#C34108;
   --shadow:0 18px 40px rgba(14,22,30,.18); --dim:.16; --edge:rgba(14,22,30,.16); --on-danger:#FFFFFF;
   --f-body:Roboto,"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-disp:var(--f-body);
@@ -34,8 +35,9 @@
     --bg:#0A1016; --surface:#111920; --surface-2:#18222B; --raise:#24313C; --line:#24303A; --line-strong:#34434F;
     --fg:#E8E4D9; --muted:#8E9AA5; --gold:#CDAA5F; --gold-soft:#2A2315; --on-gold:#15110A;
     --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
-    --fg-2:#D3D7DC; --c-ap:#8C7CF5;
-    --c-mag:#2BA9EC; --c-phy:#F28C2E; --c-heal:#45B866; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#79D5CE; --c-mana:#62B5FF; --c-ar:#E5C25B; --c-mr:#B48FFF;
+    --fg-2:#D3D7DC; --c-ap:#8377FF;
+    --c-mag:#00B0F0; --c-phy:#FF8C34; --c-heal:#60E08F; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#9FFF4D; --c-mana:#0099CC; --c-ar:#FFFF00; --c-mr:#00FFFF;
+    --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B;
     --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
   }
 }
@@ -43,8 +45,9 @@
   --bg:#0A1016; --surface:#111920; --surface-2:#18222B; --raise:#24313C; --line:#24303A; --line-strong:#34434F;
   --fg:#E8E4D9; --muted:#8E9AA5; --gold:#CDAA5F; --gold-soft:#2A2315; --on-gold:#15110A;
   --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
-  --fg-2:#D3D7DC; --c-ap:#8C7CF5;
-  --c-mag:#2BA9EC; --c-phy:#F28C2E; --c-heal:#45B866; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#79D5CE; --c-mana:#62B5FF; --c-ar:#E5C25B; --c-mr:#B48FFF;
+  --fg-2:#D3D7DC; --c-ap:#8377FF;
+  --c-mag:#00B0F0; --c-phy:#FF8C34; --c-heal:#60E08F; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#9FFF4D; --c-mana:#0099CC; --c-ar:#FFFF00; --c-mr:#00FFFF;
+  --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B;
   --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -143,13 +146,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .v.q{color:var(--muted);font-weight:500;border-bottom:1px dotted var(--muted)}
 .gold{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--gold);white-space:nowrap}
 .gold::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--gold);vertical-align:0}
-/* 효과 색상: 베이스 앱 규칙 (설명문은 굵게 쓰지 않고 색으로만 구분. 마법 피해 하늘색, 주문력 계수 보라, 물리·공격력 주황, 체력 초록) */
+/* 효과 색상: 롤 능력치 색(리그 오브 레전드 위키 색 기준)으로 통일. 설명문은 굵게 쓰지 않고 색으로만 구분 */
 .kn{color:var(--gold);font-weight:500}
 .kb{color:var(--fg)}
 .km{color:var(--c-mag)}
 .kap{color:var(--c-ap)}
 .kp{color:var(--c-phy)}
-.kt{color:var(--fg)}
+.kt{color:var(--c-true)}
 .kh{color:var(--c-heal)}
 .ks{color:var(--c-shield)}
 .kc{color:inherit}
@@ -157,6 +160,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .kmn{color:var(--c-mana)}
 .ka{color:var(--c-ar)}
 .kr{color:var(--c-mr)}
+.kad{color:var(--c-ad)}
+.kas{color:var(--c-as)}
+.kcr{color:var(--c-crit)}
+.kpen{color:var(--c-pen)}
+.kls{color:var(--c-ls)}
+.kmp{color:var(--c-mpen)}
+.kah{color:var(--c-ah)}
+.khp{color:var(--c-hp)}
 .kg{color:var(--gold);font-weight:600}
 .ki{color:var(--muted);font-style:italic}
 .kl{color:var(--muted)}
@@ -484,8 +495,29 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 @media(prefers-reduced-motion:reduce){.hm-track,.seg-ind{transition:none}}
 .hm-fab{min-width:0}
 .it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.it-pane-f{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.it-pane-f .fgroup .chips{flex-wrap:wrap;overflow:visible;margin-right:0;padding-right:0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+.it-top{padding:6px 0 10px}
+/* 아이템 필터 줄(아이템 탭·아이템 추가 창 공통): 위에 고정, 검색은 아이콘, 능력치는 눌러서 펼침 */
+.ifb{position:sticky;top:0;z-index:3;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax);display:flex;flex-direction:column;gap:8px;padding:6px 0 8px;margin-bottom:6px}
+.sb>.ifb{margin-bottom:-4px}
+.sb>.if-anc{margin-bottom:-12px}
+.if-r1,.if-q{display:flex;align-items:center;gap:8px}
+.if-q .search{flex:1;min-width:0}
+.if-q .search input{height:38px;font-size:14.5px;padding-left:38px}
+.if-q .search svg{top:9px;width:19px;height:19px}
+.if-s{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.if-s svg{width:19px;height:19px}
+.if-r1 .seg{flex:1;min-width:0}
+.if-r1 .seg button{padding:0 4px}
+.if-stats{display:flex;flex-direction:column;gap:5px}
+.if-sr{display:flex;gap:5px}
+.sc{flex:1 1 0;min-width:0;max-width:64px;text-align:center;height:30px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--sc);font-size:12.5px;font-weight:600;letter-spacing:-.2px;white-space:nowrap;transition:background-color .12s,border-color .12s,transform .1s ease-out}
+.sc[aria-pressed="true"]{border-color:var(--sc);background:color-mix(in srgb, var(--sc) 20%, var(--surface));box-shadow:inset 0 0 0 1px var(--sc)}
+.sc:active{transform:scale(.94)}
+html.rm .sc:active{transform:none}
+.if-c{gap:10px;min-height:20px}
+.if-c .if-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.if-c .if-a{flex:none;display:flex;gap:12px}
+.if-c .linkbtn{padding:2px 0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
 .it-sets{margin:0 -16px 12px;padding-inline:16px}
 .set-chip .n{font-weight:700;color:var(--gold)}
 /* 세트 담기 막대 (아이템 탭 아래) */
@@ -546,15 +578,19 @@ const TAG_N = {Fighter:'전사',Tank:'탱커',Mage:'마법사',Assassin:'암살�
 const TIERS = [['all','전체'],['legend','완성'],['boots','신발'],['start','시작']];
 const TIER_ORDER = {legend:0,boots:1,epic:2,basic:3,consumable:4};
 /* 능력치 필터: 공식 아이템 능력치 이름 기준, 공격·마법·방어 묶음 */
-const STAT_GROUPS = [
-  ['공격', [['ad','공격력',['공격력']],['as','공격 속도',['공격 속도']],['crit','치명타',['치명타 확률','치명타 피해량']],['pen','물리 관통',['물리 관통력','방어구 관통력']],['ls','흡혈',['생명력 흡수','모든 피해 흡혈']]]],
-  ['마법', [['ap','주문력',['주문력']],['ah','스킬 가속',['스킬 가속','재사용 대기시간 감소']],['mana','마나',['마나','기본 마나 재생','5초당 마나 재생']],['mpen','마법 관통',['마법 관통력']]]],
-  ['방어', [['hp','체력',['체력']],['ar','방어력',['방어력']],['mr','마법 저항',['마법 저항력']],['regen','체력 재생',['기본 체력 재생','5초당 체력 재생']],['heal','회복·보호막',['체력 회복 및 보호막']],['ten','강인함',['강인함']],['ms','이동 속도',['이동 속도']]]],
+const STAT_GROUPS = [   /* [키, 이름, 데이터 능력치 이름들, 필터 칩 짧은 이름] */
+  ['공격', [['ad','공격력',['공격력'],'공격'],['as','공격 속도',['공격 속도'],'공속'],['crit','치명타',['치명타 확률','치명타 피해량'],'치명'],['pen','물리 관통',['물리 관통력','방어구 관통력'],'물관'],['ls','흡혈',['생명력 흡수','모든 피해 흡혈'],'흡혈']]],
+  ['마법', [['ap','주문력',['주문력'],'주문'],['mpen','마법 관통',['마법 관통력'],'마관'],['ah','스킬 가속',['스킬 가속','재사용 대기시간 감소'],'가속'],['mana','마나',['마나'],'마나'],['mreg','마나 재생',['기본 마나 재생','5초당 마나 재생'],'마젠']]],
+  ['방어', [['hp','체력',['체력'],'체력'],['regen','체력 재생',['기본 체력 재생','5초당 체력 재생'],'체젠'],['ar','방어력',['방어력'],'방어'],['mr','마법 저항',['마법 저항력'],'마저'],['heal','회복·보호막',['체력 회복 및 보호막'],'회복'],['ten','강인함',['강인함'],'강인'],['ms','이동 속도',['이동 속도'],'이속']]],
 ];
 const STAT_NAME = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l,names])=>names.forEach(n=>STAT_NAME[n]=k)));
 const STAT_LABEL = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l])=>STAT_LABEL[k]=l));
 /* 아이템 능력치 값 색상: 설명문 효과 색상과 같은 규칙 */
-const STAT_CLASS = {ad:'kp',as:'ksp',crit:'kp',pen:'kp',ls:'kh',ap:'km',ah:'kb',mana:'kmn',mpen:'km',hp:'kh',ar:'ka',mr:'kr',regen:'kh',heal:'kh',ten:'kc',ms:'ksp'};
+const STAT_CLASS = {ad:'kad',as:'kas',crit:'kcr',pen:'kpen',ls:'kls',ap:'kap',ah:'kah',mana:'kmn',mreg:'kmn',mpen:'kmp',hp:'khp',ar:'ka',mr:'kr',regen:'khp',heal:'kh',ten:'kc',ms:'ksp'};
+const STAT_VAR = {ad:'ad',as:'as',crit:'crit',pen:'pen',ls:'ls',ap:'ap',ah:'ah',mana:'mana',mreg:'mana',mpen:'mpen',hp:'hp',ar:'ar',mr:'mr',regen:'hp',heal:'heal',ten:'',ms:'spd'};
+/* 필터 칩 두 줄 배치 (공격·마법 / 마나·방어 순서로 색이 모이게) */
+const STAT_ROWS = [['ad','as','crit','pen','ls','ap','mpen','ah','ms'],['mana','mreg','hp','regen','ar','mr','heal','ten']];
+const STAT_SHORT = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,,,sh])=>STAT_SHORT[k]=sh));
 const SKEY = k => k==='P' ? '패시브' : k;
 const PATCH_NOTES = 'https://www.leagueoflegends.com/ko-kr/news/game-updates/';
 const LS_BUILDS = 'ttn.v1.local', LS_CACHE = 'ttn.v1.cache', LS_UI = 'ttn.v1.ui', LS_DATA = 'ttn.v1.data', LS_SK = 'ttn.v1.skills';
@@ -580,7 +616,7 @@ let D = null, SK = null, skLoading = null;
 const IX = {champ:{}, item:{}, rune:{}, style:{}, spell:{}, nameToItem:{}, runeStyle:{}, istat:{}};
 const S = {
   builds: new Map(), prefs:{fav:[], cdm:'aram', nbm:'aram', sets:[]}, loaded:false,
-  q:'', qc:'', qi:'', qa:'', qp:'', imap:'aram', itier:'all', istats:[], icol:false, iset:null, atab:'build',
+  q:'', qc:'', qi:'', qa:'', qp:'', imap:'aram', itier:'legend', istats:[], icol:false, iset:null, atab:'build',
   sync:'loading', db:null, readonly:false, offline: navigator.onLine === false,
   views:[{name:'home'}], tab:'builds', q:'', role:'all',
   edit:false, panel:null, lastRune:'', picker:null, sheets:[], dirty:new Set(), treeOpen:false,
@@ -743,7 +779,8 @@ const fmtN = (v, dp) => { const r = Number(v.toFixed(dp)); return dp===0 ? fmtGo
 function statCells(c, st, base){
   const res = hasRes(c) ? c.res.trim() : '';
   const cells = [['체력','hp',0],['체력 재생','hpr',2], ...(res ? [[res,'mp',0],[res+' 재생','mpr',2]] : []), ['공격력','ad',0],['주문력','ap',0],['공격 속도','as',3],['치명타 확률','crit',0,'%'],['방어력','ar',0],['마법 저항력','mr',0],['이동 속도','ms',0],['사거리','range',0],['스킬 가속','ah',0],['생명력 흡수','ls',0,'%']];
-  return cells.map(([l,k,dp,u='']) => { const v = st[k]||0, d = base ? v - (base[k]||0) : 0; return `<div><span>${esc(l)}</span><b>${fmtN(v,dp)}${u}${d>0.04 ? `<small>+${fmtN(d,dp)}${u}</small>` : ''}</b></div>`; }).join('');
+  const CC = {hp:'khp',hpr:'khp',mp:res==='마나'?'kmn':'',mpr:res==='마나'?'kmn':'',ad:'kad',ap:'kap',as:'kas',crit:'kcr',ar:'ka',mr:'kr',ms:'ksp'};
+  return cells.map(([l,k,dp,u='']) => { const v = st[k]||0, d = base ? v - (base[k]||0) : 0; return `<div><span${CC[k]?` class="${CC[k]}"`:''}>${esc(l)}</span><b>${fmtN(v,dp)}${u}${d>0.04 ? `<small>+${fmtN(d,dp)}${u}</small>` : ''}</b></div>`; }).join('');
 }
 const CALCIFY = new Map();
 function calcify(key, tt){
@@ -1097,13 +1134,17 @@ const histSynced = () => histOK && NAV.hi === depth();
 /* 홈에서 기기 뒤로 가기: 첫 번째는 '한 번 더 누르면 종료' 알림, 2초 안에 한 번 더 누르면 종료
    홈 맨 앞 기록 위에 보호 칸(guard)을 하나 두고, 사용자가 누른 직후에만 추가 (누르지 않고 추가한 기록은 크롬이 건너뜀) */
 const GUARD_ON = () => histOK && !inClaude() && (STANDALONE || matchMedia('(pointer: coarse)').matches);
+/* 한 번 뒤로 간 뒤 화면을 누르거나 조작하면 보호 칸을 다시 둠 → 다음 뒤로 가기는 다시 알림부터.
+   크롬은 사용자 조작(누르기·입력·탭 밀기) 직후에 넣은 기록만 인정하므로 그때만 넣음 (세로 스크롤만으로는 넣지 않음: 넣으면 오히려 앞 칸이 건너뛰어짐) */
 function ensureGuard(){
   if(!GUARD_ON() || depth()!==0 || S.sel) return;
+  const ua = navigator.userActivation; if(ua && !ua.isActive) return;
   const st = history.state; if(st && (st.guard || st.sel || st.i>0)) return;
   try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{}
 }
 ['click','keydown'].forEach(t => document.addEventListener(t, ensureGuard, true));
 document.addEventListener('pointerup', e => { if(e.pointerType!=='mouse') ensureGuard(); }, true);
+document.addEventListener('touchend', ensureGuard, true);
 function pushHist(){
   NAV.fwd = [];
   if(GUARD_ON() && depth()===1){ const cs = history.state; if(cs && cs.i===0 && !cs.guard && !cs.sel){ try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{} } }
@@ -1282,7 +1323,7 @@ function homeSkel(){
       <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
     <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
       <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
-      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="hm-head">${SRCH('q-items','아이템 이름 (초성 가능)',S.qi)}<div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div id="it-filters" class="it-pane-f"></div><div id="it-list"></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-anc" id="ifa-it"></div><div id="it-filters" class="ifb"></div><div id="it-list"></div></div></section>
       <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
     </div></div>
     <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
@@ -1293,7 +1334,9 @@ function homeSkel(){
     </div></div>
   </div>`;
 }
-const HM = {ik:'', ck:''};
+const HM = {ik:'', fk:'', ck:''};
+const itKey = () => { const cs = S.icol ? curSet() : null; return `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${isort()}|${cs?cs.id+':'+cs.it.join():''}`; };
+const ifKey = () => `${itKey()}|${IFS.it.s}`;
 function renderHome(pg, sec){
   const app = pg.app;
   if(sec.key!=='home' || !app.querySelector('#hm')){ pg.classList.add('home-pg'); app.innerHTML = homeSkel(); sec.key = 'home'; sec.html = {}; HM.ik = HM.ck = ''; }
@@ -1304,9 +1347,10 @@ function renderHome(pg, sec){
   app.querySelectorAll('.hm-seg [data-act=tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tab)));
   setHTML(q('#home-list'), buildsListHTML()); setHTML(q('#hm-sync'), syncBanHTML());
   /* 아이템·챔피언 목록은 조건이 같으면 다시 만들지 않음 (고르기·담기 등 잦은 갱신에서 부담 줄임) */
-  const cs = S.icol ? curSet() : null, ik = `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${cs?cs.id+':'+cs.it.join():''}`;
+  const ik = itKey(), fk = ifKey();
   setHTML(q('#it-row'), itemRowHTML()); setHTML(q('#it-sets'), setsRowHTML());
-  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-filters'), itemFiltersHTML()); setHTML(q('#it-list'), itemsListHTML()); }
+  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-list'), itemsListHTML()); }
+  if(HM.fk!==fk){ HM.fk = fk; setHTML(q('#it-filters'), ifbHTML('it')); }
   const ck = `${S.rev}|${D&&D.rev}|${S.role}|${S.qc}`;
   if(HM.ck!==ck){ HM.ck = ck; setHTML(q('#home-filters'), homeFilters()); setHTML(q('#champ-list'), champsListHTML()); }
   q('#hm-fab').hidden = !(S.tab==='builds' && !S.sel && !S.readonly);
@@ -1338,11 +1382,39 @@ function setsRowHTML(){
   const sets = S.prefs.sets||[]; if(!sets.length || S.readonly) return '';
   return `<div class="chips it-sets" aria-label="내 아이템 세트"><button class="chip" data-act="set-new">+ 새 세트</button>${sets.map(s=>`<button class="chip set-chip" data-act="set-open" data-id="${s.id}" aria-pressed="${!!(S.icol && S.iset===s.id)}">${esc(s.n)} <span class="n">${s.it.length}</span></button>`).join('')}</div>`;
 }
-function itemFiltersHTML(){
-  const n = itemsTabList().length, on = S.istats.length || S.itier!=='all' || S.qi;
-  return `<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="it-tier" data-v="${k}" aria-pressed="${S.itier===k}">${l}</button>`).join('')}</div>
-    ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="it-stat" data-v="${k}" aria-pressed="${S.istats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
-    <div class="fbar"><span>${MAPN[S.imap]} 아이템 ${n}개</span>${on?'<button class="linkbtn" data-act="it-reset">필터 초기화</button>':''}</div>`;
+/* 아이템 필터 줄: 아이템 탭('it')·아이템 추가 창('pk') 같은 모양. 1줄 = 검색 아이콘·분류·능력치, 2줄 = 개수·정렬·초기화 */
+const IFS = {it:{s:false}, pk:{s:false}};
+const SORTS = [['ga','낮은 가격순'],['gd','높은 가격순'],['nm','이름순']], SORTN = Object.fromEntries(SORTS);
+let ISORT = '';
+const isort = () => ISORT || (ISORT = SORTN[(lsGet(LS_UI)||{}).isort] ? (lsGet(LS_UI)||{}).isort : 'ga');
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+function ifSt(c){
+  if(c==='it') return {tier:S.itier, stats:S.istats, q:S.qi, map:S.imap, a:'it'};
+  const P = S.picker||{tier:'legend', stats:[], q:''}, b = P.bid && S.builds.get(P.bid);
+  return {tier:P.tier, stats:P.stats, q:P.q, map:b ? b.mode : S.imap, a:'pick', b};
+}
+function ifCountHTML(c){
+  const F = ifSt(c), n = c==='it' ? itemsTabList().length : F.b ? pickerItems(F.b).length : 0;
+  const on = F.stats.length || F.tier!=='legend' || F.q, sl = F.stats.map(k=>STAT_LABEL[k]).join('+');
+  return `<span class="if-n">${MAPN[F.map]} 아이템 ${n}개${sl?` · ${sl}`:''}</span><span class="if-a"><button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${on?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}</span>`;
+}
+function ifbHTML(c){
+  const F = ifSt(c), o = IFS[c], srch = o.s || !!F.q;
+  return `${srch?`<div class="if-q"><label class="search">${ICONS.search}<input id="${c==='it'?'q-items':'q-item'}" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(F.q)}"></label><button class="iconbtn sm" data-act="if-sclose" data-c="${c}" aria-label="검색 닫기">${ICONS.close}</button></div>`:''}
+    <div class="if-r1">${srch?'':`<button class="iconbtn if-s" data-act="if-search" data-c="${c}" aria-label="아이템 이름 검색">${ICONS.search}</button>`}<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="${F.a}-tier" data-v="${k}" aria-pressed="${F.tier===k}">${l}</button>`).join('')}</div></div>
+    <div class="if-stats" role="group" aria-label="능력치">${STAT_ROWS.map(r=>`<div class="if-sr">${r.map(k=>`<button class="sc" data-act="${F.a}-stat" data-v="${k}" aria-pressed="${F.stats.includes(k)}" aria-label="${STAT_LABEL[k]}" style="--sc:${STAT_VAR[k]?`var(--c-${STAT_VAR[k]})`:'var(--fg)'}">${STAT_SHORT[k]}</button>`).join('')}</div>`).join('')}</div>
+    <div class="fbar if-c" id="ifc-${c}">${ifCountHTML(c)}</div>`;
+}
+/* 필터를 바꿨을 때: 고정된 필터 줄 바로 아래가 목록 첫 줄이 되게 (목록 중간에 있던 경우만) */
+function ifTop(c){
+  const a = $('#ifa-'+c); if(!a) return; const sc = a.closest('.hm-pane, .pg-b'); if(!sc) return;
+  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+  if(sc.scrollTop > y) sc.scrollTop = y;
+}
+function ifRefresh(c, list){
+  if(c==='it'){ if(list){ HM.ik=''; HM.fk=''; renderMain(); } else { const f=$('#it-filters'); if(f){ setHTML(f, ifbHTML('it')); HM.fk = ifKey(); } } }
+  else { const b = S.picker && S.builds.get(S.picker.bid); if(!b) return; const f=$('#ifb-pk'); if(f) setHTML(f, ifbHTML('pk')); if(list){ const g=$('#pick-grid'); if(g) g.innerHTML = pickGridHTML(b); } }
+  if(list) ifTop(c);
 }
 const itemsTabList = () => filterItems(S.imap==='sr'?'sr':'ar', S.itier, S.istats, S.qi, S.icol && curSet() ? curSet().it : []);
 function itemsListHTML(){
@@ -1729,7 +1801,10 @@ function syncSecHTML(){
 }
 const tokenFormHTML = label => `<input id="f-token" class="tok" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_로 시작하는 토큰" aria-label="동기화 토큰"><button class="btn primary block" data-act="gh-on" style="margin-top:8px">${label}</button>`;
 /* 아이템 능력치 한 줄: 베이스 앱처럼 "체력 400" 그대로 */
-function statLine(line){ return `<li>${esc(line)}</li>`; }
+function statLine(line){
+  const m = String(line).match(/^(.*?)(\s*[+\-]?[\d.,]+%?)$/), k = m && STAT_NAME[m[1].trim()], c = k && STAT_CLASS[k];
+  return c && c!=='kc' ? `<li><span class="${c}">${esc(m[1])}</span>${esc(m[2])}</li>` : `<li>${esc(line)}</li>`;
+}
 /* 하위 아이템 조직도 */
 function treeNode(id, ctx, depth){
   const it = IX.item[id]; if(!it) return '';
@@ -1780,10 +1855,7 @@ const SHEETS = {
   picker(){
     const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
     const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
-      <label class="search">${ICONS.search}<input id="q-item" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(P.q)}"></label>
-      <div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="pick-tier" data-v="${k}" aria-pressed="${P.tier===k}">${l}</button>`).join('')}</div>
-      ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="pick-stat" data-v="${k}" aria-pressed="${P.stats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
-      <div class="fbar" id="pick-count">${pickCountHTML(b)}</div>
+      <div class="if-anc" id="ifa-pk"></div><div class="ifb" id="ifb-pk">${ifbHTML('pk')}</div>
       <div id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div>`;
     const after = P.defer ? () => { P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); } : null;
     return {title:'아이템 추가', label:'아이템 추가', top:`<div id="pick-tray">${trayHTML(b)}</div>`, body, foot: pickFootHTML(b), scroll: P.scroll||0, after};
@@ -1864,7 +1936,8 @@ function filterItems(pref, tier, stats, q, keep){
   else if(tier==='start') list = list.filter(([,it])=>it.c.includes('start'));
   if(stats.length) list = list.filter(([id])=>stats.every(k=>IX.istat[id].has(k)));
   if(q) list = list.filter(([,it])=>match(q, it.n));
-  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
+  const so = isort(), gc = so==='ga' ? (a,b2)=>a[1].g-b2[1].g : so==='gd' ? (a,b2)=>b2[1].g-a[1].g : ()=>0;
+  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || gc(a,b2) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
   return list;
 }
 function trayHTML(b){
@@ -1884,10 +1957,6 @@ function updatePickerLight(b){
   if(t) setHTML(t, trayHTML(b)); if(f) setHTML(f, pickFootHTML(b));
   if(S.picker) S.picker.bump = '';
 }
-function pickCountHTML(b){
-  const P = S.picker; const n = pickerItems(b).length;
-  return P.stats.length||P.tier!=='all'||P.q ? `<span>${P.stats.length>1 ? P.stats.map(k=>STAT_LABEL[k]).join('+')+' 모두 있는 ' : P.stats.length ? STAT_LABEL[P.stats[0]]+' ' : ''}아이템 ${n}개</span><button class="linkbtn" data-act="pick-reset">필터 초기화</button>` : '';
-}
 function pickGridHTML(b){
   const list = pickerItems(b); const inB = new Set(b.it);
   if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 능력치 필터를 줄여 보세요.</div>`;
@@ -1902,8 +1971,8 @@ function pickFootHTML(b){
 }
 function updatePicker(){
   const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
-  const pp=pickerPage(), g=$('#pick-grid'), c=$('#pick-count'), t=$('#pick-tray'), f=pp&&pp.foot;
-  if(g) g.innerHTML = pickGridHTML(b); if(c) c.innerHTML = pickCountHTML(b); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
+  const pp=pickerPage(), g=$('#pick-grid'), c=$('#ifc-pk'), t=$('#pick-tray'), f=pp&&pp.foot;
+  if(g) g.innerHTML = pickGridHTML(b); if(c) setHTML(c, ifCountHTML('pk')); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
 }
 
 /* ------------------------------------------------------------ 동작 */
@@ -1991,9 +2060,12 @@ const ACT = {
     const st = S.icol ? curSet() : null; if(st && st.map!==v){ st.it = convertIds(st.it, v); st.map = v; setTouch(st); } else renderMain();
     buzz(5);
   },
-  'it-tier'(el){ S.itier = el.dataset.v; renderMain(); },
-  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; renderMain(); },
-  'it-reset'(){ S.istats = []; S.itier = 'all'; S.qi = ''; const i = $('#q-items'); if(i) i.value = ''; renderMain(); },
+  'it-tier'(el){ S.itier = el.dataset.v; ifRefresh('it', true); },
+  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; ifRefresh('it', true); },
+  'it-reset'(){ S.istats = []; S.itier = 'legend'; S.qi = ''; IFS.it.s = false; ifRefresh('it', true); },
+  'if-search'(el){ const c = el.dataset.c; IFS[c].s = true; ifRefresh(c, false); const i = $(c==='it' ? '#q-items' : '#q-item'); if(i) i.focus(); },
+  'if-sclose'(el){ const c = el.dataset.c; IFS[c].s = false; if(c==='it') S.qi = ''; else if(S.picker) S.picker.q = ''; ifRefresh(c, true); },
+  'if-sort'(el){ const i = SORTS.findIndex(x => x[0]===isort()); ISORT = SORTS[(i+1)%SORTS.length][0]; uiSet('isort', ISORT); ifRefresh(el.dataset.c, true); },
   'it-collect'(){
     if(S.readonly) return;
     if(S.icol){ dropEmptySet(); S.icol = false; renderMain(); toast(curSetSavedMsg()); return; }
@@ -2077,7 +2149,11 @@ const ACT = {
     const n = restoreBuilds(S.localPending); S.localPending = [];
     lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}}); render(); toast(`빌드 ${n}개를 계정으로 옮겼습니다`);
   },
-  tab(el){ switchTab(el.dataset.v); },
+  tab(el){
+    const t = el.dataset.v;
+    if(t===S.tab){ const pn = document.querySelector(`.hm-pane[data-tab="${t}"]`); if(pn && pn.scrollTop>0){ pn.scrollTo({top:0, behavior: document.documentElement.classList.contains('rm') || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); buzz(5); } return; }   /* 지금 탭 다시 누르기 = 맨 위로 */
+    switchTab(t);
+  },
   role(el){ S.role = el.dataset.v; HM.ck = ''; setHTML($('#home-filters'), homeFilters()); setHTML($('#champ-list'), champsListHTML()); uiSet('role', S.role); },
   'open-champ'(el){ warmChamp(el.dataset.id); go({name:'champ', id:el.dataset.id}); },
   'open-build'(el){ if(S.sel){ selToggle(el.dataset.id); return; } const b = S.builds.get(el.dataset.id); if(b) warmChamp(b.champ); go({name:'build', id:el.dataset.id}); },
@@ -2123,10 +2199,10 @@ const ACT = {
     if(i>=0) toast(`${name}${eul(name)} 뺐습니다`, {label:'되돌리기', fn(){ const bb=S.builds.get(b.id); if(!bb||bb.it.includes(id)) return; bb.it.splice(Math.min(i,bb.it.length),0,id); touch(bb); }});
     else toast(`${name}${eul(name)} 담았습니다`); },
   'tree-toggle'(){ S.treeOpen=!S.treeOpen; uiSet('tree', S.treeOpen); renderSheet(); },
-  pick(){ const b=curBuild(); if(!b) return; S.panel=null; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'all', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
-  'pick-tier'(el){ S.picker.tier=el.dataset.v; S.picker.scroll=0; renderSheet(); const bd=topBody(); if(bd) bd.scrollTop=0; },
-  'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; el.setAttribute('aria-pressed', P.stats.includes(k)); updatePicker(); uiSet('stats', P.stats); },
-  'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='all'; P.q=''; uiSet('stats', []); S.picker.scroll=0; renderSheet(); },
+  pick(){ const b=curBuild(); if(!b) return; S.panel=null; IFS.pk.s=false; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'legend', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
+  'pick-tier'(el){ S.picker.tier=el.dataset.v; ifRefresh('pk', true); },
+  'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; ifRefresh('pk', true); uiSet('stats', P.stats); },
+  'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='legend'; P.q=''; IFS.pk.s=false; uiSet('stats', []); ifRefresh('pk', true); },
   'pick-toggle'(el){ const id=el.dataset.id; const P=S.picker; const b=P&&S.builds.get(P.bid); if(!b||S.readonly) return;
     const i=b.it.lastIndexOf(id); if(i>=0) b.it.splice(i,1); else { b.it.push(id); b.nm[id]=IX.item[id].n; }
     P.last=id; P.bump = i<0 ? id : ''; touch(b,{render:false}); markMain(); markPit(id, i<0); updatePickerLight(b); buzz(i<0 ? 8 : 5); },
@@ -2195,11 +2271,11 @@ document.addEventListener('input', e => {
   const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
   if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
   else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
-  else if(t.id==='q-items'){ S.qi=t.value; HM.ik=''; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), f=$('#it-filters'); if(l) setHTML(l, itemsListHTML()); if(f) setHTML(f, itemFiltersHTML()); },80); }
+  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), c=$('#ifc-it'); if(l) setHTML(l, itemsListHTML()); if(c) setHTML(c, ifCountHTML('it')); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
   else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
   else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
   else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
-  else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(updatePicker,80); }
+  else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(()=>{ updatePicker(); ifTop('pk'); },80); }
   else if(t.id==='calc-lvl'){ const v = Math.min(18, Math.max(1, +t.value||1)); if(v!==S.calc.lvl) buzz(3); S.calc.lvl = v; updateCalc(); }
   else if(t.id==='f-title' && b){ b.title=t.value.slice(0,60)||'빌드'; touch(b,{render:false}); }
 });
