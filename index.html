@@ -468,8 +468,30 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 @media(prefers-reduced-motion:reduce){.hm-track,.seg-ind{transition:none}}
 .hm-fab{min-width:0}
 .it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.it-pane-f{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.it-pane-f .fgroup .chips{flex-wrap:wrap;overflow:visible;margin-right:0;padding-right:0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+.it-top{padding:6px 0 10px}
+/* 아이템 필터 줄(아이템 탭·아이템 추가 창 공통): 위에 고정, 검색은 아이콘, 능력치는 눌러서 펼침 */
+.ifb{position:sticky;top:0;z-index:3;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax);display:flex;flex-direction:column;gap:8px;padding:6px 0 8px;margin-bottom:6px}
+.sb>.ifb{margin-bottom:-4px}
+.sb>.if-anc{margin-bottom:-12px}
+.if-r1,.if-q{display:flex;align-items:center;gap:8px}
+.if-q .search{flex:1;min-width:0}
+.if-q .search input{height:38px;font-size:14.5px;padding-left:38px}
+.if-q .search svg{top:9px;width:19px;height:19px}
+.if-s{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.if-s svg{width:19px;height:19px}
+.if-r1 .seg{flex:1;min-width:0}
+.if-r1 .seg button{padding:0 4px}
+.if-st{flex:none;display:flex;align-items:center;gap:4px;height:38px;padding:0 10px 0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.if-st b{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--gold);color:var(--on-gold);font-size:11px}
+.if-st svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.if-st[aria-expanded="true"] svg{transform:rotate(180deg)}
+.if-st[aria-pressed="true"]{color:var(--fg);border-color:var(--gold)}
+.if-panel{display:flex;flex-direction:column;gap:8px;padding:2px 0 2px}
+.if-panel .fgroup .chips{flex-wrap:wrap;overflow:visible;margin-right:0;padding-right:0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+.if-c{gap:10px;min-height:20px}
+.if-c .if-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.if-c .if-a{flex:none;display:flex;gap:12px}
+.if-c .linkbtn{padding:2px 0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
 .it-sets{margin:0 -16px 12px;padding-inline:16px}
 .set-chip .n{font-weight:700;color:var(--gold)}
 /* 세트 담기 막대 (아이템 탭 아래) */
@@ -1081,13 +1103,17 @@ const histSynced = () => histOK && NAV.hi === depth();
 /* 홈에서 기기 뒤로 가기: 첫 번째는 '한 번 더 누르면 종료' 알림, 2초 안에 한 번 더 누르면 종료
    홈 맨 앞 기록 위에 보호 칸(guard)을 하나 두고, 사용자가 누른 직후에만 추가 (누르지 않고 추가한 기록은 크롬이 건너뜀) */
 const GUARD_ON = () => histOK && !inClaude() && (STANDALONE || matchMedia('(pointer: coarse)').matches);
+/* 한 번 뒤로 간 뒤 화면을 누르거나 조작하면 보호 칸을 다시 둠 → 다음 뒤로 가기는 다시 알림부터.
+   크롬은 사용자 조작(누르기·입력·탭 밀기) 직후에 넣은 기록만 인정하므로 그때만 넣음 (세로 스크롤만으로는 넣지 않음: 넣으면 오히려 앞 칸이 건너뛰어짐) */
 function ensureGuard(){
   if(!GUARD_ON() || depth()!==0 || S.sel) return;
+  const ua = navigator.userActivation; if(ua && !ua.isActive) return;
   const st = history.state; if(st && (st.guard || st.sel || st.i>0)) return;
   try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{}
 }
 ['click','keydown'].forEach(t => document.addEventListener(t, ensureGuard, true));
 document.addEventListener('pointerup', e => { if(e.pointerType!=='mouse') ensureGuard(); }, true);
+document.addEventListener('touchend', ensureGuard, true);
 function pushHist(){
   NAV.fwd = [];
   if(GUARD_ON() && depth()===1){ const cs = history.state; if(cs && cs.i===0 && !cs.guard && !cs.sel){ try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{} } }
@@ -1266,7 +1292,7 @@ function homeSkel(){
       <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
     <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
       <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
-      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="hm-head">${SRCH('q-items','아이템 이름 (초성 가능)',S.qi)}<div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div id="it-filters" class="it-pane-f"></div><div id="it-list"></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-anc" id="ifa-it"></div><div id="it-filters" class="ifb"></div><div id="it-list"></div></div></section>
       <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
     </div></div>
     <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
@@ -1277,7 +1303,9 @@ function homeSkel(){
     </div></div>
   </div>`;
 }
-const HM = {ik:'', ck:''};
+const HM = {ik:'', fk:'', ck:''};
+const itKey = () => { const cs = S.icol ? curSet() : null; return `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${isort()}|${cs?cs.id+':'+cs.it.join():''}`; };
+const ifKey = () => `${itKey()}|${IFS.it.s}|${IFS.it.p}`;
 function renderHome(pg, sec){
   const app = pg.app;
   if(sec.key!=='home' || !app.querySelector('#hm')){ pg.classList.add('home-pg'); app.innerHTML = homeSkel(); sec.key = 'home'; sec.html = {}; HM.ik = HM.ck = ''; }
@@ -1288,9 +1316,10 @@ function renderHome(pg, sec){
   app.querySelectorAll('.hm-seg [data-act=tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tab)));
   setHTML(q('#home-list'), buildsListHTML()); setHTML(q('#hm-sync'), syncBanHTML());
   /* 아이템·챔피언 목록은 조건이 같으면 다시 만들지 않음 (고르기·담기 등 잦은 갱신에서 부담 줄임) */
-  const cs = S.icol ? curSet() : null, ik = `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${cs?cs.id+':'+cs.it.join():''}`;
+  const ik = itKey(), fk = ifKey();
   setHTML(q('#it-row'), itemRowHTML()); setHTML(q('#it-sets'), setsRowHTML());
-  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-filters'), itemFiltersHTML()); setHTML(q('#it-list'), itemsListHTML()); }
+  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-list'), itemsListHTML()); }
+  if(HM.fk!==fk){ HM.fk = fk; setHTML(q('#it-filters'), ifbHTML('it')); }
   const ck = `${S.rev}|${D&&D.rev}|${S.role}|${S.qc}`;
   if(HM.ck!==ck){ HM.ck = ck; setHTML(q('#home-filters'), homeFilters()); setHTML(q('#champ-list'), champsListHTML()); }
   q('#hm-fab').hidden = !(S.tab==='builds' && !S.sel && !S.readonly);
@@ -1322,12 +1351,51 @@ function setsRowHTML(){
   const sets = S.prefs.sets||[]; if(!sets.length || S.readonly) return '';
   return `<div class="chips it-sets" aria-label="내 아이템 세트"><button class="chip" data-act="set-new">+ 새 세트</button>${sets.map(s=>`<button class="chip set-chip" data-act="set-open" data-id="${s.id}" aria-pressed="${!!(S.icol && S.iset===s.id)}">${esc(s.n)} <span class="n">${s.it.length}</span></button>`).join('')}</div>`;
 }
-function itemFiltersHTML(){
-  const n = itemsTabList().length, on = S.istats.length || S.itier!=='all' || S.qi;
-  return `<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="it-tier" data-v="${k}" aria-pressed="${S.itier===k}">${l}</button>`).join('')}</div>
-    ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="it-stat" data-v="${k}" aria-pressed="${S.istats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
-    <div class="fbar"><span>${MAPN[S.imap]} 아이템 ${n}개</span>${on?'<button class="linkbtn" data-act="it-reset">필터 초기화</button>':''}</div>`;
+/* 아이템 필터 줄: 아이템 탭('it')·아이템 추가 창('pk') 같은 모양. 1줄 = 검색 아이콘·분류·능력치, 2줄 = 개수·정렬·초기화 */
+const IFS = {it:{s:false, p:false, y0:null}, pk:{s:false, p:false, y0:null}};
+const SORTS = [['ga','낮은 가격순'],['gd','높은 가격순'],['nm','이름순']], SORTN = Object.fromEntries(SORTS);
+let ISORT = '';
+const isort = () => ISORT || (ISORT = SORTN[(lsGet(LS_UI)||{}).isort] ? (lsGet(LS_UI)||{}).isort : 'ga');
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+function ifSt(c){
+  if(c==='it') return {tier:S.itier, stats:S.istats, q:S.qi, map:S.imap, a:'it'};
+  const P = S.picker||{tier:'all', stats:[], q:''}, b = P.bid && S.builds.get(P.bid);
+  return {tier:P.tier, stats:P.stats, q:P.q, map:b ? b.mode : S.imap, a:'pick', b};
 }
+function ifCountHTML(c){
+  const F = ifSt(c), n = c==='it' ? itemsTabList().length : F.b ? pickerItems(F.b).length : 0;
+  const on = F.stats.length || F.tier!=='all' || F.q, sl = F.stats.map(k=>STAT_LABEL[k]).join('+');
+  return `<span class="if-n">${MAPN[F.map]} 아이템 ${n}개${sl?` · ${sl}`:''}</span><span class="if-a"><button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${on?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}</span>`;
+}
+function ifbHTML(c){
+  const F = ifSt(c), o = IFS[c], srch = o.s || !!F.q;
+  return `${srch?`<div class="if-q"><label class="search">${ICONS.search}<input id="${c==='it'?'q-items':'q-item'}" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(F.q)}"></label><button class="iconbtn sm" data-act="if-sclose" data-c="${c}" aria-label="검색 닫기">${ICONS.close}</button></div>`:''}
+    <div class="if-r1">${srch?'':`<button class="iconbtn if-s" data-act="if-search" data-c="${c}" aria-label="아이템 이름 검색">${ICONS.search}</button>`}<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="${F.a}-tier" data-v="${k}" aria-pressed="${F.tier===k}">${l}</button>`).join('')}</div><button class="if-st" data-act="if-panel" data-c="${c}" aria-expanded="${o.p}" aria-pressed="${!!F.stats.length}">능력치${F.stats.length?`<b>${F.stats.length}</b>`:''}${CHEV}</button></div>
+    ${o.p?`<div class="if-panel">${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="${F.a}-stat" data-v="${k}" aria-pressed="${F.stats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}</div>`:''}
+    <div class="fbar if-c" id="ifc-${c}">${ifCountHTML(c)}</div>`;
+}
+/* 필터를 바꿨을 때: 고정된 필터 줄 바로 아래가 목록 첫 줄이 되게 (목록 중간에 있던 경우만) */
+function ifTop(c){
+  const a = $('#ifa-'+c); if(!a) return; const sc = a.closest('.hm-pane, .pg-b'); if(!sc) return;
+  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+  if(sc.scrollTop > y) sc.scrollTop = y;
+}
+function ifRefresh(c, list){
+  if(c==='it'){ if(list){ HM.ik=''; HM.fk=''; renderMain(); } else { const f=$('#it-filters'); if(f){ setHTML(f, ifbHTML('it')); HM.fk = ifKey(); } } }
+  else { const b = S.picker && S.builds.get(S.picker.bid); if(!b) return; const f=$('#ifb-pk'); if(f) setHTML(f, ifbHTML('pk')); if(list){ const g=$('#pick-grid'); if(g) g.innerHTML = pickGridHTML(b); } }
+  if(list){ ifTop(c); const o = IFS[c], a = $('#ifa-'+c), sc = a && a.closest('.hm-pane, .pg-b'); if(o.p && sc) requestAnimationFrame(() => { o.y0 = sc.scrollTop; }); }
+}
+/* 능력치를 펼친 채 목록을 내리면 접음 (고정 줄이 화면을 덜 가리게) */
+document.addEventListener('scroll', e => {
+  const sc = e.target; if(!(sc instanceof Element)) return;
+  for(const c of ['it','pk']){
+    if(!IFS[c].p) continue; const a = $('#ifa-'+c), f = c==='it' ? $('#it-filters') : $('#ifb-pk');
+    if(!a || !f || !sc.contains(f)) continue;
+    const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+    if(IFS[c].y0==null || sc.scrollTop <= y || Math.abs(sc.scrollTop - IFS[c].y0) < 80) continue;   /* 펼친 뒤 손으로 80px 넘게 내리거나 올린 경우만 */
+    { const pn = f.querySelector('.if-panel'), h = pn ? pn.offsetHeight + 8 : 0; IFS[c].p = false; ifRefresh(c, false); sc.scrollTop = Math.max(y, sc.scrollTop - h); }
+  }
+}, true);
 const itemsTabList = () => filterItems(S.imap==='sr'?'sr':'ar', S.itier, S.istats, S.qi, S.icol && curSet() ? curSet().it : []);
 function itemsListHTML(){
   if(!D) return '';
@@ -1764,10 +1832,7 @@ const SHEETS = {
   picker(){
     const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
     const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
-      <label class="search">${ICONS.search}<input id="q-item" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(P.q)}"></label>
-      <div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="pick-tier" data-v="${k}" aria-pressed="${P.tier===k}">${l}</button>`).join('')}</div>
-      ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="pick-stat" data-v="${k}" aria-pressed="${P.stats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
-      <div class="fbar" id="pick-count">${pickCountHTML(b)}</div>
+      <div class="if-anc" id="ifa-pk"></div><div class="ifb" id="ifb-pk">${ifbHTML('pk')}</div>
       <div id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div>`;
     const after = P.defer ? () => { P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); } : null;
     return {title:'아이템 추가', label:'아이템 추가', top:`<div id="pick-tray">${trayHTML(b)}</div>`, body, foot: pickFootHTML(b), scroll: P.scroll||0, after};
@@ -1848,7 +1913,8 @@ function filterItems(pref, tier, stats, q, keep){
   else if(tier==='start') list = list.filter(([,it])=>it.c.includes('start'));
   if(stats.length) list = list.filter(([id])=>stats.every(k=>IX.istat[id].has(k)));
   if(q) list = list.filter(([,it])=>match(q, it.n));
-  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
+  const so = isort(), gc = so==='ga' ? (a,b2)=>a[1].g-b2[1].g : so==='gd' ? (a,b2)=>b2[1].g-a[1].g : ()=>0;
+  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || gc(a,b2) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
   return list;
 }
 function trayHTML(b){
@@ -1868,10 +1934,6 @@ function updatePickerLight(b){
   if(t) setHTML(t, trayHTML(b)); if(f) setHTML(f, pickFootHTML(b));
   if(S.picker) S.picker.bump = '';
 }
-function pickCountHTML(b){
-  const P = S.picker; const n = pickerItems(b).length;
-  return P.stats.length||P.tier!=='all'||P.q ? `<span>${P.stats.length>1 ? P.stats.map(k=>STAT_LABEL[k]).join('+')+' 모두 있는 ' : P.stats.length ? STAT_LABEL[P.stats[0]]+' ' : ''}아이템 ${n}개</span><button class="linkbtn" data-act="pick-reset">필터 초기화</button>` : '';
-}
 function pickGridHTML(b){
   const list = pickerItems(b); const inB = new Set(b.it);
   if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 능력치 필터를 줄여 보세요.</div>`;
@@ -1886,8 +1948,8 @@ function pickFootHTML(b){
 }
 function updatePicker(){
   const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
-  const pp=pickerPage(), g=$('#pick-grid'), c=$('#pick-count'), t=$('#pick-tray'), f=pp&&pp.foot;
-  if(g) g.innerHTML = pickGridHTML(b); if(c) c.innerHTML = pickCountHTML(b); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
+  const pp=pickerPage(), g=$('#pick-grid'), c=$('#ifc-pk'), t=$('#pick-tray'), f=pp&&pp.foot;
+  if(g) g.innerHTML = pickGridHTML(b); if(c) setHTML(c, ifCountHTML('pk')); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
 }
 
 /* ------------------------------------------------------------ 동작 */
@@ -1975,9 +2037,16 @@ const ACT = {
     const st = S.icol ? curSet() : null; if(st && st.map!==v){ st.it = convertIds(st.it, v); st.map = v; setTouch(st); } else renderMain();
     buzz(5);
   },
-  'it-tier'(el){ S.itier = el.dataset.v; renderMain(); },
-  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; renderMain(); },
-  'it-reset'(){ S.istats = []; S.itier = 'all'; S.qi = ''; const i = $('#q-items'); if(i) i.value = ''; renderMain(); },
+  'it-tier'(el){ S.itier = el.dataset.v; ifRefresh('it', true); },
+  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; ifRefresh('it', true); },
+  'it-reset'(){ S.istats = []; S.itier = 'all'; S.qi = ''; IFS.it.s = false; ifRefresh('it', true); },
+  'if-search'(el){ const c = el.dataset.c; IFS[c].s = true; ifRefresh(c, false); const i = $(c==='it' ? '#q-items' : '#q-item'); if(i) i.focus(); },
+  'if-sclose'(el){ const c = el.dataset.c; IFS[c].s = false; if(c==='it') S.qi = ''; else if(S.picker) S.picker.q = ''; ifRefresh(c, true); },
+  'if-panel'(el){
+    const c = el.dataset.c, o = IFS[c]; o.p = !o.p; o.y0 = null; ifRefresh(c, false); buzz(3);
+    if(o.p){ const a = $('#ifa-'+c), sc = a && a.closest('.hm-pane, .pg-b'); requestAnimationFrame(() => requestAnimationFrame(() => { if(o.p && sc) o.y0 = sc.scrollTop; })); }   /* 펼칠 때 브라우저가 맞춘 위치를 기준으로 */
+  },
+  'if-sort'(el){ const i = SORTS.findIndex(x => x[0]===isort()); ISORT = SORTS[(i+1)%SORTS.length][0]; uiSet('isort', ISORT); ifRefresh(el.dataset.c, true); },
   'it-collect'(){
     if(S.readonly) return;
     if(S.icol){ dropEmptySet(); S.icol = false; renderMain(); toast(curSetSavedMsg()); return; }
@@ -2107,10 +2176,10 @@ const ACT = {
     if(i>=0) toast(`${name}${eul(name)} 뺐습니다`, {label:'되돌리기', fn(){ const bb=S.builds.get(b.id); if(!bb||bb.it.includes(id)) return; bb.it.splice(Math.min(i,bb.it.length),0,id); touch(bb); }});
     else toast(`${name}${eul(name)} 담았습니다`); },
   'tree-toggle'(){ S.treeOpen=!S.treeOpen; uiSet('tree', S.treeOpen); renderSheet(); },
-  pick(){ const b=curBuild(); if(!b) return; S.panel=null; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'all', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
-  'pick-tier'(el){ S.picker.tier=el.dataset.v; S.picker.scroll=0; renderSheet(); const bd=topBody(); if(bd) bd.scrollTop=0; },
-  'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; el.setAttribute('aria-pressed', P.stats.includes(k)); updatePicker(); uiSet('stats', P.stats); },
-  'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='all'; P.q=''; uiSet('stats', []); S.picker.scroll=0; renderSheet(); },
+  pick(){ const b=curBuild(); if(!b) return; S.panel=null; IFS.pk.s=false; IFS.pk.p=false; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'all', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
+  'pick-tier'(el){ S.picker.tier=el.dataset.v; ifRefresh('pk', true); },
+  'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; ifRefresh('pk', true); uiSet('stats', P.stats); },
+  'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='all'; P.q=''; IFS.pk.s=false; uiSet('stats', []); ifRefresh('pk', true); },
   'pick-toggle'(el){ const id=el.dataset.id; const P=S.picker; const b=P&&S.builds.get(P.bid); if(!b||S.readonly) return;
     const i=b.it.lastIndexOf(id); if(i>=0) b.it.splice(i,1); else { b.it.push(id); b.nm[id]=IX.item[id].n; }
     P.last=id; P.bump = i<0 ? id : ''; touch(b,{render:false}); markMain(); markPit(id, i<0); updatePickerLight(b); buzz(i<0 ? 8 : 5); },
@@ -2179,11 +2248,11 @@ document.addEventListener('input', e => {
   const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
   if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
   else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
-  else if(t.id==='q-items'){ S.qi=t.value; HM.ik=''; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), f=$('#it-filters'); if(l) setHTML(l, itemsListHTML()); if(f) setHTML(f, itemFiltersHTML()); },80); }
+  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), c=$('#ifc-it'); if(l) setHTML(l, itemsListHTML()); if(c) setHTML(c, ifCountHTML('it')); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
   else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
   else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
   else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
-  else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(updatePicker,80); }
+  else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(()=>{ updatePicker(); ifTop('pk'); },80); }
   else if(t.id==='calc-lvl'){ const v = Math.min(18, Math.max(1, +t.value||1)); if(v!==S.calc.lvl) buzz(3); S.calc.lvl = v; updateCalc(); }
   else if(t.id==='f-title' && b){ b.title=t.value.slice(0,60)||'빌드'; touch(b,{render:false}); }
 });

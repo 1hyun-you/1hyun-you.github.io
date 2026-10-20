@@ -3,7 +3,8 @@ import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/i
 import fs from 'fs';
 const SITE='http://127.0.0.1:8770/', GH='http://127.0.0.1:8771', OUT='/tmp/ttn-test/';
 const D = JSON.parse(fs.readFileSync('/home/claude/tem-tree/data.json','utf8'));
-await fetch(GH+'/__seed', {method:'PUT', body: fs.readFileSync('/home/claude/tem-tree-sync/builds.json')});
+const SEED = JSON.parse(fs.readFileSync('/home/claude/tem-tree-sync/builds.json','utf8')); if(SEED.prefs) SEED.prefs.sets = [];   // 세트 시험은 빈 세트에서 시작
+await fetch(GH+'/__seed', {method:'PUT', body: JSON.stringify(SEED)});
 const browser = await chromium.launch(); const errs = []; const log = []; const bad = [];
 const check = (name, ok, info='') => { log.push(`${ok?'통과':'실패'} · ${name}${info!==''?' · '+info:''}`); if(!ok) bad.push(name); };
 const ctx = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
@@ -72,9 +73,9 @@ const arN = Object.values(D.items).filter(i=>i.ar).length, srN = Object.values(D
 const cnt = () => p.evaluate(() => document.querySelectorAll('#it-list .pit').length);
 check('아이템 탭 기본 칼바람', (await p.evaluate(() => document.querySelector('[data-act=it-map][aria-pressed=true]').dataset.v))==='aram' && await cnt()===arN, `${await cnt()} / ${arN}`);
 await tap('[data-act=it-tier][data-v=legend]'); const nl = await cnt(); check('분류 완성', nl>50 && nl<arN, String(nl));
-await tap('[data-act=it-stat][data-v=ap]'); const na = await cnt(); check('능력치 주문력', na>5 && na<nl, String(na));
+await tap('[data-act=if-panel][data-c=it]'); await tap('[data-act=it-stat][data-v=ap]'); const na = await cnt(); check('능력치 주문력', na>5 && na<nl, String(na));
 await tap('[data-act=it-reset]'); check('필터 초기화', await cnt()===arN);
-await p.fill('#q-items', 'ㄹㅇㄷㄹ'); await p.waitForTimeout(250);
+await tap('[data-act=if-search][data-c=it]'); await p.fill('#q-items', 'ㄹㅇㄷㄹ'); await p.waitForTimeout(250);
 check('초성 검색', (await p.evaluate(() => [...document.querySelectorAll('#it-list .pit .nm')].map(e=>e.textContent).join(','))).includes('리안드리의 고통'));
 await p.fill('#q-items', ''); await p.waitForTimeout(250);
 await tap('[data-act=it-map][data-v=sr]'); check('협곡 전환', await cnt()===srN, `${await cnt()} / ${srN}`);
