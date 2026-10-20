@@ -223,7 +223,7 @@ input.ttl{width:calc(100% + 11px);margin-left:-11px;padding:0 10px;border:1px so
 @keyframes popin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.pop{animation:none}}
 #bv{position:relative;display:block}
-#bv:not(.edit) .ib.add.opt{visibility:hidden}
+#bv:not(.edit) .ib.add.opt{display:none}
 .edit .v-only,#bv:not(.edit) .e-only{display:none}
 #bv>.card,#bv>.bh{contain:layout}
 #bv>*+*{margin-top:14px}
@@ -446,6 +446,55 @@ html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,h
 .bcard.sel .bc-chk{background:var(--gold);border-color:var(--gold)}
 .iconbtn[aria-pressed="true"]{color:var(--gold)}
 .iconbtn.danger{color:var(--danger)}
+/* 홈: 탭 3개를 가로로 이어 붙여 밀어서 전환, 탭마다 따로 스크롤, 검색창은 각 탭 위에 고정 */
+.home-pg>.pg-b{overflow:hidden;padding:0}
+.home-pg .wrap.app{max-width:none;padding:0;height:100%}
+.hm{display:flex;flex-direction:column;height:100%;--td:.28s}
+.hm-top{flex:none;width:100%;max-width:1080px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px}
+.hm-top>#hm-ban:empty{display:none}
+.hm-view{flex:1;min-height:0;overflow:hidden;position:relative}
+.hm-track{display:flex;width:300%;height:100%;will-change:transform;transition:transform var(--td) cubic-bezier(.32,.72,0,1)}
+.hm-pane{flex:0 0 33.3333%;height:100%;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y pinch-zoom;scrollbar-gutter:stable}
+.hm-pane>.wrap{padding-bottom:110px}
+.hm.col .hm-pane[data-tab=items]>.wrap{padding-bottom:230px}
+.hm-head{position:sticky;top:0;z-index:3;background:var(--bg);display:flex;flex-direction:column;gap:10px;padding:6px 0 10px}
+.hm-head .chips{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
+.seg.hm-seg{position:relative}
+.seg.hm-seg button{position:relative;z-index:1;background:none;box-shadow:none;transition:color .2s}
+.seg.hm-seg button[aria-pressed="true"]{background:none;box-shadow:none}
+.seg-ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);border-radius:9px;background:var(--raise);box-shadow:0 1px 3px rgba(0,0,0,.14);transition:transform var(--td) cubic-bezier(.32,.72,0,1);pointer-events:none}
+.hm.drag .hm-track,.hm.drag .seg-ind{transition:none}
+html.rm .hm-track,html.rm .seg-ind{transition:none}
+@media(prefers-reduced-motion:reduce){.hm-track,.seg-ind{transition:none}}
+.hm-fab{min-width:0}
+.it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.it-pane-f{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.it-pane-f .fgroup .chips{flex-wrap:wrap;overflow:visible;margin-right:0;padding-right:0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+.it-sets{margin:0 -16px 12px;padding-inline:16px}
+.set-chip .n{font-weight:700;color:var(--gold)}
+/* 세트 담기 막대 (아이템 탭 아래) */
+.setbar{position:absolute;left:0;right:0;bottom:0;z-index:16;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.14);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.setbar>.wrap{display:flex;flex-direction:column;gap:9px}
+.sb-h{display:flex;align-items:center;gap:8px}
+.sb-name{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:9px;background:var(--bg);padding:0 10px;font-weight:600;font-size:15px}
+.sb-name:focus{outline:none;border-color:var(--gold)}
+.sb-meta{flex:none;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sb-empty{height:40px;display:flex;align-items:center;font-size:13px;color:var(--muted)}
+.sb-act{display:flex;gap:8px}
+.sb-act .btn{flex:1}
+/* 세트 적용 화면 */
+.aset{display:flex;gap:6px;flex-wrap:wrap}
+.aset .bi{width:36px}
+.alist{display:flex;flex-direction:column;gap:8px}
+.arow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left}
+.arow .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.arow .m b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .w{flex:none;font-size:11.5px;color:var(--warn)}
+/* 선마: 스킬 그림(오른쪽 아래 키) + '선마' */
+.mx.mxs{padding:0 12px 0 0;gap:8px;overflow:hidden}
+.mx.mxs .sico .ico{border-radius:8px 0 0 8px;box-shadow:none}
+.mx.mxs .kbox{border-radius:4px 0 0 0}
+.edit .mx.mxs{padding-left:0}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-variant-numeric:tabular-nums}
@@ -504,6 +553,7 @@ const ICONS = {
   pen:SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
   check:SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   left:SVG('<path d="M14 6l-6 6 6 6"/>'), right:SVG('<path d="M10 6l6 6-6 6"/>'),
+  plus:SVG('<path d="M12 5v14M5 12h14"/>'),
   selall:SVG('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.3l2.8 2.8L16.2 9.6"/>'),
   trash:SVG('<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>'),
   mark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 10-8 10-8-10z" fill="none" stroke="var(--gold)" stroke-width="2"/><path d="M12 7l4 5-4 5-4-5z" fill="var(--gold)"/></svg>'
@@ -513,7 +563,8 @@ const ICONS = {
 let D = null, SK = null, skLoading = null;
 const IX = {champ:{}, item:{}, rune:{}, style:{}, spell:{}, nameToItem:{}, runeStyle:{}, istat:{}};
 const S = {
-  builds: new Map(), prefs:{fav:[], cdm:'sr'}, loaded:false,
+  builds: new Map(), prefs:{fav:[], cdm:'aram', nbm:'aram', sets:[]}, loaded:false,
+  q:'', qc:'', qi:'', qa:'', qp:'', imap:'aram', itier:'all', istats:[], icol:false, iset:null, atab:'build',
   sync:'loading', db:null, readonly:false, offline: navigator.onLine === false,
   views:[{name:'home'}], tab:'builds', q:'', role:'all',
   edit:false, panel:null, lastRune:'', picker:null, sheets:[], dirty:new Set(), treeOpen:false,
@@ -740,7 +791,7 @@ function skillBlock(c, s){
 /* ------------------------------------------------------------ 빌드 모델 */
 function newBuild(champId){
   const c = IX.champ[champId];
-  return normalize({ id: uid(), champ: champId, title: `${c ? c.n : ''} 빌드`, role:'', mode: S.prefs.nbm==='aram' ? 'aram' : 'sr', it:[], patch: D.patch, created: Date.now(), updated: Date.now() });
+  return normalize({ id: uid(), champ: champId, title: `${c ? c.n : ''} 빌드`, role:'', mode: S.prefs.nbm==='sr' ? 'sr' : 'aram', it:[], patch: D.patch, created: Date.now(), updated: Date.now() });
 }
 /* 예전 형식(구역별 아이템·스킬 순서·메모)은 읽을 때 새 형식으로 바꾸고, 다음 저장 때 정리 */
 function normalize(b){
@@ -780,11 +831,11 @@ function convertMap(b, to){
 function selEnter(id){
   if(S.sel || S.readonly) return;
   S.sel = new Set([id]);
-  try{ history.pushState({ttn:SID, i:depth(), sel:1}, ''); S.selHist = true; }catch{ S.selHist = false; }
+  S.selNeedHist = true; S.selHist = false;
   buzz(15); renderMain();
 }
 function selExit(fromPop){
-  if(!S.sel) return; S.sel = null;
+  if(!S.sel) return; S.sel = null; S.selNeedHist = false;
   if(!fromPop && S.selHist){ NAV.exp.push({i:depth(), t:Date.now()}); try{ history.back(); }catch{} }
   S.selHist = false; renderMain();
 }
@@ -794,6 +845,19 @@ function selToggle(id){
   buzz(6); renderMain();
 }
 const homeBuildIds = () => [...S.builds.values()].filter(b => { if(!S.q) return true; const c = IX.champ[b.champ]; return match(S.q, b.title, c&&c.n, c&&c.id); }).map(b => b.id);
+/* 설정(폰·PC 공통) 정리: 기본값은 칼바람. 아이템 세트도 여기에 함께 보관 */
+function normSets(a){
+  return (Array.isArray(a) ? a : []).filter(s => s && s.id).slice(0, 60).map(s => ({id:String(s.id), n:String(s.n||'세트').slice(0,30), map:s.map==='sr'?'sr':'aram', it:(Array.isArray(s.it)?s.it:[]).filter(x=>typeof x==='string').slice(0,40), updated:+s.updated||0}));
+}
+function normPrefs(p){ p = p || {}; return {fav: Array.isArray(p.fav) ? [...p.fav] : [], cdm: p.cdm==='sr' ? 'sr' : 'aram', nbm: p.nbm==='sr' ? 'sr' : 'aram', sets: normSets(p.sets)}; }
+/* 다른 맵으로 옮길 때: 같은 이름의 그 맵 버전으로 바꿈 (없으면 그대로) */
+function convertIds(ids, mode){
+  const key = mode==='sr' ? 'sr' : 'ar', byName = {};
+  for(const [id, it] of Object.entries(D.items)) if(it[key] && !byName[it.n]) byName[it.n] = id;
+  const out = [];
+  for(const id of ids){ const it = D.items[id]; let v = id; if(it && !it[key] && byName[it.n]) v = byName[it.n]; if(!out.includes(v)) out.push(v); }
+  return out;
+}
 function toDoc(b){ const o = clone(b); delete o.id; return o; }
 function cur(){ return S.views[S.views.length-1]; }
 function curBuild(){ const v=cur(); return v.name==='build' ? S.builds.get(v.id) : null; }
@@ -826,7 +890,7 @@ function ghStore(cfg){
   const FILE = '/contents/builds.json', DAY = 86400000;
   const m = lsGet(LS_GHM) || {};
   const st = {builds:m.builds||{}, del:m.del||{}, prefs:m.prefs||null, prefsT:m.prefsT||0, sha:m.sha||null, etag:m.etag||null, last:m.last||0};
-  let pending = !!m.pending, pushing = false, again = false, pushT = 0, retryT = 0, fail = '', pulled = false, authToast = false;
+  let pending = !!m.pending, edits = 0, pushing = false, again = false, pushT = 0, retryT = 0, fail = '', pulled = false, authToast = false;
   const subs = [], psubs = [];
   const save = () => lsSet(LS_GHM, {builds:st.builds, del:st.del, prefs:st.prefs, prefsT:st.prefsT, sha:st.sha, etag:st.etag, last:st.last, pending});
   const status = () => fail==='auth' ? 'error' : fail==='net' ? 'offline' : (pending || pushing) ? 'saving' : pulled ? 'synced' : 'loading';
@@ -888,11 +952,12 @@ function ghStore(cfg){
     try{
       for(let n=0; n<4; n++){
         for(const [id, t] of Object.entries(st.del)) if(Date.now() - t > 120*DAY) delete st.del[id];   /* 오래된 삭제 기록 정리 */
+        const sent = edits;   /* 이 내용을 만든 시점의 변경 번호: 올리는 사이 새 변경이 생기면 끝난 뒤 한 번 더 올림 */
         const doc = {app:'템트리 노트', format:1, at:Date.now(), builds:st.builds, del:st.del, prefs:st.prefs, prefsT:st.prefsT};
         const body = JSON.stringify(Object.assign({message:'빌드 저장', content:b64e(JSON.stringify(doc))}, st.sha ? {sha:st.sha} : {}));
         let res;
         try{ res = await ghFetch(cfg, FILE, {method:'PUT', headers:{'Content-Type':'application/json'}, body, keepalive: !!keep && body.length < 60000}); }catch{ netFail(); return; }
-        if(res.ok){ let j = {}; try{ j = await res.json(); }catch{} st.sha = j.content && j.content.sha || st.sha; st.etag = null; pending = false; fail = ''; st.last = Date.now(); save(); return; }
+        if(res.ok){ let j = {}; try{ j = await res.json(); }catch{} st.sha = j.content && j.content.sha || st.sha; st.etag = null; if(edits===sent) pending = false; else again = true; fail = ''; st.last = Date.now(); save(); return; }
         if(res.status===409 || res.status===422){ await pull(true); if(fail) return; continue; }   /* 다른 기기가 먼저 저장 → 받아 합친 뒤 다시 */
         if(res.status===401 || res.status===403 || res.status===404){ authFail(res.status); return; }
         netFail(); return;
@@ -906,8 +971,8 @@ function ghStore(cfg){
     doc(path){
       const [col, id] = path.split('/');
       return {
-        set(body){ if(col==='builds'){ st.builds[id] = clone(body); delete st.del[id]; } else { st.prefs = clone(body); st.prefsT = Date.now(); } pending = true; save(); schedule(); report(); return Promise.resolve(); },
-        delete(){ if(col==='builds'){ delete st.builds[id]; st.del[id] = Date.now(); } pending = true; save(); schedule(); report(); return Promise.resolve(); },
+        set(body){ if(col==='builds'){ st.builds[id] = clone(body); delete st.del[id]; } else { st.prefs = clone(body); st.prefsT = Date.now(); } pending = true; edits++; save(); schedule(); report(); return Promise.resolve(); },
+        delete(){ if(col==='builds'){ delete st.builds[id]; st.del[id] = Date.now(); } pending = true; edits++; save(); schedule(); report(); return Promise.resolve(); },
         onSnapshot(cb){ psubs.push(cb); setTimeout(emitPrefs, 0); return () => {}; },
       };
     },
@@ -928,14 +993,14 @@ window.addEventListener('appinstalled', () => { INSTALL = null; toast('앱을 �
 /* ------------------------------------------------------------ 저장소 */
 async function initStore(){
   const cached = lsGet(LS_CACHE);
-  if(cached && Array.isArray(cached.builds)){ cached.builds.forEach(b=>S.builds.set(b.id, normalize(b))); if(cached.prefs) S.prefs=Object.assign({fav:[], cdm:'sr'}, cached.prefs); }
+  if(cached && Array.isArray(cached.builds)){ cached.builds.forEach(b=>S.builds.set(b.id, normalize(b))); if(cached.prefs) S.prefs=normPrefs(cached.prefs); }
   let db = null;
   try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch { db = null; }
   if(!db && !inClaude()){ const c = ghCfg(); if(c && c.owner) db = ghStore(c); }   /* 설치형 앱: 토큰이 있으면 GitHub 동기화 */
   if(!db){
     S.sync = 'local'; S.builds = new Map();
     const loc = lsGet(LS_BUILDS) || {builds:[],prefs:{fav:[]}};
-    (loc.builds||[]).forEach(b=>S.builds.set(b.id, normalize(b))); S.prefs = Object.assign({fav:[], cdm:'sr'}, loc.prefs||{});
+    (loc.builds||[]).forEach(b=>S.builds.set(b.id, normalize(b))); S.prefs = normPrefs(loc.prefs||{});
     S.loaded = true; refresh(); return;
   }
   S.db = db;
@@ -951,7 +1016,7 @@ async function initStore(){
     cacheLocal(); refresh();
   }, () => { S.sync = 'error'; renderTop(); toast('저장소 연결이 끊겼습니다. 새로 고침해 주세요'); });
   db.doc('meta/prefs').onSnapshot(d => {
-    if(d.exists){ const p = d.data(); S.prefs = {fav: Array.isArray(p.fav) ? [...p.fav] : [], cdm: p.cdm==='aram' ? 'aram' : 'sr', nbm: p.nbm==='aram' ? 'aram' : 'sr'}; cacheLocal(); refresh(); }
+    if(d.exists){ S.prefs = normPrefs(d.data()); cacheLocal(); refresh(); }
   }, () => {});
 }
 function checkLocalImport(){
@@ -1000,7 +1065,7 @@ async function removeBuild(id){
 let prefT;
 function savePrefs(){
   cacheLocal(); clearTimeout(prefT);
-  prefT = setTimeout(() => { if(S.db) S.db.doc('meta/prefs').set({fav:S.prefs.fav, cdm:S.prefs.cdm==='aram'?'aram':'sr', nbm:S.prefs.nbm==='aram'?'aram':'sr'}).catch(handleWriteError); }, 400);
+  prefT = setTimeout(() => { if(S.db) S.db.doc('meta/prefs').set({fav:S.prefs.fav, cdm:S.prefs.cdm==='sr'?'sr':'aram', nbm:S.prefs.nbm==='sr'?'sr':'aram', sets:S.prefs.sets||[]}).catch(handleWriteError); }, 400);
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState==='hidden') flushAll(); });
 window.addEventListener('online', () => { S.offline=false; renderTop(); });
@@ -1013,8 +1078,19 @@ let histOK = true;
 const NAV = {fwd: [], hi: 0, exp: [], swipe: null};   /* hi: 브라우저 기록이 있을(곧 갈) 단계, exp: 앱이 직접 움직여 곧 도착할 기록 */
 const depth = () => S.views.length - 1 + S.sheets.length;
 const histSynced = () => histOK && NAV.hi === depth();
+/* 홈에서 기기 뒤로 가기: 첫 번째는 '한 번 더 누르면 종료' 알림, 2초 안에 한 번 더 누르면 종료
+   홈 맨 앞 기록 위에 보호 칸(guard)을 하나 두고, 사용자가 누른 직후에만 추가 (누르지 않고 추가한 기록은 크롬이 건너뜀) */
+const GUARD_ON = () => histOK && !inClaude() && (STANDALONE || matchMedia('(pointer: coarse)').matches);
+function ensureGuard(){
+  if(!GUARD_ON() || depth()!==0 || S.sel) return;
+  const st = history.state; if(st && (st.guard || st.sel || st.i>0)) return;
+  try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{}
+}
+['click','keydown'].forEach(t => document.addEventListener(t, ensureGuard, true));
+document.addEventListener('pointerup', e => { if(e.pointerType!=='mouse') ensureGuard(); }, true);
 function pushHist(){
   NAV.fwd = [];
+  if(GUARD_ON() && depth()===1){ const cs = history.state; if(cs && cs.i===0 && !cs.guard && !cs.sel){ try{ history.pushState({ttn:SID, i:0, guard:1}, ''); }catch{} } }
   if(histOK){ try{ history.pushState({ttn:SID, i:depth()}, ''); NAV.hi = depth(); }catch{ histOK = false; } }
   syncCW();
 }
@@ -1036,6 +1112,7 @@ window.addEventListener('popstate', e => {
   NAV.exp = NAV.exp.filter(x => now - x.t < 2500);
   if(NAV.exp.length && NAV.exp[0].i===target){ NAV.exp.shift(); return; }   /* 앱이 이미 화면을 맞춰 둔 이동 */
   if(S.sel && !(st && st.sel)){ S.selHist = false; selExit(true); if(target===depth()) return; }   /* 여러 개 고르기 중 뒤로 = 고르기 끝 */
+  if(GUARD_ON() && target===0 && depth()===0 && !(st && (st.guard || st.sel))){ S.exitAt = Date.now(); toast('한 번 더 누르면 종료됩니다'); return; }   /* 홈 맨 앞: 다음 뒤로 가기는 앱 종료 */
   NAV.exp = []; NAV.hi = target;
   if(S.panel && target < depth()){   /* 팝업이 열려 있으면 화면은 그대로 두고 팝업만 닫은 뒤 기록을 다시 채움 */
     closePanel(); NAV.fwd = [];
@@ -1090,7 +1167,7 @@ function refresh(){
 }
 function render(){ renderTop(); renderMain(); }
 function renderMain(){ const pg = viewPage(); if(pg) renderView(pg); }
-function dirtyMain(){ PG.forEach(pg => { if(pg.__sec) pg.__sec.key = ''; }); }
+function dirtyMain(){ PG.forEach(pg => { if(pg.__sec && pg.__src.name!=='home') pg.__sec.key = ''; }); }
 function setHTML(el, html){ if(el.__h !== html){ el.innerHTML = html; el.__h = html; } }
 /* 보기 페이지가 낡았는지: 데이터가 바뀌었거나(번호 비교) 화면 상태만 바뀐 경우 */
 const stale = pg => !!(pg && pg.isView && (pg.__rev !== S.rev || (pg===viewPage() && S.mainDirty)));
@@ -1103,7 +1180,7 @@ function renderView(pg){
   if(!D) return;
   const sec = pg.__sec || (pg.__sec = {key:'', html:{}});
   const whole = (key, html) => { if(sec.key===key && sec.html.all===html) return; app.innerHTML = html; sec.key = key; sec.html = {all:html}; };
-  if(v.name==='home') whole('home', homeHTML());
+  if(v.name==='home') renderHome(pg, sec);
   else if(v.name==='champ') whole('champ:'+v.id, champHTML(v.id));
   else if(v.name==='build'){
     const fab = pg.fab; fab.hidden = !!S.readonly; fab.classList.toggle('on', !!S.edit);
@@ -1180,46 +1257,157 @@ function viewTopHTML(v){
 function renderTop(){ PG.forEach(pg => { if(pg.isView) setHTML(pg.tbar, viewTopHTML(pg.__src)); }); }
 
 /* 홈 */
-function homeHTML(){
-  const lp = S.localPending.length;
-  return `<div class="stack">
-    <div class="home-head">
-      ${inClaude() && APP_URL ? `<div class="banner info"><span>이 페이지는 패치 데이터 갱신이 중단되었습니다. 최신 패치는 설치형 앱에서 확인하세요.</span><a class="btn sm primary" href="${APP_URL}" target="_blank" rel="noopener">앱 열기</a></div>` : ''}
-      ${lp?`<div class="banner info"><span>이 기기에만 저장된 빌드 ${lp}개가 있습니다. 계정으로 옮기면 다른 기기에서도 보입니다.</span><button class="btn sm primary" data-act="import-local">계정으로 옮기기</button></div>`:''}
-      <div class="seg" role="group" aria-label="보기 선택">
-        <button data-act="tab" data-v="builds" aria-pressed="${S.tab==='builds'}">내 빌드</button>
-        <button data-act="tab" data-v="champs" aria-pressed="${S.tab==='champs'}">챔피언</button>
-      </div>
-      <label class="search">${ICONS.search}<input id="q-home" type="search" autocomplete="off" enterkeyhint="search" placeholder="${S.tab==='builds'?'빌드·챔피언 검색 (초성 가능)':'챔피언 검색 (예: 가렌, ㄱㄹ)'}" value="${esc(S.q)}"></label>
-      ${S.tab==='champs'?`<div class="chips" id="home-filters">${homeFilters()}</div>`:''}
-    </div>
-    <div id="home-list">${homeList()}</div>
-    ${S.sync==='local' ? (inClaude() ? `<div class="banner"><span>지금 화면에서는 동기화를 쓸 수 없어 이 기기에만 저장됩니다. claude.ai에 로그인한 상태로 열면 폰과 PC가 연결됩니다.</span></div>` : `<div class="banner"><span>동기화가 꺼져 있어 이 기기에만 저장됩니다.</span><button class="btn sm" data-act="open-sync">동기화 설정</button></div>`) : ''}
+const TABS = ['builds','items','champs'], TAB_N = {builds:'내 빌드', items:'아이템', champs:'챔피언'};
+const tabIdx = () => Math.max(0, TABS.indexOf(S.tab));
+const SRCH = (id, ph, v) => `<label class="search">${ICONS.search}<input id="${id}" type="search" autocomplete="off" enterkeyhint="search" placeholder="${ph}" value="${esc(v||'')}"></label>`;
+function homeSkel(){
+  return `<div class="hm" id="hm">
+    <div class="hm-top"><div id="hm-ban" class="stack" style="gap:8px"></div>
+      <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
+    <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
+      <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="hm-head">${SRCH('q-items','아이템 이름 (초성 가능)',S.qi)}<div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div id="it-filters" class="it-pane-f"></div><div id="it-list"></div></div></section>
+      <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
+    </div></div>
+    <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
+    <div class="setbar" id="setbar" hidden><div class="wrap">
+      <div class="sb-h"><input id="f-setname" class="sb-name" maxlength="30" enterkeyhint="done" aria-label="세트 이름"><span class="sb-meta" id="sb-meta"></span><button class="iconbtn danger" data-act="set-del" aria-label="세트 삭제">${ICONS.trash}</button></div>
+      <div id="sb-tray"></div>
+      <div class="sb-act"><button class="btn" data-act="it-collect">담기 끝</button><button class="btn primary" data-act="set-apply" id="sb-apply">빌드에 적용</button></div>
+    </div></div>
   </div>`;
+}
+const HM = {ik:'', ck:''};
+function renderHome(pg, sec){
+  const app = pg.app;
+  if(sec.key!=='home' || !app.querySelector('#hm')){ pg.classList.add('home-pg'); app.innerHTML = homeSkel(); sec.key = 'home'; sec.html = {}; HM.ik = HM.ck = ''; }
+  const q = s => app.querySelector(s), hm = q('#hm');
+  hm.style.setProperty('--td', S.motion==='fast' ? '.17s' : '.28s');
+  hm.classList.toggle('col', !!(S.icol && S.tab==='items'));
+  setHTML(q('#hm-ban'), homeBanners());
+  app.querySelectorAll('.hm-seg [data-act=tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tab)));
+  setHTML(q('#home-list'), buildsListHTML()); setHTML(q('#hm-sync'), syncBanHTML());
+  /* 아이템·챔피언 목록은 조건이 같으면 다시 만들지 않음 (고르기·담기 등 잦은 갱신에서 부담 줄임) */
+  const cs = S.icol ? curSet() : null, ik = `${S.rev}|${D&&D.rev}|${S.imap}|${S.itier}|${S.istats.join()}|${S.qi}|${cs?cs.id+':'+cs.it.join():''}`;
+  setHTML(q('#it-row'), itemRowHTML()); setHTML(q('#it-sets'), setsRowHTML());
+  if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-filters'), itemFiltersHTML()); setHTML(q('#it-list'), itemsListHTML()); }
+  const ck = `${S.rev}|${D&&D.rev}|${S.role}|${S.qc}`;
+  if(HM.ck!==ck){ HM.ck = ck; setHTML(q('#home-filters'), homeFilters()); setHTML(q('#champ-list'), champsListHTML()); }
+  q('#hm-fab').hidden = !(S.tab==='builds' && !S.sel && !S.readonly);
+  const s = curSet(), on = !!(S.icol && S.tab==='items' && s), bar = q('#setbar'); bar.hidden = !on;
+  if(on){
+    const nm = q('#f-setname'); if(document.activeElement!==nm && nm.value!==s.n) nm.value = s.n;
+    setHTML(q('#sb-meta'), `${MAPN[s.map]} · ${s.it.length}개`);
+    setHTML(q('#sb-tray'), s.it.length ? `<div class="tray" data-sort="set" style="--n:${Math.max(6, s.it.length)}">${s.it.map(id=>{ const it=IX.item[id]; return `<button class="tb" data-drag data-act="set-rm" data-id="${id}" aria-label="${esc(it?it.n:'아이템')} 빼기">${icoFluid('items', it?it.i:-1)}</button>`; }).join('')}</div>` : `<div class="sb-empty">위 목록에서 아이템을 누르면 여기에 차례로 담깁니다</div>`);
+    q('#sb-apply').disabled = !s.it.length;
+  }
+  if(!(HS.st && HS.st.on)) placeTrack(0);
+}
+/* 아이템 탭: 맵(기본 칼바람)·분류·능력치·이름 필터, '세트 담기'를 켜면 누르는 아이템이 세트에 차례로 담김 */
+const curSet = () => (S.prefs.sets||[]).find(s => s.id===S.iset) || null;
+const setById = id => (S.prefs.sets||[]).find(s => s.id===id) || null;
+function newSet(){
+  const used = new Set((S.prefs.sets||[]).map(s => s.n)); let k = (S.prefs.sets||[]).length + 1; while(used.has(`세트 ${k}`)) k++;
+  const s = {id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), n:`세트 ${k}`, map:S.imap, it:[], updated:Date.now()};
+  S.prefs.sets = [...(S.prefs.sets||[]), s]; S.iset = s.id; savePrefs(); return s;
+}
+const curSetSavedMsg = () => { const s = (S.prefs.sets||[]).find(x => x.id===S.iset); return s ? `‘${s.n}’ 세트를 저장했습니다` : '담기를 마쳤습니다'; };
+function dropEmptySet(){ const s = curSet(); if(s && !s.it.length){ S.prefs.sets = S.prefs.sets.filter(x => x!==s); S.iset = null; savePrefs(); } }
+function setTouch(s){ s.updated = Date.now(); savePrefs(); renderMain(); }
+function itemRowHTML(){
+  return `<div class="seg xs" role="group" aria-label="맵">${['sr','aram'].map(m=>`<button data-act="it-map" data-v="${m}" aria-pressed="${S.imap===m}">${MAPN[m]}</button>`).join('')}</div>
+    ${S.readonly||S.icol?'':`<button class="btn sm" data-act="it-collect" aria-pressed="false">세트 담기</button>`}`;
+}
+function setsRowHTML(){
+  const sets = S.prefs.sets||[]; if(!sets.length || S.readonly) return '';
+  return `<div class="chips it-sets" aria-label="내 아이템 세트"><button class="chip" data-act="set-new">+ 새 세트</button>${sets.map(s=>`<button class="chip set-chip" data-act="set-open" data-id="${s.id}" aria-pressed="${!!(S.icol && S.iset===s.id)}">${esc(s.n)} <span class="n">${s.it.length}</span></button>`).join('')}</div>`;
+}
+function itemFiltersHTML(){
+  const n = itemsTabList().length, on = S.istats.length || S.itier!=='all' || S.qi;
+  return `<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="it-tier" data-v="${k}" aria-pressed="${S.itier===k}">${l}</button>`).join('')}</div>
+    ${STAT_GROUPS.map(([g,fs])=>`<div class="fgroup"><span class="fl">${g}</span><div class="chips">${fs.map(([k,l])=>`<button class="chip sm" data-act="it-stat" data-v="${k}" aria-pressed="${S.istats.includes(k)}">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="fbar"><span>${MAPN[S.imap]} 아이템 ${n}개</span>${on?'<button class="linkbtn" data-act="it-reset">필터 초기화</button>':''}</div>`;
+}
+const itemsTabList = () => filterItems(S.imap==='sr'?'sr':'ar', S.itier, S.istats, S.qi, S.icol && curSet() ? curSet().it : []);
+function itemsListHTML(){
+  if(!D) return '';
+  const list = itemsTabList(), s = S.icol ? curSet() : null, inS = new Set(s ? s.it : []);
+  if(!list.length) return `<div class="none" style="padding:12px 0">조건에 맞는 아이템이 없습니다. 필터를 줄여 보세요.</div>`;
+  return lazyGrid(list, 'pgrid', ([id,it])=>`<button class="pit ${it.tier==='legend'?'legend':''}${inS.has(id)?' in':''}" data-act="it-tap" data-id="${id}"${s?` aria-pressed="${inS.has(id)}"`:''}>${itemIco(id,44)}<span class="nm">${esc(it.n)}</span><span class="g">${fmtGold(it.g)}</span>${inS.has(id)?`<span class="chk" aria-hidden="true">${s.it.indexOf(id)+1}</span>`:''}</button>`);
+}
+function toggleSetItem(id){
+  if(S.readonly) return;
+  const s = curSet() || newSet(), i = s.it.indexOf(id);
+  if(i>=0) s.it.splice(i, 1);
+  else { if(s.it.length>=40){ toast('세트에는 40개까지 담을 수 있습니다'); return; } s.it.push(id); }
+  buzz(i>=0 ? 5 : 8); setTouch(s);
+}
+/* 시트에서 바로 빌드 화면으로: 시트 자리를 빌드 화면으로 바꿔 기록 칸 수는 그대로 */
+function sheetToBuild(id, edit){
+  flushAll(); S.sheets.pop(); S.views.push({name:'build', id, edit:!!edit}); S.edit = !!edit; resetEditState(); NAV.fwd = [];
+  syncPages('fwd'); syncCW();
+}
+function applyListHTML(s, tab){
+  if(tab==='new') return cpickListHTML('apply-new', S.qa);
+  let list = sortBuilds([...S.builds.values()]);
+  if(S.qa) list = list.filter(b=>{ const c=IX.champ[b.champ]; return match(S.qa, b.title, c&&c.n, c&&c.id); });
+  if(!list.length) return `<div class="none" style="padding:12px 0">${S.builds.size?'검색 결과가 없습니다.':'아직 빌드가 없습니다. ‘새 빌드 만들기’를 눌러 보세요.'}</div>`;
+  return `<div class="alist">${list.map(b=>{ const c=IX.champ[b.champ]; return `<button class="arow" data-act="apply-to" data-id="${b.id}">${champIco(c,40)}<span class="m"><b>${esc(b.title)}</b><span class="small muted">${MAPN[b.mode]} · 아이템 ${b.it.length}개</span></span>${b.mode!==s.map?`<span class="w">${MAPN[b.mode]} 버전으로</span>`:''}</button>`; }).join('')}</div>`;
+}
+function cpickListHTML(act, qv){
+  const qq = qv===undefined ? S.qp : qv, fav = new Set(S.prefs.fav);
+  let cs = D.champs;
+  if(qq) cs = cs.filter(c=>match(qq, c.n, c.id, c.t)).sort((a,b)=>rankOf(qq,a.n)-rankOf(qq,b.n));
+  else cs = [...cs.filter(c=>fav.has(c.id)), ...cs.filter(c=>!fav.has(c.id))];
+  if(!cs.length) return `<div class="none" style="padding:12px 0">검색 결과가 없습니다.</div>`;
+  return lazyGrid(cs, 'champ-grid', c=>`<button class="ctile" data-act="${act}" data-id="${c.id}" aria-label="${esc(c.n)}">${champIco(c,58)}${fav.has(c.id)?'<span class="fav" aria-hidden="true">★</span>':''}<span class="n">${esc(c.n)}</span></button>`);
+}
+/* 탭 위치: 손가락을 따라 움직일 때는 dx만큼 */
+function placeTrack(dx){
+  const tr = $('#hm-track'), ind = $('#hm-ind'); if(!tr) return;
+  const W = tr.parentElement.clientWidth || innerWidth, p = tabIdx() - (dx||0) / W;
+  tr.style.transform = `translate3d(${-Math.round(p*W*10)/10}px,0,0)`;
+  ind.style.transform = `translateX(${p*100}%)`;
+}
+addEventListener('resize', () => { const hm = $('#hm'); if(hm){ hm.classList.add('drag'); placeTrack(0); requestAnimationFrame(() => hm.classList.remove('drag')); } });
+function switchTab(t){
+  if(!TABS.includes(t)) return;
+  const prev = S.tab; S.tab = t;
+  if(prev!==t){ if(S.sel) selExit(); buzz(5); }
+  const pg = PG[0]; if(pg && pg.isView && pg.__src.name==='home') renderView(pg);
+}
+function homeBanners(){
+  const lp = S.localPending.length;
+  return `${inClaude() && APP_URL ? `<div class="banner info"><span>이 페이지는 패치 데이터 갱신이 중단되었습니다. 최신 패치는 설치형 앱에서 확인하세요.</span><a class="btn sm primary" href="${APP_URL}" target="_blank" rel="noopener">앱 열기</a></div>` : ''}${lp?`<div class="banner info"><span>이 기기에만 저장된 빌드 ${lp}개가 있습니다. 계정으로 옮기면 다른 기기에서도 보입니다.</span><button class="btn sm primary" data-act="import-local">계정으로 옮기기</button></div>`:''}`;
+}
+function syncBanHTML(){
+  return S.sync==='local' ? (inClaude() ? `<div class="banner"><span>지금 화면에서는 동기화를 쓸 수 없어 이 기기에만 저장됩니다. claude.ai에 로그인한 상태로 열면 폰과 PC가 연결됩니다.</span></div>` : `<div class="banner"><span>동기화가 꺼져 있어 이 기기에만 저장됩니다.</span><button class="btn sm" data-act="open-sync">동기화 설정</button></div>`) : '';
 }
 function homeFilters(){
   const opts = [['all','전체'],['fav','즐겨찾기'],['mine','빌드 있음'],...Object.entries(TAG_N)];
   return opts.map(([k,l])=>`<button class="chip" data-act="role" data-v="${k}" aria-pressed="${S.role===k}">${l}</button>`).join('');
 }
-function homeList(){
-  if(S.tab==='builds'){
+function buildsListHTML(){
+  {
     if(!S.loaded && !S.builds.size) return `<div class="loading">저장한 빌드를 불러오는 중…</div>`;
     let list = sortBuilds([...S.builds.values()]);
     if(S.q) list = list.filter(b=>{ const c=IX.champ[b.champ]; return match(S.q, b.title, c&&c.n, c&&c.id); });
     if(!list.length){
       if(S.builds.size) return `<div class="empty"><b>검색 결과가 없습니다</b><span>빌드 이름이나 챔피언 이름, 초성으로 찾을 수 있습니다.</span></div>`;
-      return `<div class="empty"><b>아직 저장한 빌드가 없습니다</b><span>챔피언을 고르고 아이템, 룬, 소환사 주문, 선마 스킬을 한 화면에 정리할 수 있습니다.</span><button class="btn primary" data-act="tab" data-v="champs">챔피언 고르기</button></div>`;
+      return `<div class="empty"><b>아직 저장한 빌드가 없습니다</b><span>챔피언을 고르고 아이템, 룬, 소환사 주문, 선마 스킬을 한 화면에 정리할 수 있습니다.</span><button class="btn primary" data-act="new-build-pick">새 빌드 만들기</button></div>`;
     }
     return `<div class="blist">${list.map(bcardHTML).join('')}</div>`;
   }
+}
+function champsListHTML(){
   const fav = new Set(S.prefs.fav);
   const has = new Set([...S.builds.values()].map(b=>b.champ));
   let cs = D.champs;
   if(S.role==='fav') cs = cs.filter(c=>fav.has(c.id));
   else if(S.role==='mine') cs = cs.filter(c=>has.has(c.id));
   else if(S.role!=='all') cs = cs.filter(c=>c.tags.includes(S.role));
-  if(S.q) cs = cs.filter(c=>match(S.q, c.n, c.id, c.t)).sort((a,b)=>rankOf(S.q,a.n)-rankOf(S.q,b.n));
-  if(S.role==='all' && !S.q) cs = [...cs.filter(c=>fav.has(c.id)), ...cs.filter(c=>!fav.has(c.id))];
+  if(S.qc) cs = cs.filter(c=>match(S.qc, c.n, c.id, c.t)).sort((a,b)=>rankOf(S.qc,a.n)-rankOf(S.qc,b.n));
+  if(S.role==='all' && !S.qc) cs = [...cs.filter(c=>fav.has(c.id)), ...cs.filter(c=>!fav.has(c.id))];
   if(!cs.length){
     const msg = S.role==='fav' ? ['즐겨찾는 챔피언이 없습니다','챔피언 화면에서 ☆ 즐겨찾기를 누르면 여기에 모입니다.'] : S.role==='mine' ? ['빌드가 있는 챔피언이 없습니다','챔피언을 골라 첫 빌드를 만들어 보세요.'] : ['검색 결과가 없습니다','이름 일부나 초성으로도 찾을 수 있습니다.'];
     return `<div class="empty"><b>${msg[0]}</b><span>${msg[1]}</span></div>`;
@@ -1269,7 +1457,7 @@ function headHTML(b, E, c){
   }).join('');
   const mk = c && b.max ? c.sk.find(s=>s.k===b.max) : null;
   const mx = mk
-    ? `<button class="mx on" data-act="${E?'panel':'champ-info'}" data-v="max" data-k="${b.max}" aria-label="선마 ${b.max} ${esc(mk.n)}"><b>${b.max}</b>선마</button>`
+    ? `<button class="mx on mxs" data-act="${E?'panel':'champ-info'}" data-v="max" data-k="${b.max}" aria-label="선마 ${b.max} ${esc(mk.n)}">${skIco(mk,40)}<span>선마</span></button>`
     : (E ? `<button class="mx" data-act="panel" data-v="max">+ 선마</button>` : `<span class="mx ph" aria-hidden="true">+ 선마</span>`);
   return `<section class="bh" id="b-head">
       <button class="bh-por" data-act="champ-info" data-champ="${b.champ}" aria-label="${esc(c?c.n:'')} 능력치·스킬 보기">${champIco(c,68)}</button>
@@ -1541,7 +1729,9 @@ const SHEETS = {
     const it = IX.item[p.id]; const b = curBuild(); const ctx = p.ctx||'';
     const canToggle = b && !S.readonly && (ctx==='picker' || (ctx==='build' && S.edit));
     const inB = b ? b.it.includes(p.id) : false;
-    const foot = canToggle ? `<button class="btn ${inB?'danger':'primary'} block" data-act="item-toggle" data-id="${p.id}" data-ctx="${ctx}">${inB?'빌드에서 빼기':'빌드에 담기'}</button>` : '';
+    const st = ctx==='itab' && S.icol && !S.readonly ? curSet() : null, inSt = !!(st && st.it.includes(p.id));
+    const foot = canToggle ? `<button class="btn ${inB?'danger':'primary'} block" data-act="item-toggle" data-id="${p.id}" data-ctx="${ctx}">${inB?'빌드에서 빼기':'빌드에 담기'}</button>`
+      : st ? `<button class="btn ${inSt?'danger':'primary'} block" data-act="set-toggle-info" data-id="${p.id}">${inSt?'세트에서 빼기':'세트에 담기'}</button>` : '';
     if(!it) return {title:'아이템 정보', body:`<div class="none">현재 패치에 없는 아이템입니다${b&&b.nm[p.id]?` (${esc(b.nm[p.id])})`:''}.</div>`, foot};
     const kids = it.from.filter(x=>IX.item[x]), into = it.into.filter(x=>IX.item[x]);
     let comp = '';
@@ -1597,7 +1787,7 @@ const SHEETS = {
         ${row('화면 전환', '페이지 넘김 움직임', seg('motion', [['normal','기본'],['fast','빠르게'],['off','끔']], S.motion||'normal', '화면 전환'))}
       </div></div>
       <div><div class="sec-t">목록</div><div class="set">
-        ${row('시작 화면', '앱을 열 때 처음 보이는 탭', seg('start', [['builds','내 빌드'],['champs','챔피언']], S.start||'builds', '시작 화면'))}
+        ${row('시작 화면', '앱을 열 때 처음 보이는 탭', seg('start', [['builds','내 빌드'],['items','아이템'],['champs','챔피언']], S.start||'builds', '시작 화면'))}
         ${row('빌드 정렬', '대표 빌드는 항상 맨 위', seg('bsort', [['upd','수정순'],['new','생성순'],['name','이름순']], S.bsort||'upd', '빌드 정렬'))}
       </div></div>
       <div><div class="sec-t">동작</div><div class="set">
@@ -1605,8 +1795,8 @@ const SHEETS = {
         ${navigator.wakeLock ? row('화면 꺼짐 방지', '앱 사용 중 켜짐 유지', seg('wake', [['on','켬'],['off','끔']], S.wake?'on':'off', '화면 꺼짐 방지')) : ''}
       </div></div>
       <div><div class="sec-t">빌드 기본값</div><div class="set">
-        ${row('새 빌드 맵', '빌드마다 편집 화면에서 변경', seg('nbm', MAP, S.prefs.nbm==='aram'?'aram':'sr', '새 빌드 맵'))}
-        ${row('주문 대기시간', '소환사 주문 쿨타임 기준', seg('cdm', MAP, S.prefs.cdm==='aram'?'aram':'sr', '주문 대기시간 기준'))}
+        ${row('새 빌드 맵', '빌드마다 편집 화면에서 변경', seg('nbm', MAP, S.prefs.nbm==='sr'?'sr':'aram', '새 빌드 맵'))}
+        ${row('주문 대기시간', '소환사 주문 쿨타임 기준', seg('cdm', MAP, S.prefs.cdm==='sr'?'sr':'aram', '주문 대기시간 기준'))}
       </div><div class="set-note">빌드 기본값은 폰과 PC에 함께 적용되고, 나머지 설정은 기기마다 따로 저장됩니다.</div></div>
       ${OFF_OK() ? (() => { const o = (lsGet(LS_UI)||{}).offline, P = S.prefetching, ready = o && o.rev===D.rev;
         const sub = P ? `받는 중 ${P.n}/${P.all}` : ready ? `준비됨 · 그림 ${o.mb}MB` : o ? '데이터가 바뀌어 다시 받기 필요' : '그림·스킬 정보를 미리 받아 둠';
@@ -1618,6 +1808,19 @@ const SHEETS = {
       <div><a class="btn block" href="${PATCH_NOTES}" target="_blank" rel="noopener">공식 패치 노트 열기</a></div>
       <div class="foot-note">아이템·룬·챔피언 데이터와 이미지는 Riot Games 공개 데이터(Data Dragon), 스킬 세부 수치는 CommunityDragon 게임 데이터, 칼바람 보정치는 aramnerfs.com(공식 패치 노트 정리) 기준입니다. 칼바람 소환사 주문 재사용 대기시간은 칼바람 나락 오라(소환사 주문 가속 70)를 적용한 값입니다. 일부 아이템 효과는 공식 데이터에 수치가 없어 문구만 표시됩니다. 능력치 파편 수치는 공식 데이터에 없어 최근 알려진 값으로 표시합니다. 승률 기반 추천 빌드는 제공하지 않습니다.</div>`;
     return {title:'설정', body, anchor: p && p.to ? '#'+p.to : ''};
+  },
+  applySet(p){
+    const s = setById(p.sid); if(!s) return {title:'세트 적용', body:'<div class="none">세트를 찾을 수 없습니다.</div>'};
+    const tab = S.atab==='new' ? 'new' : 'build';
+    const body = `<div class="aset" aria-label="세트 아이템">${s.it.map(id=>`<span class="bi">${icoFluid('items', IX.item[id]?IX.item[id].i:-1)}</span>`).join('')}</div>
+      <div class="seg sm" role="group" aria-label="적용 방식"><button data-act="apply-tab" data-v="build" aria-pressed="${tab==='build'}">기존 빌드에 적용</button><button data-act="apply-tab" data-v="new" aria-pressed="${tab==='new'}">새 빌드 만들기</button></div>
+      ${SRCH('q-apply', tab==='build'?'빌드·챔피언 검색':'챔피언 검색 (예: 가렌, ㄱㄹ)', S.qa)}
+      <div class="small muted">${tab==='build'?'고른 빌드의 아이템을 이 세트로 통째로 바꿉니다. 맵이 다르면 그 맵 버전으로 바꿔 담고, 바꾼 뒤 알림에서 되돌릴 수 있습니다.':`고른 챔피언으로 이 세트를 담은 ${MAPN[s.map]} 빌드를 새로 만듭니다.`}</div>
+      <div id="apply-list">${applyListHTML(s, tab)}</div>`;
+    return {title:esc(s.n)+' 적용', label:'세트 적용', body};
+  },
+  champPick(){
+    return {title:'새 빌드 · 챔피언 고르기', label:'챔피언 고르기', body:`${SRCH('q-cpick','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qp)}<div id="cpick-list">${cpickListHTML('pick-champ-new')}</div>`};
   },
   buildMenu(p){
     const b = curBuild(); if(!b) return {title:'',body:'', auto:true};
@@ -1633,18 +1836,19 @@ const SHEETS = {
   }
 };
 /* 아이템 목록: 협곡·칼바람 아이템을 함께 보여 주고, 이름이 같은 항목은 하나만 */
-function pickerItems(b){
-  const P = S.picker; const pref = poolKey(b);
+function pickerItems(b){ const P = S.picker; return filterItems(poolKey(b), P.tier, P.stats, P.q, b.it); }
+/* 맵 상점 아이템 + 이미 담긴 아이템, 분류·능력치·이름 조건 */
+function filterItems(pref, tier, stats, q, keep){
   const byName = new Map();
   for(const [id,it] of Object.entries(D.items)) if(it[pref] && !byName.has(it.n)) byName.set(it.n, id);
-  for(const id of b.it){ const it = D.items[id]; if(it) byName.set(it.n, id); }
+  for(const id of keep||[]){ const it = D.items[id]; if(it) byName.set(it.n, id); }
   let list = [...byName.values()].map(id=>[id, D.items[id]]);
-  if(P.tier==='legend') list = list.filter(([,it])=>it.tier==='legend');
-  else if(P.tier==='boots') list = list.filter(([,it])=>it.c.includes('boots'));
-  else if(P.tier==='start') list = list.filter(([,it])=>it.c.includes('start'));
-  if(P.stats.length) list = list.filter(([id])=>P.stats.every(k=>IX.istat[id].has(k)));
-  if(P.q) list = list.filter(([,it])=>match(P.q, it.n));
-  list.sort((a,b2)=> (P.q ? rankOf(P.q,a[1].n)-rankOf(P.q,b2[1].n) : 0) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
+  if(tier==='legend') list = list.filter(([,it])=>it.tier==='legend');
+  else if(tier==='boots') list = list.filter(([,it])=>it.c.includes('boots'));
+  else if(tier==='start') list = list.filter(([,it])=>it.c.includes('start'));
+  if(stats.length) list = list.filter(([id])=>stats.every(k=>IX.istat[id].has(k)));
+  if(q) list = list.filter(([,it])=>match(q, it.n));
+  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
   return list;
 }
 function trayHTML(b){
@@ -1738,7 +1942,7 @@ const ACT = {
     if(!(S.db && S.db.kind==='github')){
       const loc = lsGet(LS_BUILDS) || {builds:[], prefs:{fav:[]}}, builds = {};
       (loc.builds||[]).forEach(b => { if(b && b.id && b.champ) builds[b.id] = toDoc(normalize(clone(b))); });
-      lsSet(LS_GHM, {builds, del:{}, prefs:Object.assign({fav:[], cdm:'sr'}, loc.prefs||{}), prefsT:1, pending:true});
+      lsSet(LS_GHM, {builds, del:{}, prefs:normPrefs(loc.prefs||{}), prefsT:1, pending:true});
       if(loc.builds && loc.builds.length) lsSet(LS_BUILDS+'.bak', loc);
       lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}});
     }
@@ -1764,6 +1968,46 @@ const ACT = {
   about(){ openSheet('about'); },
   haptic(){ S.haptic = S.haptic===false; uiSet('haptic', S.haptic); renderSheet(); buzz(12); },
   prefetch(){ prefetchAll(); },
+  'new-build-pick'(){ if(S.readonly) return; S.qp = ''; openSheet('champPick'); },
+  'pick-champ-new'(el){ const b = newBuild(el.dataset.id); S.builds.set(b.id, b); touch(b, {render:false}); sheetToBuild(b.id, true); },
+  'it-map'(el){
+    const v = el.dataset.v==='sr' ? 'sr' : 'aram'; if(v===S.imap) return; S.imap = v; uiSet('imap', v);
+    const st = S.icol ? curSet() : null; if(st && st.map!==v){ st.it = convertIds(st.it, v); st.map = v; setTouch(st); } else renderMain();
+    buzz(5);
+  },
+  'it-tier'(el){ S.itier = el.dataset.v; renderMain(); },
+  'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; renderMain(); },
+  'it-reset'(){ S.istats = []; S.itier = 'all'; S.qi = ''; const i = $('#q-items'); if(i) i.value = ''; renderMain(); },
+  'it-collect'(){
+    if(S.readonly) return;
+    if(S.icol){ dropEmptySet(); S.icol = false; renderMain(); toast(curSetSavedMsg()); return; }
+    S.icol = true; const st = curSet(); if(st) S.imap = st.map; else newSet(); renderMain(); buzz(8);
+  },
+  'set-new'(){ if(S.readonly) return; dropEmptySet(); S.icol = true; newSet(); renderMain(); buzz(8); },
+  'set-open'(el){ if(S.iset!==el.dataset.id) dropEmptySet(); S.iset = el.dataset.id; S.icol = true; const st = curSet(); if(st) S.imap = st.map; renderMain(); buzz(6); },
+  'it-tap'(el){ if(S.icol) toggleSetItem(el.dataset.id); else openSheet('item', {id:el.dataset.id, ctx:'itab'}); },
+  'set-toggle-info'(el){ toggleSetItem(el.dataset.id); renderSheet(); },
+  'set-rm'(el){ const st = curSet(); if(!st) return; st.it = st.it.filter(x => x!==el.dataset.id); buzz(5); setTouch(st); },
+  'set-del'(){
+    const st = curSet(); if(!st) return; const saved = clone(st), at = S.prefs.sets.indexOf(st);
+    S.prefs.sets = S.prefs.sets.filter(x => x!==st); S.iset = null; S.icol = false; savePrefs(); renderMain(); buzz([12,40,12]);
+    if(saved.it.length) toast(`‘${saved.n}’ 세트를 삭제했습니다`, {label:'되돌리기', fn(){ const a = [...(S.prefs.sets||[])]; a.splice(Math.min(at, a.length), 0, saved); S.prefs.sets = a; savePrefs(); renderMain(); toast('세트를 되살렸습니다'); }});
+  },
+  'set-apply'(){ const st = curSet(); if(!st || !st.it.length) return; S.qa = ''; S.atab = 'build'; openSheet('applySet', {sid:st.id}); },
+  'apply-tab'(el){ S.atab = el.dataset.v==='new' ? 'new' : 'build'; S.qa = ''; renderSheet(); },
+  'apply-to'(el){
+    const sh = topSheet(), st = sh && setById(sh.props.sid), b = S.builds.get(el.dataset.id); if(!st || !b || S.readonly) return;
+    const prev = [...b.it], prevNm = clone(b.nm);
+    b.it = convertIds(st.it, b.mode); b.it.forEach(id => { if(IX.item[id]) b.nm[id] = IX.item[id].n; });
+    touch(b, {render:false}); sheetToBuild(b.id, false); buzz(10);
+    toast('빌드 아이템을 세트로 바꿨습니다', {label:'되돌리기', fn(){ b.it = prev; b.nm = prevNm; touch(b); toast('되돌렸습니다'); }});
+  },
+  'apply-new'(el){
+    const sh = topSheet(), st = sh && setById(sh.props.sid); if(!st || S.readonly) return;
+    const b = newBuild(el.dataset.id); b.mode = st.map; b.it = [...st.it]; b.it.forEach(id => { if(IX.item[id]) b.nm[id] = IX.item[id].n; });
+    S.builds.set(b.id, b); touch(b, {render:false}); sheetToBuild(b.id, true); buzz(10);
+    toast('세트를 담은 새 빌드를 만들었습니다');
+  },
   'sel-cancel'(){ selExit(); },
   'sel-all'(){ if(!S.sel) return; const ids = homeBuildIds(); if(ids.every(id => S.sel.has(id))) return selExit(); ids.forEach(id => S.sel.add(id)); buzz(8); renderMain(); },
   'sel-del'(){
@@ -1793,7 +2037,7 @@ const ACT = {
       const ok = await wakeSync();
       if(S.wake && !ok){ S.wake = false; uiSet('wake', false); toast('이 화면에서는 화면 꺼짐 방지를 쓸 수 없습니다'); }
     }
-    else if(k==='nbm' || k==='cdm'){ S.prefs[k] = v==='aram' ? 'aram' : 'sr'; savePrefs(); }
+    else if(k==='nbm' || k==='cdm'){ S.prefs[k] = v==='sr' ? 'sr' : 'aram'; savePrefs(); }
     else if(k==='scale'){ S.scale = +v; uiSet('scale', S.scale); applyScale(); }
     else if(k==='start'){ S.start = v; uiSet('start', v); }
     else if(k==='bsort'){ S.bsort = v; uiSet('bsort', v); S.rev++; }
@@ -1817,8 +2061,8 @@ const ACT = {
     const n = restoreBuilds(S.localPending); S.localPending = [];
     lsSet(LS_BUILDS, {builds:[], prefs:{fav:[]}}); render(); toast(`빌드 ${n}개를 계정으로 옮겼습니다`);
   },
-  tab(el){ if(S.sel) selExit(); S.tab = el.dataset.v; S.q=''; render(); },
-  role(el){ S.role = el.dataset.v; dirtyMain(); $('#home-filters').innerHTML = homeFilters(); $('#home-list').innerHTML = homeList(); uiSet('role', S.role); },
+  tab(el){ switchTab(el.dataset.v); },
+  role(el){ S.role = el.dataset.v; HM.ck = ''; setHTML($('#home-filters'), homeFilters()); setHTML($('#champ-list'), champsListHTML()); uiSet('role', S.role); },
   'open-champ'(el){ warmChamp(el.dataset.id); go({name:'champ', id:el.dataset.id}); },
   'open-build'(el){ if(S.sel){ selToggle(el.dataset.id); return; } const b = S.builds.get(el.dataset.id); if(b) warmChamp(b.champ); go({name:'build', id:el.dataset.id}); },
   fav(el){ const id=el.dataset.id; const f=new Set(S.prefs.fav); const on=!f.has(id); on?f.add(id):f.delete(id); S.prefs.fav=[...f]; savePrefs(); render(); buzz(8); toast(on?'즐겨찾기에 추가했습니다':'즐겨찾기에서 뺐습니다'); },
@@ -1905,7 +2149,16 @@ document.addEventListener('pointerdown', e => {
   LP.t = setTimeout(() => { LP.t = 0; lpFire(LP.id); }, 450);
 }, true);
 document.addEventListener('pointermove', e => { if(LP.t && Math.hypot(e.clientX-LP.x, e.clientY-LP.y) > 10){ clearTimeout(LP.t); LP.t = 0; } }, true);
-['pointerup','pointercancel'].forEach(t => document.addEventListener(t, () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } if(LP.armed){ LP.armed = false; LP.skip = true; } }, true));
+['pointerup','pointercancel'].forEach(t => document.addEventListener(t, () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } if(LP.armed){ LP.armed = false; LP.skip = true; } selHistNow(); }, true));
+document.addEventListener('contextmenu', () => setTimeout(selHistNow, 0), true);
+function selHistNow(){
+  if(!S.selNeedHist) return; S.selNeedHist = false; if(!S.sel || !histOK) return;
+  const cs = history.state;
+  try{
+    if(GUARD_ON() && cs && cs.i===0 && !cs.guard && !cs.sel) history.pushState({ttn:SID, i:0, guard:1}, '');
+    history.pushState({ttn:SID, i:depth(), sel:1}, ''); S.selHist = true;
+  }catch{ S.selHist = false; }
+}
 document.addEventListener('scroll', () => { if(LP.t){ clearTimeout(LP.t); LP.t = 0; } }, true);
 document.addEventListener('contextmenu', e => {
   const c = lpTarget(e); if(!c) return;
@@ -1915,14 +2168,21 @@ document.addEventListener('contextmenu', e => {
 });
 document.addEventListener('click', e => {
   if(Date.now() - DRAG.end < 250){ e.preventDefault(); return; }   /* 끌기 직후의 클릭은 무시 */
-  if(LP.skip){ LP.skip = false; if(e.target.closest && e.target.closest('.bcard')){ e.preventDefault(); return; } }   /* 길게 누른 그 손가락을 뗄 때의 클릭은 무시 */
+  if(LP.skip){ LP.skip = false; if(e.target.closest && e.target.closest('.bcard')){ e.preventDefault(); return; } }
+  if(HS.skip){ HS.skip = false; if(e.target.closest && e.target.closest('#hm-view')){ e.preventDefault(); return; } }   /* 탭을 민 손가락을 뗄 때의 클릭은 무시 */   /* 길게 누른 그 손가락을 뗄 때의 클릭은 무시 */
   const el = e.target.closest('[data-act]'); if(!el || el.disabled) return;
   const f = ACT[el.dataset.act]; if(f){ e.preventDefault(); f(el, e); }
 });
 let qT;
 document.addEventListener('input', e => {
   const t = e.target; const b = curBuild();
-  if(t.id==='q-home'){ S.q=t.value; dirtyMain(); clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#home-list'); if(l) l.innerHTML=homeList(); },80); }
+  const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
+  if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
+  else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
+  else if(t.id==='q-items'){ S.qi=t.value; HM.ik=''; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), f=$('#it-filters'); if(l) setHTML(l, itemsListHTML()); if(f) setHTML(f, itemFiltersHTML()); },80); }
+  else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
+  else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
+  else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
   else if(t.id==='q-item' && S.picker){ S.picker.q=t.value; clearTimeout(qT); qT=setTimeout(updatePicker,80); }
   else if(t.id==='calc-lvl'){ const v = Math.min(18, Math.max(1, +t.value||1)); if(v!==S.calc.lvl) buzz(3); S.calc.lvl = v; updateCalc(); }
   else if(t.id==='f-title' && b){ b.title=t.value.slice(0,60)||'빌드'; touch(b,{render:false}); }
@@ -1980,6 +2240,7 @@ function dragFinish(cancel){
   const d = DRAG.st; DRAG.st = null; if(!d || !d.on) return;
   DRAG.end = Date.now(); d.ghost.remove(); d.tile.classList.remove('ph'); if(!cancel) buzz(6);
   const ids = dragTiles(d.box).map(t=>t.dataset.id);
+  if(d.box.dataset.sort==='set'){ const st = curSet(); if(!cancel && st && ids.join()!==st.it.join()){ st.it = ids; setTouch(st); } else renderMain(); return; }
   const tray = d.box.dataset.sort==='tray';
   const b = tray ? (S.picker && S.builds.get(S.picker.bid)) : curBuild();
   if(cancel || !b || S.readonly || ids.join()===b.it.join()){ if(tray) updatePicker(); else if(S.mainDirty || cancel) renderMain(); return; }
@@ -2114,6 +2375,49 @@ document.addEventListener('touchmove', e => { if(((SW.st && (SW.st.on || SW.st.c
 document.addEventListener('pointerup', e => gestureEnd(e, false), {passive:true});
 document.addEventListener('pointercancel', e => gestureEnd(e, true), {passive:true});
 
+/* 홈 탭 밀기: 가로로 밀면 이웃 탭이 손가락을 따라 들어오고, 화면 폭 25% 이상 또는 빠르게 튕기면 넘어감 */
+const HS = {st:null, skip:false};
+function hsBlocked(t){
+  if(t.closest('input, textarea, select, .setbar, [data-drag]')) return true;
+  const hs = t.closest('.chips, .tray'); return !!(hs && hs.scrollWidth > hs.clientWidth + 2);
+}
+document.addEventListener('pointerdown', e => {
+  HS.skip = false;
+  if(e.pointerType!=='touch' || HS.st || DRAG.st || SW.st || depth()>0 || S.sel) return;
+  const v = e.target.closest && e.target.closest('#hm-view'); if(!v || hsBlocked(e.target)) return;
+  HS.st = {id:e.pointerId, x:e.clientX, y:e.clientY, on:false, vs:[[e.timeStamp, e.clientX]], W:v.clientWidth||innerWidth};
+}, {passive:true});
+document.addEventListener('pointermove', e => {
+  const g = HS.st; if(!g || e.pointerId!==g.id) return;
+  const dx = e.clientX - g.x, dy = e.clientY - g.y;
+  g.vs.push([e.timeStamp, e.clientX]); keepVs(g);
+  if(!g.on){
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if(ay > 10 && ay > ax){ HS.st = null; return; }
+    g.claim = ax > 3 && ax > ay;
+    if(ax < 10 || ax < ay * 1.2) return;
+    g.on = true; g.x = e.clientX; const hm = $('#hm'); if(hm) hm.classList.add('drag');
+    if(LP.t){ clearTimeout(LP.t); LP.t = 0; }
+  }
+  let d = e.clientX - g.x; const i = tabIdx();
+  if((i===0 && d>0) || (i===TABS.length-1 && d<0)) d *= .3;   /* 끝 탭에서는 살짝만 끌림 */
+  g.d = d; placeTrack(d);
+}, {passive:true});
+function hsEnd(e, cancel){
+  const g = HS.st; if(!g || e.pointerId!==g.id) return; HS.st = null;
+  if(!g.on) return;
+  HS.skip = true;
+  const hm = $('#hm'); if(hm) hm.classList.remove('drag');
+  const v = cancel ? 0 : relVel(g, e.timeStamp, e.clientX), d = g.d || 0; let i = tabIdx();
+  if(!cancel && (d < -g.W*.25 || (v < -.4 && d < -30))) i++;
+  else if(!cancel && (d > g.W*.25 || (v > .4 && d > 30))) i--;
+  i = Math.max(0, Math.min(TABS.length-1, i));
+  if(TABS[i]!==S.tab) switchTab(TABS[i]); else placeTrack(0);
+}
+document.addEventListener('touchmove', e => { if(HS.st && (HS.st.on || HS.st.claim) && e.cancelable) e.preventDefault(); }, {passive:false});
+document.addEventListener('pointerup', e => hsEnd(e, false), {passive:true});
+document.addEventListener('pointercancel', e => hsEnd(e, true), {passive:true});
+
 /* ------------------------------------------------------------ 시작 */
 /* 이미지 미리 해독: 처음 쓰일 때 멈칫하지 않게. 스킬 그림은 그 챔피언 묶음만 */
 const WARM = {};
@@ -2136,7 +2440,7 @@ function indexData(){
 async function boot(hot){
   const ui = lsGet(LS_UI) || {}; if(ui.role) S.role = ui.role; if(ui.tree) S.treeOpen = true;
   if(ui.lvl>=1 && ui.lvl<=18) S.calc.lvl = ui.lvl; if(ui.citems===false) S.calc.items = false; S.haptic = ui.haptic !== false;
-  S.scale = [90,110,120].includes(ui.scale) ? ui.scale : 100; S.bsort = ui.bsort==='new' || ui.bsort==='name' ? ui.bsort : 'upd'; S.start = ui.start==='champs' ? 'champs' : 'builds'; S.tab = S.start;
+  S.scale = [90,110,120].includes(ui.scale) ? ui.scale : 100; S.bsort = ui.bsort==='new' || ui.bsort==='name' ? ui.bsort : 'upd'; S.start = ['items','champs'].includes(ui.start) ? ui.start : 'builds'; S.tab = S.start; S.imap = ui.imap==='sr' ? 'sr' : 'aram';
   S.theme = ui.theme==='light' || ui.theme==='dark' ? ui.theme : 'system'; S.motion = ui.motion==='fast' || ui.motion==='off' ? ui.motion : 'normal'; S.wake = ui.wake===true;
   applyTheme(); applyScale(); if(S.wake) wakeSync();
   if(hot && Array.isArray(hot.views) && hot.views.length && hot.views[0].name==='home'){ S.views = hot.views; if(hot.tab) S.tab = hot.tab; }
