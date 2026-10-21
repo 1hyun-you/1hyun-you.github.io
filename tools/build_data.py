@@ -605,6 +605,14 @@ for k in sorted(all_ids, key=lambda x: (raw[x]["gold"]["total"], raw[x]["name"])
         "i": sh_items.add(k, os.path.join(IMG, "item", v["image"]["full"])),
     }
 
+# 아이템 설명 세부 수치 (CommunityDragon 게임 원본 계산식, 받기 실패 시 기존 설명 유지)
+try:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import item_calc
+    item_calc.enrich(items, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
+except Exception as ex:
+    print(f"[item_calc] 건너뜀: {ex}")
+
 # ---------------------------------------------------------------- 룬
 styles, runes = [], {}
 for t in load("runesReforged.json"):

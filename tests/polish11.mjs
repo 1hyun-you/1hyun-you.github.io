@@ -37,9 +37,9 @@ await p.screenshot({path:SP+'/e-drag.png'});
 await p.mouse.up(); await p.waitForTimeout(300);
 // 아이템 추가: 조건 없을 때 빈 줄 없음, 조건 있을 때 개수
 await top('.ib.add'); await p.waitForTimeout(600);
-log.push('조건 없음 개수줄 표시: '+await p.evaluate(()=>getComputedStyle(document.querySelector('#ifc-pk')).display));
+log.push('위 줄 표시: '+await p.evaluate(()=>getComputedStyle(document.querySelector('#ifbar-pk')).display));
 await top('[data-act=pick-stat][data-v=ap]'); await p.waitForTimeout(200);
-log.push('주문력 필터: '+await p.locator('#ifc-pk .if-n').innerText());
+log.push('주문력 필터: '+await p.evaluate(()=>document.querySelector('#rail-pk [data-v=ap]').getAttribute('aria-pressed')+' '+document.querySelectorAll('#pick-grid .pit').length));
 await p.screenshot({path:SP+'/e-picker.png'});
 await top('[data-act=pick-reset]'); await p.waitForTimeout(200);
 await top('.pg-f [data-act=close-all]'); await p.waitForTimeout(400);

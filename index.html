@@ -10,6 +10,7 @@
   --fg-2:#2A323A; --c-ap:#5E4EFF;
   --c-mag:#00749E; --c-phy:#B34E00; --c-heal:#187B3C; --c-shield:#4F6478; --c-cc:#9238A0; --c-spd:#397B00; --c-mana:#00779E; --c-ar:#707000; --c-mr:#007A7A;
   --c-ad:#996300; --c-as:#746C0B; --c-crit:#CC3700; --c-pen:#D62100; --c-ls:#CC2051; --c-mpen:#BD1ABD; --c-ah:#1E7869; --c-hp:#177C3B; --c-true:#C34108;
+  --s-ad:#7A5A1F; --s-as:#5F5A20; --s-crit:#A34A29; --s-pen:#AB3F2B; --s-ls:#AA4260; --s-ap:#7B71DC; --s-mpen:#9C3B9C; --s-ah:#30665D; --s-ms:#3B6219; --s-mana:#20677E; --s-hp:#2B6841; --s-ar:#5A5A16; --s-mr:#186262; --s-heal:#2C6741; --s-ten:#834D8B;
   --shadow:0 18px 40px rgba(14,22,30,.18); --dim:.16; --edge:rgba(14,22,30,.16); --on-danger:#FFFFFF;
   --f-body:Roboto,"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-disp:var(--f-body);
@@ -21,7 +22,7 @@
     --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
     --fg-2:#D3D7DC; --c-ap:#8377FF;
     --c-mag:#00B0F0; --c-phy:#FF8C34; --c-heal:#60E08F; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#9FFF4D; --c-mana:#0099CC; --c-ar:#FFFF00; --c-mr:#00FFFF;
-    --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B;
+    --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B; --s-ad:#D1A047; --s-as:#D8D28D; --s-crit:#D16D47; --s-pen:#DA7D6C; --s-ls:#C77189; --s-ap:#8D85E0; --s-mpen:#D590D5; --s-ah:#8ECAC0; --s-ms:#A2DB71; --s-mana:#47AFD1; --s-hp:#5DBB7E; --s-ar:#D1D147; --s-mr:#47D1D1; --s-heal:#7AC696; --s-ten:#C897CE;
     --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
   }
 }
@@ -31,7 +32,7 @@
   --warn:#E59A62; --warn-soft:#33210F; --danger:#F08A80; --ok:#6CC69A; --toast-act:#7A5A16;
   --fg-2:#D3D7DC; --c-ap:#8377FF;
   --c-mag:#00B0F0; --c-phy:#FF8C34; --c-heal:#60E08F; --c-shield:#B7C6D6; --c-cc:#DA8FE3; --c-spd:#9FFF4D; --c-mana:#0099CC; --c-ar:#FFFF00; --c-mr:#00FFFF;
-  --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B;
+  --c-ad:#FFA500; --c-as:#F5EE99; --c-crit:#FF4500; --c-pen:#FF6347; --c-ls:#E4547D; --c-mpen:#EE82EE; --c-ah:#7ADECD; --c-hp:#21B053; --c-true:#F9966B; --s-ad:#D1A047; --s-as:#D8D28D; --s-crit:#D16D47; --s-pen:#DA7D6C; --s-ls:#C77189; --s-ap:#8D85E0; --s-mpen:#D590D5; --s-ah:#8ECAC0; --s-ms:#A2DB71; --s-mana:#47AFD1; --s-hp:#5DBB7E; --s-ar:#D1D147; --s-mr:#47D1D1; --s-heal:#7AC696; --s-ten:#C897CE;
   --shadow:0 18px 40px rgba(0,0,0,.5); --dim:.42; --edge:rgba(0,0,0,.55); --on-danger:#2B0B08; color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -467,7 +468,9 @@ html.rm .btn:active,html.rm .chip:active,html.rm .mx:active,html.rm .sp:active,h
 .hm-track{display:flex;width:300%;height:100%;will-change:transform;transition:transform var(--td) cubic-bezier(.32,.72,0,1)}
 .hm-pane{flex:0 0 33.3333%;height:100%;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y pinch-zoom;scrollbar-gutter:stable}
 .hm-pane>.wrap{padding-bottom:110px}
-.hm.col .hm-pane[data-tab=items]>.wrap{padding-bottom:230px}
+.hm-pane[data-tab=items]>.wrap{padding-bottom:0}
+#it-list{padding-bottom:110px}
+.hm.col #it-list{padding-bottom:230px}   /* 막대가 목록 끝까지 고정되도록 아래 여백은 목록 안에 */
 .hm-head{position:sticky;top:0;z-index:3;background:var(--bg);display:flex;flex-direction:column;gap:10px;padding:6px 0 10px}
 .hm-head .chips{margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
 .seg.hm-seg{position:relative}
@@ -480,28 +483,45 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 .hm-fab{min-width:0}
 .it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .it-top{padding:6px 0 10px}
-/* 아이템 필터 줄(아이템 탭·아이템 추가 창 공통): 위에 고정, 검색은 아이콘, 능력치는 눌러서 펼침 */
-.ifb{position:sticky;top:0;z-index:3;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax);display:flex;flex-direction:column;gap:8px;padding:6px 0 8px;margin-bottom:6px}
-.sb>.ifb{margin-bottom:-4px}
-.sb>.if-anc{margin-bottom:-12px}
-.if-r1,.if-q{display:flex;align-items:center;gap:8px}
-.if-q .search{flex:1;min-width:0}
-.if-q .search input{height:38px;font-size:14.5px;padding-left:38px}
-.if-q .search svg{top:9px;width:19px;height:19px}
+/* 아이템 필터(아이템 탭·아이템 추가 창 공통): 위 줄 = 검색·정렬·초기화(따라오지 않음), 왼쪽 막대 = 분류 버튼 + 능력치(스크롤 중 고정, 막대 안 스크롤 없음) */
+.if-bar{display:flex;align-items:center;gap:10px;min-height:38px;margin:0 0 8px}
+.if-bar .if-gap{flex:1}
+.if-bar .search{flex:1;min-width:0}
+.if-bar .search input{height:38px;font-size:14.5px;padding-left:38px}
+.if-bar .search svg{top:9px;width:19px;height:19px}
+.if-bar .linkbtn{flex:none;padding:4px 0}
 .if-s{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
 .if-s svg{width:19px;height:19px}
-.if-r1 .seg{flex:1;min-width:0}
-.if-r1 .seg button{padding:0 4px}
-.if-stats{display:flex;flex-direction:column;gap:5px}
-.if-sr{display:flex;gap:5px}
-.sc{flex:1 1 0;min-width:0;max-width:64px;text-align:center;height:30px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--sc);font-size:12.5px;font-weight:600;letter-spacing:-.2px;white-space:nowrap;transition:background-color .12s,border-color .12s,transform .1s ease-out}
-.sc[aria-pressed="true"]{border-color:var(--sc);background:color-mix(in srgb, var(--sc) 20%, var(--surface));box-shadow:inset 0 0 0 1px var(--sc)}
+.if-body{display:flex;align-items:flex-start;gap:8px}
+.if-list{flex:1;min-width:0}
+.sb:has(>.if-body){padding-bottom:0}
+#pick-grid{padding-bottom:28px}
+.if-rail{--chh:34px;flex:none;width:56px;position:sticky;top:8px;z-index:2;display:flex;flex-direction:column;gap:4px}
+.if-rail .sc-g{display:flex;flex-direction:column;gap:4px}
+.if-rail .sc-dv{height:1px;background:var(--line);margin:3px 2px}
+.if-rail.two{width:100px}
+.if-rail.two .sc-g{display:grid;grid-template-columns:1fr 1fr}
+.sc{width:100%;height:var(--chh);padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;font-weight:400;text-align:center;white-space:nowrap;transition:background-color .12s,border-color .12s,color .12s,transform .1s ease-out}
+.sc[aria-pressed="true"]{color:var(--sc);border-color:var(--sc);background:color-mix(in srgb, var(--sc) 14%, var(--surface))}
 .sc:active{transform:scale(.94)}
-html.rm .sc:active{transform:none}
-.if-c{gap:10px;min-height:20px}
-.if-c .if-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.if-c .if-a{flex:none;display:flex;gap:12px}
-.if-c .linkbtn{padding:2px 0}   /* 가로 스크롤 없이 줄바꿈 → 어디서 밀어도 탭 전환 */
+/* 분류 버튼: 겹친 카드 모양(뒷장 2장) + 위치 점. 누르기 = 다음, 좌우로 밀기 = 이전·다음 */
+.cyc{position:relative;width:100%;height:56px;margin:0 0 6px;padding:0;background:none;touch-action:pan-y}
+.cyc .cb{position:absolute;inset:0;border-radius:10px;border:1px solid var(--line);background:var(--surface-2)}
+.cyc .cb.b1{transform:translate(4px,-4px)}
+.cyc .cb.b2{transform:translate(2px,-2px);background:var(--surface)}
+.cyc .cf{position:absolute;inset:0;border-radius:10px;border:1px solid var(--line-strong);background:var(--raise);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cyc .cl{font-size:13.5px;font-weight:600;color:var(--fg)}
+.cyc .cd{display:flex;gap:3px}
+.cyc .cd i{width:5px;height:5px;border-radius:50%;background:var(--line-strong)}
+.cyc .cd i.on{background:var(--gold)}
+.cyc .cf.go-n .cl{animation:cycN .2s ease-out}
+.cyc .cf.go-p .cl{animation:cycP .2s ease-out}
+@keyframes cycN{from{transform:translateX(18px);opacity:0}to{transform:none;opacity:1}}
+@keyframes cycP{from{transform:translateX(-18px);opacity:0}to{transform:none;opacity:1}}
+.cyc:active .cf{transform:scale(.96)}
+html.rm .sc:active,html.rm .cyc:active .cf{transform:none}
+html.rm .cyc .cf .cl{animation:none}
+@media(prefers-reduced-motion:reduce){.cyc .cf .cl{animation:none}}
 .it-sets{margin:0 -16px 12px;padding-inline:16px}
 .set-chip .n{font-weight:700;color:var(--gold)}
 /* 세트 담기 막대 (아이템 탭 아래) */
@@ -763,8 +783,7 @@ const fmtN = (v, dp) => { const r = Number(v.toFixed(dp)); return dp===0 ? fmtGo
 function statCells(c, st, base){
   const res = hasRes(c) ? c.res.trim() : '';
   const cells = [['체력','hp',0],['체력 재생','hpr',2], ...(res ? [[res,'mp',0],[res+' 재생','mpr',2]] : []), ['공격력','ad',0],['주문력','ap',0],['공격 속도','as',3],['치명타 확률','crit',0,'%'],['방어력','ar',0],['마법 저항력','mr',0],['이동 속도','ms',0],['사거리','range',0],['스킬 가속','ah',0],['생명력 흡수','ls',0,'%']];
-  const CC = {hp:'khp',hpr:'khp',mp:res==='마나'?'kmn':'',mpr:res==='마나'?'kmn':'',ad:'kad',ap:'kap',as:'kas',crit:'kcr',ar:'ka',mr:'kr',ms:'ksp'};
-  return cells.map(([l,k,dp,u='']) => { const v = st[k]||0, d = base ? v - (base[k]||0) : 0; return `<div><span${CC[k]?` class="${CC[k]}"`:''}>${esc(l)}</span><b>${fmtN(v,dp)}${u}${d>0.04 ? `<small>+${fmtN(d,dp)}${u}</small>` : ''}</b></div>`; }).join('');
+  return cells.map(([l,k,dp,u='']) => { const v = st[k]||0, d = base ? v - (base[k]||0) : 0; return `<div><span>${esc(l)}</span><b>${fmtN(v,dp)}${u}${d>0.04 ? `<small>+${fmtN(d,dp)}${u}</small>` : ''}</b></div>`; }).join('');
 }
 const CALCIFY = new Map();
 function calcify(key, tt){
@@ -1307,7 +1326,7 @@ function homeSkel(){
       <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
     <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
       <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
-      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-anc" id="ifa-it"></div><div id="it-filters" class="ifb"></div><div id="it-list"></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-bar" id="it-filters"></div><div class="if-body" id="ifa-it"><div class="if-rail" id="rail-it"></div><div class="if-list" id="it-list"></div></div></div></section>
       <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
     </div></div>
     <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
@@ -1334,7 +1353,7 @@ function renderHome(pg, sec){
   const ik = itKey(), fk = ifKey();
   setHTML(q('#it-row'), itemRowHTML()); setHTML(q('#it-sets'), setsRowHTML());
   if(HM.ik!==ik){ HM.ik = ik; setHTML(q('#it-list'), itemsListHTML()); }
-  if(HM.fk!==fk){ HM.fk = fk; setHTML(q('#it-filters'), ifbHTML('it')); }
+  if(HM.fk!==fk){ HM.fk = fk; setHTML(q('#it-filters'), ifBarHTML('it')); setHTML(q('#rail-it'), ifRailHTML('it')); ifAnim('it'); }
   const ck = `${S.rev}|${D&&D.rev}|${S.role}|${S.qc}`;
   if(HM.ck!==ck){ HM.ck = ck; setHTML(q('#home-filters'), homeFilters()); setHTML(q('#champ-list'), champsListHTML()); }
   q('#hm-fab').hidden = !(S.tab==='builds' && !S.sel && !S.readonly);
@@ -1346,6 +1365,7 @@ function renderHome(pg, sec){
     q('#sb-apply').disabled = !s.it.length;
   }
   if(!(HS.st && HS.st.on)) placeTrack(0);
+  railFit('it');
 }
 /* 아이템 탭: 맵(기본 칼바람)·분류·능력치·이름 필터, '세트 담기'를 켜면 누르는 아이템이 세트에 차례로 담김 */
 const curSet = () => (S.prefs.sets||[]).find(s => s.id===S.iset) || null;
@@ -1377,27 +1397,72 @@ function ifSt(c){
   const P = S.picker||{tier:'legend', stats:[], q:''}, b = P.bid && S.builds.get(P.bid);
   return {tier:P.tier, stats:P.stats, q:P.q, map:b ? b.mode : S.imap, a:'pick', b};
 }
-function ifCountHTML(c){
-  const F = ifSt(c), n = c==='it' ? itemsTabList().length : F.b ? pickerItems(F.b).length : 0;
-  const on = F.stats.length || F.tier!=='legend' || F.q, sl = F.stats.map(k=>STAT_LABEL[k]).join('+');
-  return `<span class="if-n">${MAPN[F.map]} 아이템 ${n}개${sl?` · ${sl}`:''}</span><span class="if-a"><button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${on?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}</span>`;
-}
-function ifbHTML(c){
+const TIER_CYC = ['legend','boots','start','all'], TIER_N = Object.fromEntries(TIERS);
+const STAT_RAIL = [['ad','as','crit','pen','ls'],['ap','mpen','ah','ms'],['mana','mreg','hp','regen','ar','mr','heal','ten']];
+const STAT_SC = {ad:'ad',as:'as',crit:'crit',pen:'pen',ls:'ls',ap:'ap',mpen:'mpen',ah:'ah',ms:'ms',mana:'mana',mreg:'mana',hp:'hp',regen:'hp',ar:'ar',mr:'mr',heal:'heal',ten:'ten'};
+const ifOn = F => F.stats.length || F.tier!=='legend' || F.q;
+/* 위 줄: 검색(아이콘 → 누르면 입력창)·정렬·초기화 */
+function ifBarHTML(c){
   const F = ifSt(c), o = IFS[c], srch = o.s || !!F.q;
-  return `${srch?`<div class="if-q"><label class="search">${ICONS.search}<input id="${c==='it'?'q-items':'q-item'}" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성 가능)" value="${esc(F.q)}"></label><button class="iconbtn sm" data-act="if-sclose" data-c="${c}" aria-label="검색 닫기">${ICONS.close}</button></div>`:''}
-    <div class="if-r1">${srch?'':`<button class="iconbtn if-s" data-act="if-search" data-c="${c}" aria-label="아이템 이름 검색">${ICONS.search}</button>`}<div class="seg sm" role="group" aria-label="분류">${TIERS.map(([k,l])=>`<button data-act="${F.a}-tier" data-v="${k}" aria-pressed="${F.tier===k}">${l}</button>`).join('')}</div></div>
-    <div class="if-stats" role="group" aria-label="능력치">${STAT_ROWS.map(r=>`<div class="if-sr">${r.map(k=>`<button class="sc" data-act="${F.a}-stat" data-v="${k}" aria-pressed="${F.stats.includes(k)}" aria-label="${STAT_LABEL[k]}" style="--sc:${STAT_VAR[k]?`var(--c-${STAT_VAR[k]})`:'var(--fg)'}">${STAT_SHORT[k]}</button>`).join('')}</div>`).join('')}</div>
-    <div class="fbar if-c" id="ifc-${c}">${ifCountHTML(c)}</div>`;
+  const tail = `<button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${ifOn(F)?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}`;
+  return srch
+    ? `<label class="search">${ICONS.search}<input id="${c==='it'?'q-items':'q-item'}" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성)" value="${esc(F.q)}"></label><button class="iconbtn sm" data-act="if-sclose" data-c="${c}" aria-label="검색 닫기">${ICONS.close}</button>${tail}`
+    : `<button class="iconbtn if-s" data-act="if-search" data-c="${c}" aria-label="아이템 이름 검색">${ICONS.search}</button><span class="if-gap"></span>${tail}`;
 }
-/* 필터를 바꿨을 때: 고정된 필터 줄 바로 아래가 목록 첫 줄이 되게 (목록 중간에 있던 경우만) */
+/* 왼쪽 막대: 분류 버튼 + 능력치 17개(구분선 2개) */
+function ifRailHTML(c){
+  const F = ifSt(c), i = Math.max(0, TIER_CYC.indexOf(F.tier));
+  const cyc = `<button class="cyc" data-act="if-cyc" data-c="${c}" data-v="${F.tier}" aria-label="분류 ${TIER_N[F.tier]} (누르면 다음, 좌우로 밀면 이전·다음)"><span class="cb b1"></span><span class="cb b2"></span><span class="cf"><span class="cl">${TIER_N[F.tier]}</span><span class="cd" aria-hidden="true">${TIER_CYC.map((_,j)=>`<i${j===i?' class="on"':''}></i>`).join('')}</span></span></button>`;
+  const chip = k => `<button class="sc" data-act="${F.a}-stat" data-v="${k}" aria-pressed="${F.stats.includes(k)}" aria-label="${STAT_LABEL[k]}" style="--sc:var(--s-${STAT_SC[k]})">${STAT_SHORT[k]}</button>`;
+  return cyc + STAT_RAIL.map(g => `<div class="sc-g">${g.map(chip).join('')}</div>`).join('<div class="sc-dv" aria-hidden="true"></div>');
+}
+/* 막대 높이를 화면 남은 높이에 맞춤: 칸 높이 28~38px, 그래도 모자라면 2열 */
+function railFit(c){
+  const r = $('#rail-'+c); if(!r) return; const sc = r.closest('.hm-pane, .pg-b'); if(!sc || !sc.clientHeight) return;
+  let H = sc.clientHeight - 16;
+  if(c==='it'){ const sb = $('#setbar'); if(sb && !sb.hidden) H -= sb.offsetHeight; }
+  const fixed = 62 + 2*11;   /* 분류 버튼 + 구분선 2개 */
+  let h = (H - fixed - 14*4) / 17, two = false;
+  if(h < 26){ two = true; h = (H - fixed - 6*4) / 9; }
+  h = Math.max(26, Math.min(38, Math.floor(h)));
+  r.classList.toggle('two', two); r.style.setProperty('--chh', h+'px');
+  if(r.parentElement) r.parentElement.style.minHeight = (H + 8) + 'px';   /* 목록이 짧아도 막대가 고정 위치를 지키게 */
+}
+window.addEventListener('resize', () => { railFit('it'); railFit('pk'); });
+function ifAnim(c){
+  const d = IFS[c].anim; if(!d) return; IFS[c].anim = '';
+  const f = document.querySelector(`#rail-${c} .cf`); if(f){ f.classList.remove('go-n','go-p'); void f.offsetWidth; f.classList.add(d>0?'go-n':'go-p'); }
+}
+function ifCycle(c, d){
+  const F = ifSt(c), i = Math.max(0, TIER_CYC.indexOf(F.tier)), v = TIER_CYC[(i + d + TIER_CYC.length) % TIER_CYC.length];
+  if(c==='it') S.itier = v; else if(S.picker) S.picker.tier = v; else return;
+  IFS[c].anim = d; buzz(5); ifRefresh(c, true);
+}
+/* 분류 버튼 좌우 밀기: 왼쪽 = 다음, 오른쪽 = 이전 (홈 탭 밀기·뒤로 밀기와 겹치지 않게 막음) */
+const CYS = {st:null, skip:false};
+document.addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('.cyc'); CYS.st = b ? {id:e.pointerId, x:e.clientX, y:e.clientY, c:b.dataset.c} : null; }, true);
+document.addEventListener('pointerup', e => {
+  const g = CYS.st; CYS.st = null; if(!g || g.id!==e.pointerId) return;
+  const dx = e.clientX - g.x, dy = e.clientY - g.y;
+  if(Math.abs(dx) > 24 && Math.abs(dx) > Math.abs(dy) * 1.2){ CYS.skip = true; setTimeout(() => { CYS.skip = false; }, 400); ifCycle(g.c, dx < 0 ? 1 : -1); }
+}, true);
+document.addEventListener('pointercancel', () => { CYS.st = null; }, true);
+/* 필터를 바꿨을 때: 목록 중간이면 목록 맨 위(막대 시작 위치)로 */
 function ifTop(c){
   const a = $('#ifa-'+c); if(!a) return; const sc = a.closest('.hm-pane, .pg-b'); if(!sc) return;
-  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
-  if(sc.scrollTop > y) sc.scrollTop = y;
+  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
+  if(sc.scrollTop > y) sc.scrollTop = Math.max(0, y);
 }
 function ifRefresh(c, list){
-  if(c==='it'){ if(list){ HM.ik=''; HM.fk=''; renderMain(); } else { const f=$('#it-filters'); if(f){ setHTML(f, ifbHTML('it')); HM.fk = ifKey(); } } }
-  else { const b = S.picker && S.builds.get(S.picker.bid); if(!b) return; const f=$('#ifb-pk'); if(f) setHTML(f, ifbHTML('pk')); if(list){ const g=$('#pick-grid'); if(g) g.innerHTML = pickGridHTML(b); } }
+  if(c==='it'){
+    if(list){ HM.ik=''; HM.fk=''; renderMain(); }
+    else { const f=$('#it-filters'), r=$('#rail-it'); if(f) setHTML(f, ifBarHTML('it')); if(r) setHTML(r, ifRailHTML('it')); HM.fk = ifKey(); }
+    ifAnim('it');
+  } else {
+    const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
+    const f=$('#ifbar-pk'), r=$('#rail-pk'); if(f) setHTML(f, ifBarHTML('pk')); if(r) setHTML(r, ifRailHTML('pk')); ifAnim('pk'); railFit('pk');
+    if(list){ const g=$('#pick-grid'); if(g) g.innerHTML = pickGridHTML(b); }
+  }
   if(list) ifTop(c);
 }
 const itemsTabList = () => filterItems(S.imap==='sr'?'sr':'ar', S.itier, S.istats, S.qi, S.icol && curSet() ? curSet().it : []);
@@ -1447,6 +1512,7 @@ function switchTab(t){
   const prev = S.tab; S.tab = t;
   if(prev!==t){ if(S.sel) selExit(); buzz(5); }
   const pg = PG[0]; if(pg && pg.isView && pg.__src.name==='home') renderView(pg);
+  requestAnimationFrame(() => railFit('it'));
 }
 function homeBanners(){
   const lp = S.localPending.length;
@@ -1785,10 +1851,7 @@ function syncSecHTML(){
 }
 const tokenFormHTML = label => `<input id="f-token" class="tok" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_로 시작하는 토큰" aria-label="동기화 토큰"><button class="btn primary block" data-act="gh-on" style="margin-top:8px">${label}</button>`;
 /* 아이템 능력치 한 줄: 베이스 앱처럼 "체력 400" 그대로 */
-function statLine(line){
-  const m = String(line).match(/^(.*?)(\s*[+\-]?[\d.,]+%?)$/), k = m && STAT_NAME[m[1].trim()], c = k && STAT_CLASS[k];
-  return c && c!=='kc' ? `<li><span class="${c}">${esc(m[1])}</span>${esc(m[2])}</li>` : `<li>${esc(line)}</li>`;
-}
+function statLine(line){ return `<li>${esc(line)}</li>`; }
 /* 하위 아이템 조직도 */
 function treeNode(id, ctx, depth){
   const it = IX.item[id]; if(!it) return '';
@@ -1839,9 +1902,9 @@ const SHEETS = {
   picker(){
     const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
     const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
-      <div class="if-anc" id="ifa-pk"></div><div class="ifb" id="ifb-pk">${ifbHTML('pk')}</div>
-      <div id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div>`;
-    const after = P.defer ? () => { P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); } : null;
+      <div class="if-bar" id="ifbar-pk">${ifBarHTML('pk')}</div>
+      <div class="if-body" id="ifa-pk"><div class="if-rail" id="rail-pk">${ifRailHTML('pk')}</div><div class="if-list" id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div></div>`;
+    const after = () => { railFit('pk'); requestAnimationFrame(() => railFit('pk')); if(!P.defer) return; P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); };
     return {title:'아이템 추가', label:'아이템 추가', top:`<div id="pick-tray">${trayHTML(b)}</div>`, body, foot: pickFootHTML(b), scroll: P.scroll||0, after};
   },
   info(p){ return {title:esc(p.title), label:p.name, body:`<div class="idet">${p.icon||''}<div style="min-width:0">${p.kicker?`<div class="k">${esc(p.kicker)}</div>`:''}<h3>${esc(p.name)}</h3>${p.sub?`<div class="small muted">${esc(p.sub)}</div>`:''}</div></div><div class="desc">${p.html||''}</div>${p.note?`<div class="foot-note">${esc(p.note)}</div>`:''}`}; },
@@ -1955,8 +2018,8 @@ function pickFootHTML(b){
 }
 function updatePicker(){
   const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
-  const pp=pickerPage(), g=$('#pick-grid'), c=$('#ifc-pk'), t=$('#pick-tray'), f=pp&&pp.foot;
-  if(g) g.innerHTML = pickGridHTML(b); if(c) setHTML(c, ifCountHTML('pk')); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
+  const pp=pickerPage(), g=$('#pick-grid'), c=$('#ifbar-pk'), t=$('#pick-tray'), f=pp&&pp.foot;
+  if(g) g.innerHTML = pickGridHTML(b); if(c && !c.contains(document.activeElement)) setHTML(c, ifBarHTML('pk')); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
 }
 
 /* ------------------------------------------------------------ 동작 */
@@ -2044,7 +2107,7 @@ const ACT = {
     const st = S.icol ? curSet() : null; if(st && st.map!==v){ st.it = convertIds(st.it, v); st.map = v; setTouch(st); } else renderMain();
     buzz(5);
   },
-  'it-tier'(el){ S.itier = el.dataset.v; ifRefresh('it', true); },
+  'if-cyc'(el){ if(CYS.skip) return; ifCycle(el.dataset.c, 1); },
   'it-stat'(el){ const k = el.dataset.v; S.istats = S.istats.includes(k) ? S.istats.filter(x=>x!==k) : [...S.istats, k]; ifRefresh('it', true); },
   'it-reset'(){ S.istats = []; S.itier = 'legend'; S.qi = ''; IFS.it.s = false; ifRefresh('it', true); },
   'if-search'(el){ const c = el.dataset.c; IFS[c].s = true; ifRefresh(c, false); const i = $(c==='it' ? '#q-items' : '#q-item'); if(i) i.focus(); },
@@ -2184,7 +2247,6 @@ const ACT = {
     else toast(`${name}${eul(name)} 담았습니다`); },
   'tree-toggle'(){ S.treeOpen=!S.treeOpen; uiSet('tree', S.treeOpen); renderSheet(); },
   pick(){ const b=curBuild(); if(!b) return; S.panel=null; IFS.pk.s=false; const ui=lsGet(LS_UI)||{}; S.picker={defer:true, bid:b.id, q:'', tier:'legend', stats:Array.isArray(ui.stats)?ui.stats.filter(k=>STAT_LABEL[k]):[], last:'', scroll:0}; markMain(); openSheet('picker'); },
-  'pick-tier'(el){ S.picker.tier=el.dataset.v; ifRefresh('pk', true); },
   'pick-stat'(el){ const k=el.dataset.v, P=S.picker; P.stats = P.stats.includes(k) ? P.stats.filter(x=>x!==k) : [...P.stats, k]; ifRefresh('pk', true); uiSet('stats', P.stats); },
   'pick-reset'(){ const P=S.picker; P.stats=[]; P.tier='legend'; P.q=''; IFS.pk.s=false; uiSet('stats', []); ifRefresh('pk', true); },
   'pick-toggle'(el){ const id=el.dataset.id; const P=S.picker; const b=P&&S.builds.get(P.bid); if(!b||S.readonly) return;
@@ -2255,7 +2317,7 @@ document.addEventListener('input', e => {
   const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
   if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
   else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
-  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), c=$('#ifc-it'); if(l) setHTML(l, itemsListHTML()); if(c) setHTML(c, ifCountHTML('it')); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
+  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'); if(l) setHTML(l, itemsListHTML()); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
   else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
   else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
   else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
@@ -2350,7 +2412,7 @@ const SW = {st:null}, SD = {st:null};
 const SWIPE = {slop:10, angle:.85, flingV:.4, flingMin:30, distK:.3, distMin:90, distMax:150, proj:120, backV:-.2};
 const swipeDist = W => Math.max(SWIPE.distMin, Math.min(SWIPE.distMax, W * SWIPE.distK));
 function swipeBlocked(t){
-  if(t.closest('input, textarea, select, .pop, .pop-bg')) return true;
+  if(t.closest('input, textarea, select, .pop, .pop-bg, .cyc')) return true;
   const dr = t.closest('[data-drag]'), box = dr && dr.parentElement;
   if(box && (box.dataset.sort==='tray' || (box.dataset.sort==='build' && S.edit && !S.readonly))) return true;
   const hs = t.closest('.chips, .tree, .tray');
@@ -2454,7 +2516,7 @@ document.addEventListener('pointercancel', e => gestureEnd(e, true), {passive:tr
 /* 홈 탭 밀기: 가로로 밀면 이웃 탭이 손가락을 따라 들어오고, 화면 폭 25% 이상 또는 빠르게 튕기면 넘어감 */
 const HS = {st:null, skip:false};
 function hsBlocked(t){
-  if(t.closest('input, textarea, select, .setbar, [data-drag]')) return true;
+  if(t.closest('input, textarea, select, .setbar, [data-drag], .cyc')) return true;
   const hs = t.closest('.chips, .tray'); return !!(hs && hs.scrollWidth > hs.clientWidth + 2);
 }
 document.addEventListener('pointerdown', e => {
