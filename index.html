@@ -498,7 +498,7 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 @media(prefers-reduced-motion:reduce){.hm-track,.seg-ind{transition:none}}
 .hm-fab{min-width:0}
 .it-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.it-top{padding:6px 0 10px}
+.it-top{padding:0 0 10px}
 /* 아이템 필터(아이템 탭·아이템 추가 창 공통): 위 줄 = 검색·정렬·초기화(따라오지 않음), 왼쪽 막대 = 분류 버튼 + 능력치(스크롤 중 고정, 막대 안 스크롤 없음) */
 .if-bar{display:flex;align-items:center;gap:10px;min-height:38px;margin:0 0 8px}
 .if-bar .if-gap{flex:1}
@@ -509,14 +509,20 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 .if-s{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
 .if-s svg{width:19px;height:19px}
 .if-body{display:flex;align-items:flex-start;gap:8px}
-.if-list{flex:1;min-width:0}
+.hm-pane[data-tab=items] .if-body{padding-top:6px}
+.if-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.sb .if-main{gap:10px}
+.if-list{min-width:0}
+/* 막대 옆에서도 4열: 아이템 탭·추가 창은 양옆 여백 12px, 칸 최소 64px·가로 간격 2px */
+.hm-pane[data-tab=items]>.wrap{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.sb:has(>.if-body){padding-left:max(12px,env(safe-area-inset-left,0px),calc((100% - 720px)/2));padding-right:max(12px,env(safe-area-inset-right,0px),calc((100% - 720px)/2))}
+.if-list .pgrid{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px 2px}
 .sb:has(>.if-body){padding-bottom:0}
 #pick-grid{padding-bottom:28px}
-.if-rail{--chh:34px;flex:none;width:56px;position:sticky;top:8px;z-index:2;display:flex;flex-direction:column;gap:4px}
-.if-rail .sc-g{display:flex;flex-direction:column;gap:4px}
-.if-rail .sc-dv{height:1px;background:var(--line);margin:3px 2px}
-.if-rail.two{width:100px}
-.if-rail.two .sc-g{display:grid;grid-template-columns:1fr 1fr}
+.if-rail{--chh:34px;flex:none;width:92px;position:sticky;top:6px;z-index:2;display:flex;flex-direction:column;gap:4px}
+.sb .if-rail{top:14px}
+.if-rail .sc-g{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.if-rail .sc-dv{height:2px;border-radius:1px;background:var(--line-strong);margin:5px 0}   /* 구분선: 진하게·위아래 여백 */
 .sc{width:100%;height:var(--chh);padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;font-weight:400;text-align:center;white-space:nowrap;transition:background-color .12s,border-color .12s,color .12s,transform .1s ease-out}
 .sc[aria-pressed="true"]{color:var(--sc);border-color:var(--sc);background:color-mix(in srgb, var(--sc) 14%, var(--surface))}
 .sc:active{transform:scale(.94)}
@@ -1342,7 +1348,7 @@ function homeSkel(){
       <div class="seg hm-seg" role="group" aria-label="보기 선택"><span class="seg-ind" id="hm-ind"></span>${TABS.map(t=>`<button data-act="tab" data-v="${t}" aria-pressed="${S.tab===t}">${TAB_N[t]}</button>`).join('')}</div></div>
     <div class="hm-view" id="hm-view"><div class="hm-track" id="hm-track">
       <section class="hm-pane" data-tab="builds" aria-label="내 빌드"><div class="wrap"><div class="hm-head">${SRCH('q-home','빌드·챔피언 검색 (초성 가능)',S.q)}</div><div id="home-list"></div><div id="hm-sync" style="margin-top:14px"></div></div></section>
-      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-bar" id="it-filters"></div><div class="if-body" id="ifa-it"><div class="if-rail" id="rail-it"></div><div class="if-list" id="it-list"></div></div></div></section>
+      <section class="hm-pane" data-tab="items" aria-label="아이템"><div class="wrap"><div class="if-body" id="ifa-it"><div class="if-rail" id="rail-it"></div><div class="if-main"><div class="it-top"><div class="it-row" id="it-row"></div></div><div id="it-sets"></div><div class="if-bar" id="it-filters"></div><div class="if-list" id="it-list"></div></div></div></div></section>
       <section class="hm-pane" data-tab="champs" aria-label="챔피언"><div class="wrap"><div class="hm-head">${SRCH('q-champs','챔피언 검색 (예: 가렌, ㄱㄹ)',S.qc)}<div class="chips" id="home-filters"></div></div><div id="champ-list"></div></div></section>
     </div></div>
     <button class="fab hm-fab" id="hm-fab" data-act="new-build-pick" hidden>${ICONS.plus}새 빌드</button>
@@ -1433,16 +1439,16 @@ function ifRailHTML(c){
   return cyc + STAT_RAIL.map(g => `<div class="sc-g">${g.map(chip).join('')}</div>`).join('<div class="sc-dv" aria-hidden="true"></div>');
 }
 /* 막대 높이를 화면 남은 높이에 맞춤: 칸 높이 28~38px, 그래도 모자라면 2열 */
+/* 막대는 스크롤 영역 맨 위에서 시작해 그 자리에 고정(sticky). 칸 높이를 화면 남은 높이에 맞춤(30~40px, 2개씩 9줄) */
 function railFit(c){
   const r = $('#rail-'+c); if(!r) return; const sc = r.closest('.hm-pane, .pg-b'); if(!sc || !sc.clientHeight) return;
-  let H = sc.clientHeight - 16;
+  const top = parseFloat(getComputedStyle(r).top) || 6;
+  let H = sc.clientHeight - top - 8;
   if(c==='it'){ const sb = $('#setbar'); if(sb && !sb.hidden) H -= sb.offsetHeight; }
-  const fixed = 62 + 2*11;   /* 분류 버튼 + 구분선 2개 */
-  let h = (H - fixed - 14*4) / 17, two = false;
-  if(h < 26){ two = true; h = (H - fixed - 6*4) / 9; }
-  h = Math.max(26, Math.min(38, Math.floor(h)));
-  r.classList.toggle('two', two); r.style.setProperty('--chh', h+'px');
-  if(r.parentElement) r.parentElement.style.minHeight = (H + 8) + 'px';   /* 목록이 짧아도 막대가 고정 위치를 지키게 */
+  const fixed = 62 + 2*12;   /* 분류 버튼 + 구분선 2개 */
+  const h = Math.max(30, Math.min(40, Math.floor((H - fixed - 6*4) / 9)));
+  r.style.setProperty('--chh', h+'px');
+  if(r.parentElement) r.parentElement.style.minHeight = (H + top) + 'px';   /* 목록이 짧아도 막대가 고정 위치를 지키게 */
 }
 window.addEventListener('resize', () => { railFit('it'); railFit('pk'); });
 function ifAnim(c){
@@ -1465,8 +1471,8 @@ document.addEventListener('pointerup', e => {
 document.addEventListener('pointercancel', () => { CYS.st = null; }, true);
 /* 필터를 바꿨을 때: 목록 중간이면 목록 맨 위(막대 시작 위치)로 */
 function ifTop(c){
-  const a = $('#ifa-'+c); if(!a) return; const sc = a.closest('.hm-pane, .pg-b'); if(!sc) return;
-  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
+  const a = $(c==='it' ? '#it-filters' : '#ifbar-pk'); if(!a) return; const sc = a.closest('.hm-pane, .pg-b'); if(!sc) return;
+  const y = a.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 6;
   if(sc.scrollTop > y) sc.scrollTop = Math.max(0, y);
 }
 function ifRefresh(c, list){
@@ -1917,9 +1923,10 @@ const SHEETS = {
   },
   picker(){
     const P = S.picker, b = P && S.builds.get(P.bid); if(!b) return {title:'아이템 추가', body:''};
-    const body = `<div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점 아이템만 표시</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
+    const body = `<div class="if-body" id="ifa-pk"><div class="if-rail" id="rail-pk">${ifRailHTML('pk')}</div><div class="if-main">
+      <div class="pick-map"><span class="lbl">${MAPN[b.mode]} 상점만</span><div class="seg xs" role="group" aria-label="빌드 맵">${['sr','aram'].map(m=>`<button data-act="build-map" data-v="${m}" aria-pressed="${b.mode===m}">${MAPN[m]}</button>`).join('')}</div></div>
       <div class="if-bar" id="ifbar-pk">${ifBarHTML('pk')}</div>
-      <div class="if-body" id="ifa-pk"><div class="if-rail" id="rail-pk">${ifRailHTML('pk')}</div><div class="if-list" id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div></div>`;
+      <div class="if-list" id="pick-grid">${P.defer ? '' : pickGridHTML(b)}</div></div></div>`;
     const after = () => { railFit('pk'); requestAnimationFrame(() => railFit('pk')); if(!P.defer) return; P.defer = false; requestAnimationFrame(() => { const g = $('#pick-grid'); if(g && !g.firstChild && S.picker===P) g.innerHTML = pickGridHTML(b); }); };
     return {title:'아이템 추가', label:'아이템 추가', top:`<div id="pick-tray">${trayHTML(b)}</div>`, body, foot: pickFootHTML(b), scroll: P.scroll||0, after};
   },

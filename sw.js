@@ -1,5 +1,5 @@
 /* 템트리 노트 설치형 앱: 오프라인에서도 열리도록 화면과 이미지를 기기에 보관 */
-const SHELL = 'ttn-shell-703facb33f', IMG = 'ttn-img';
+const SHELL = 'ttn-shell-00b8009174', IMG = 'ttn-img';
 const CORE = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== SHELL && k !== IMG).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
