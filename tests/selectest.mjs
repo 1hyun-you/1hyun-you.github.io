@@ -2,7 +2,8 @@
 import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
 import fs from 'fs';
 const SITE='http://127.0.0.1:8770/', GH='http://127.0.0.1:8771', OUT='/tmp/ttn-test/';
-await fetch(GH+'/__seed', {method:'PUT', body: fs.readFileSync('/home/claude/tem-tree-sync/builds.json')});
+const SEED = JSON.parse(fs.readFileSync('/home/claude/tem-tree-sync/builds.json','utf8')), N = Object.keys(SEED.builds).length, D0 = Object.keys(SEED.del||{}).length;   // 실제 빌드 기록 수 기준
+await fetch(GH+'/__seed', {method:'PUT', body: JSON.stringify(SEED)});
 const browser = await chromium.launch(); const errs = []; const log = []; const bad = [];
 const check = (name, ok, info='') => { log.push(`${ok?'통과':'실패'} · ${name}${info!==''?' · '+info:''}`); if(!ok) bad.push(name); };
 const ctx = await browser.newContext({viewport:{width:390,height:844}, isMobile:true, hasTouch:true, deviceScaleFactor:2});
@@ -18,7 +19,7 @@ await p.goto(SITE); await p.waitForTimeout(2200);
 
 // ---- 새 빌드 13개
 const names = await p.evaluate(() => [...document.querySelectorAll('.bcard-title')].map(e=>e.textContent));
-check('빌드 20개 표시', names.length===20, String(names.length));
+check(`빌드 ${N}개 표시`, names.length===N, String(names.length));
 check('새 칼바람 빌드 13개', names.filter(n => /칼바람$/.test(n)).length===13, names.filter(n=>/칼바람$/.test(n)).join(','));
 await p.evaluate(() => [...document.querySelectorAll('.bcard')].find(c => c.textContent.includes('그라가스 칼바람')).click()); await p.waitForTimeout(700);
 const gr = await p.evaluate(() => { const t=[...document.querySelectorAll('#stack > .page:not(.leaving)')].pop(); return {map: t.querySelector('.mx.mp').textContent, items: t.querySelectorAll('#b-items .ib[data-id]').length, off: t.querySelectorAll('#b-items .ib.off').length, miss: t.querySelectorAll('#b-items .ib.miss').length, spells: [...t.querySelectorAll('.sp')].map(e=>e.getAttribute('aria-label')).join('/'), runesOn: t.querySelectorAll('#b-runes [aria-pressed=true], #b-runes .on').length}; });
@@ -33,7 +34,7 @@ check('칼바람 빌드 카드 아이템 수', allOk.every(s => /:(5|6)$/.test(s
 let s0 = await st();
 await hold(0);
 let s1 = await st();
-check('길게 누르면 고르기 시작', s1.title==='1개 선택' && s1.sel===1 && s1.chk===20 && s1.pages===1, JSON.stringify(s1));
+check('길게 누르면 고르기 시작', s1.title==='1개 선택' && s1.sel===1 && s1.chk===N && s1.pages===1, JSON.stringify(s1));
 await p.screenshot({path:OUT+'sel-mode.png'});
 await tap(1); await tap(2);
 let s2 = await st(); check('눌러서 더 고르기', s2.title==='3개 선택' && s2.sel===3, s2.title);
@@ -47,7 +48,7 @@ await tap(0); const t1 = (await st()).title; await p.evaluate(() => history.back
 check('고르기 후 화면 이동·뒤로 정상', /빌드|칼바람/.test(t1) && /템트리/.test(t2), `${t1} → ${t2}`);
 // 전체 선택 → 해제
 await hold(0); await tap('[data-act=sel-all]');
-let s4 = await st(); check('전체 선택', s4.title==='20개 선택' && s4.sel===20, s4.title);
+let s4 = await st(); check('전체 선택', s4.title===`${N}개 선택` && s4.sel===N, s4.title);
 await tap('[data-act=sel-all]'); s4 = await st(); check('전체 해제 = 고르기 끝', s4.sel===0 && s4.chk===0);
 check('✕로 끝낸 뒤 기록 한 칸 정리', (await p.evaluate(() => history.state && !history.state.sel && history.state.i===0)), await p.evaluate(()=>JSON.stringify(history.state)));
 // 스크롤(움직임)이면 고르기 안 함
@@ -57,20 +58,20 @@ await hold(0); await tap(1);
 const delNames = await p.evaluate(() => [...document.querySelectorAll('.bcard.sel .bcard-title')].map(e=>e.textContent));
 await tap('[data-act=sel-del]'); await p.waitForTimeout(300);
 const s6 = await st(); const toast1 = await p.locator('#toast').innerText();
-check('2개 삭제', s6.cards===18 && s6.chk===0 && /빌드 2개를 삭제했습니다/.test(toast1), `${s6.cards} · ${toast1.replace(/\n/g,' ')}`);
+check('2개 삭제', s6.cards===N-2 && s6.chk===0 && /빌드 2개를 삭제했습니다/.test(toast1), `${s6.cards} · ${toast1.replace(/\n/g,' ')}`);
 await p.waitForTimeout(2500);
 let gs = await (await fetch(GH+'/__state')).json();
-check('삭제가 저장소에 반영', Object.keys(gs.doc.builds).length===18 && Object.keys(gs.doc.del).length===2, `${Object.keys(gs.doc.builds).length} / 삭제기록 ${Object.keys(gs.doc.del).length}`);
+check('삭제가 저장소에 반영', Object.keys(gs.doc.builds).length===N-2 && Object.keys(gs.doc.del).length===D0+2, `${Object.keys(gs.doc.builds).length} / 삭제기록 ${Object.keys(gs.doc.del).length}`);
 await hold(0); await p.evaluate(() => history.back()); await p.waitForTimeout(300);   // 고르기 끝 (알림 유지 확인용 아님)
 await tap(0).catch(()=>{}); await p.evaluate(() => history.back()); await p.waitForTimeout(500);
 // 되돌리기 (새로 삭제 후 바로)
 await hold(0); const nm = await p.evaluate(() => document.querySelector('.bcard.sel .bcard-title').textContent);
 await tap('[data-act=sel-del]'); await p.waitForTimeout(300);
 await p.evaluate(() => document.querySelector('[data-act=toast-act]').click()); await p.waitForTimeout(600);
-const s7 = await st(); check('되돌리기', s7.cards===18 && (await p.evaluate(n => [...document.querySelectorAll('.bcard-title')].some(e=>e.textContent===n), nm)), `${s7.cards} · ${nm}`);
+const s7 = await st(); check('되돌리기', s7.cards===N-2 && (await p.evaluate(n => [...document.querySelectorAll('.bcard-title')].some(e=>e.textContent===n), nm)), `${s7.cards} · ${nm}`);
 await p.waitForTimeout(2500);
 gs = await (await fetch(GH+'/__state')).json();
-check('되살림이 저장소에 반영', Object.keys(gs.doc.builds).length===18, String(Object.keys(gs.doc.builds).length));
+check('되살림이 저장소에 반영', Object.keys(gs.doc.builds).length===N-2, String(Object.keys(gs.doc.builds).length));
 // 챔피언 탭으로 가면 고르기 끝
 await hold(0); await tap('[data-act=tab][data-v=champs]'); const s8 = await st();
 check('탭 바꾸면 고르기 끝', s8.chk===0 && (await p.evaluate(() => !history.state.sel)));

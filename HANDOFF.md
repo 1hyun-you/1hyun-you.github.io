@@ -1,4 +1,4 @@
-# 템트리 노트 — 작업 인계 (2026-10-20 기준)
+# 템트리 노트 — 작업 인계 (2026-10-21 기준)
 
 새 대화에서 이 앱을 이어서 고칠 때 먼저 읽는 문서. 사용자 응답 형식 규칙(사무적 어조, 개조식·명사형 종결, 선택지는 번호)은 Claude 메모리의 preferences에 있음.
 
@@ -15,6 +15,8 @@
   - `index.html` = 앱 본문 전체(CSS·JS 한 파일, 약 18만 자). **수정은 이 파일을 직접 고침**
   - `site-src/` = manifest, sw.js(`__V__` 자리), 아이콘
   - `tools/build_data.py` = 패치 데이터·그림 생성, `tools/build_site.py` = 사이트 생성
+  - `tools/item_calc.py` = 아이템 설명 세부 수치(CommunityDragon 게임 원본 계산식). build_data.py가 호출, 받기 실패·해석 실패 아이템은 기존 문구 유지. 단독 실행: `python3 tools/item_calc.py data.json [캐시폴더]`
+  - CommunityDragon(raw.communitydragon.org)은 사용자 계정 설정(기능 → 추가 허용 도메인)에 등록됨
   - `tests/` = Playwright 시험 묶음 (아래 6항)
 
 ## 3. 작업 준비 (새 세션)
@@ -45,7 +47,7 @@
 - 준비: `npm i -g playwright`가 되어 있으면 그대로, 크로미움은 환경 기본값 사용. 결과물 폴더 `/tmp/ttn-test`
 - `bash tests/serve_site.sh` → 사이트 8770 + 가짜 GitHub 8771(mock_gh.py). `bash tests/serve.sh` → Claude 페이지 흉내 8765/8766
 - 시험 시작 데이터: `/home/claude/tem-tree-sync/builds.json`을 가짜 GitHub에 넣음 → tem-tree-sync를 읽기 전용으로 받아 둘 것 (쓰지 말 것)
-- 주요 시험: hometest(홈 3탭·밀기·아이템 탭·세트·뒤로 두 번 종료), selectest(길게 눌러 고르기·삭제), maptest(맵별 아이템·설정), settings, sync(두 기기 동기화), race(올리는 중 변경), pwa(설치·오프라인), migrate_test, scaledrag(화면 크기), claudemode, test9·hist3·misc10·polish11·sweep(기존 회귀), perf10(6배 감속 반응 속도)
+- 주요 시험: combo(필터 조합·세트 담기 중 막대·키보드·가로/작은 화면·추가 창 조합), hometest(홈 3탭·밀기·아이템 탭·세트·뒤로 두 번 종료), selectest(길게 눌러 고르기·삭제), maptest(맵별 아이템·설정), settings, sync(두 기기 동기화), race(올리는 중 변경), pwa(설치·오프라인), migrate_test, scaledrag(화면 크기), claudemode, test9·hist3·misc10·polish11·sweep(기존 회귀), perf10(6배 감속 반응 속도)
 - 스크립트 안의 Playwright 경로 `/home/claude/.npm-global/lib/node_modules/playwright/index.mjs`는 환경에 맞게 바꿀 것
 
 ## 7. 버전 이력 (요약)
@@ -55,7 +57,9 @@
 - v14: 빌드별 맵(협곡·칼바람) 상점 아이템만 표시, 맵 바꾸면 같은 아이템 그 맵 버전으로, 설정 추가(화면 크기·시작 화면·정렬·오프라인 준비)
 - v15: Claude 페이지 갱신 중단 안내 (Claude 페이지 마지막 판)
 - v16: 스크린샷 판독 칼바람 빌드 13개 추가, 빌드 목록 길게 눌러 여러 개 고르기·삭제
-- v17(현재): 홈 3탭(내 빌드·아이템·챔피언)+좌우 밀기, 검색창 고정, 새 빌드 버튼, 아이템 탭(필터·세트 담기·여러 세트·빌드 적용·맵 자동 교체), 뒤로 두 번 종료, 선마 스킬 그림 표시, 보기 모드 빈 줄 제거, 기본값 칼바람, 동기화 누락 수정
+- v17: 홈 3탭(내 빌드·아이템·챔피언)+좌우 밀기, 검색창 고정, 새 빌드 버튼, 아이템 탭(필터·세트 담기·여러 세트·빌드 적용·맵 자동 교체), 뒤로 두 번 종료, 선마 스킬 그림 표시, 보기 모드 빈 줄 제거, 기본값 칼바람, 동기화 누락 수정
+
+- v18(현재): 아이템 필터 왼쪽 막대(분류 순환 버튼: 누르기·좌우 밀기 / 능력치 17개 2개씩, 구분선 2개, 막대 완전 고정, 너무 낮은 화면은 목록과 함께 스크롤), 위 줄 = 검색 아이콘·정렬(기본 낮은 가격순)·초기화, 분류 기본값 완성, 선택 칩만 롤 색(채도 60%), 롤 위키 기준 설명문 색, 아이템 세부 수치, 탭 다시 누르기 = 맨 위로, 뒤로 한 번 뒤 화면 조작 시 종료 대기 초기화, 막대 옆 4열(칸 64px·여백 12px)
 
 ## 8. 다음 후보 (사용자에게 제안했으나 아직 미채택)
 - 내 빌드 맵 필터(전체·협곡·칼바람), 여러 개 고르기에서 맵 일괄 변경·대표 지정
