@@ -506,6 +506,7 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 .if-bar .search input{height:38px;font-size:14.5px;padding-left:38px}
 .if-bar .search svg{top:9px;width:19px;height:19px}
 .if-bar .linkbtn{flex:none;padding:4px 0}
+.if-tail{flex:none;display:flex;align-items:center;gap:10px}
 .if-s{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
 .if-s svg{width:19px;height:19px}
 .if-body{display:flex;align-items:flex-start;gap:8px}
@@ -521,6 +522,7 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 #pick-grid{padding-bottom:28px}
 .if-rail{--chh:34px;flex:none;width:92px;position:sticky;top:6px;z-index:2;display:flex;flex-direction:column;gap:4px}
 .sb .if-rail{top:14px}
+.if-rail.free{position:relative;top:0}
 .if-rail .sc-g{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .if-rail .sc-dv{height:2px;border-radius:1px;background:var(--line-strong);margin:5px 0}   /* 구분선: 진하게·위아래 여백 */
 .sc{width:100%;height:var(--chh);padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;font-weight:400;text-align:center;white-space:nowrap;transition:background-color .12s,border-color .12s,color .12s,transform .1s ease-out}
@@ -545,6 +547,7 @@ html.rm .sc:active,html.rm .cyc:active .cf{transform:none}
 html.rm .cyc .cf .cl{animation:none}
 @media(prefers-reduced-motion:reduce){.cyc .cf .cl{animation:none}}
 .it-sets{margin:0 -16px 12px;padding-inline:16px}
+.if-main .it-sets{margin:0 -12px 12px 0;padding:0 12px 0 0}
 .set-chip .n{font-weight:700;color:var(--gold)}
 /* 세트 담기 막대 (아이템 탭 아래) */
 .setbar{position:absolute;left:0;right:0;bottom:0;z-index:16;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.14);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px))}
@@ -611,11 +614,7 @@ const STAT_GROUPS = [   /* [키, 이름, 데이터 능력치 이름들, 필터 �
 ];
 const STAT_NAME = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l,names])=>names.forEach(n=>STAT_NAME[n]=k)));
 const STAT_LABEL = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,l])=>STAT_LABEL[k]=l));
-/* 아이템 능력치 값 색상: 설명문 효과 색상과 같은 규칙 */
-const STAT_CLASS = {ad:'kad',as:'kas',crit:'kcr',pen:'kpen',ls:'kls',ap:'kap',ah:'kah',mana:'kmn',mreg:'kmn',mpen:'kmp',hp:'khp',ar:'ka',mr:'kr',regen:'khp',heal:'kh',ten:'kc',ms:'ksp'};
-const STAT_VAR = {ad:'ad',as:'as',crit:'crit',pen:'pen',ls:'ls',ap:'ap',ah:'ah',mana:'mana',mreg:'mana',mpen:'mpen',hp:'hp',ar:'ar',mr:'mr',regen:'hp',heal:'heal',ten:'',ms:'spd'};
-/* 필터 칩 두 줄 배치 (공격·마법 / 마나·방어 순서로 색이 모이게) */
-const STAT_ROWS = [['ad','as','crit','pen','ls','ap','mpen','ah','ms'],['mana','mreg','hp','regen','ar','mr','heal','ten']];
+/* 필터 칩 짧은 이름 */
 const STAT_SHORT = {}; STAT_GROUPS.forEach(([,fs])=>fs.forEach(([k,,,sh])=>STAT_SHORT[k]=sh));
 const SKEY = k => k==='P' ? '패시브' : k;
 const PATCH_NOTES = 'https://www.leagueoflegends.com/ko-kr/news/game-updates/';
@@ -1413,7 +1412,6 @@ const IFS = {it:{s:false}, pk:{s:false}};
 const SORTS = [['ga','낮은 가격순'],['gd','높은 가격순'],['nm','이름순']], SORTN = Object.fromEntries(SORTS);
 let ISORT = '';
 const isort = () => ISORT || (ISORT = SORTN[(lsGet(LS_UI)||{}).isort] ? (lsGet(LS_UI)||{}).isort : 'ga');
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function ifSt(c){
   if(c==='it') return {tier:S.itier, stats:S.istats, q:S.qi, map:S.imap, a:'it'};
   const P = S.picker||{tier:'legend', stats:[], q:''}, b = P.bid && S.builds.get(P.bid);
@@ -1424,9 +1422,13 @@ const STAT_RAIL = [['ad','as','crit','pen','ls'],['ap','mpen','ah','ms'],['mana'
 const STAT_SC = {ad:'ad',as:'as',crit:'crit',pen:'pen',ls:'ls',ap:'ap',mpen:'mpen',ah:'ah',ms:'ms',mana:'mana',mreg:'mana',hp:'hp',regen:'hp',ar:'ar',mr:'mr',heal:'heal',ten:'ten'};
 const ifOn = F => F.stats.length || F.tier!=='legend' || F.q;
 /* 위 줄: 검색(아이콘 → 누르면 입력창)·정렬·초기화 */
+function ifTailHTML(c){
+  const F = ifSt(c);
+  return `<button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${ifOn(F)?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}`;
+}
 function ifBarHTML(c){
   const F = ifSt(c), o = IFS[c], srch = o.s || !!F.q;
-  const tail = `<button class="linkbtn" data-act="if-sort" data-c="${c}" aria-label="정렬 바꾸기 (지금 ${SORTN[isort()]})">${SORTN[isort()]} ⇅</button>${ifOn(F)?`<button class="linkbtn" data-act="${F.a}-reset">초기화</button>`:''}`;
+  const tail = `<span class="if-tail" id="ift-${c}">${ifTailHTML(c)}</span>`;
   return srch
     ? `<label class="search">${ICONS.search}<input id="${c==='it'?'q-items':'q-item'}" type="search" autocomplete="off" enterkeyhint="search" placeholder="아이템 이름 (초성)" value="${esc(F.q)}"></label><button class="iconbtn sm" data-act="if-sclose" data-c="${c}" aria-label="검색 닫기">${ICONS.close}</button>${tail}`
     : `<button class="iconbtn if-s" data-act="if-search" data-c="${c}" aria-label="아이템 이름 검색">${ICONS.search}</button><span class="if-gap"></span>${tail}`;
@@ -1438,17 +1440,20 @@ function ifRailHTML(c){
   const chip = k => `<button class="sc" data-act="${F.a}-stat" data-v="${k}" aria-pressed="${F.stats.includes(k)}" aria-label="${STAT_LABEL[k]}" style="--sc:var(--s-${STAT_SC[k]})">${STAT_SHORT[k]}</button>`;
   return cyc + STAT_RAIL.map(g => `<div class="sc-g">${g.map(chip).join('')}</div>`).join('<div class="sc-dv" aria-hidden="true"></div>');
 }
-/* 막대 높이를 화면 남은 높이에 맞춤: 칸 높이 28~38px, 그래도 모자라면 2열 */
 /* 막대는 스크롤 영역 맨 위에서 시작해 그 자리에 고정(sticky). 칸 높이를 화면 남은 높이에 맞춤(30~40px, 2개씩 9줄) */
 function railFit(c){
   const r = $('#rail-'+c); if(!r) return; const sc = r.closest('.hm-pane, .pg-b'); if(!sc || !sc.clientHeight) return;
+  const ae = document.activeElement;
+  if(r.style.getPropertyValue('--chh') && ae && ae.tagName==='INPUT' && sc.contains(ae)) return;   /* 검색 입력 중(키보드로 화면이 줄어든 상태)에는 그대로 */
   const top = parseFloat(getComputedStyle(r).top) || 6;
   let H = sc.clientHeight - top - 8;
   if(c==='it'){ const sb = $('#setbar'); if(sb && !sb.hidden) H -= sb.offsetHeight; }
-  const fixed = 62 + 2*12;   /* 분류 버튼 + 구분선 2개 */
-  const h = Math.max(30, Math.min(40, Math.floor((H - fixed - 6*4) / 9)));
+  const fixed = 62 + 2*12 + 5*4 + 6*4;   /* 분류 버튼 + 구분선 2개 + 묶음 사이 간격 + 줄 사이 간격 */
+  const raw = Math.floor((H - fixed) / 9), h = Math.max(30, Math.min(40, raw));
   r.style.setProperty('--chh', h+'px');
-  if(r.parentElement) r.parentElement.style.minHeight = (H + top) + 'px';   /* 목록이 짧아도 막대가 고정 위치를 지키게 */
+  const free = raw < 30;   /* 가로 화면처럼 너무 낮으면 고정 대신 목록과 함께 스크롤 (아래 칸도 누를 수 있게) */
+  r.classList.toggle('free', free);
+  if(r.parentElement) r.parentElement.style.minHeight = free ? '' : (H + top) + 'px';   /* 목록이 짧아도 막대가 고정 위치를 지키게 */
 }
 window.addEventListener('resize', () => { railFit('it'); railFit('pk'); });
 function ifAnim(c){
@@ -2007,7 +2012,8 @@ function filterItems(pref, tier, stats, q, keep){
   if(stats.length) list = list.filter(([id])=>stats.every(k=>IX.istat[id].has(k)));
   if(q) list = list.filter(([,it])=>match(q, it.n));
   const so = isort(), gc = so==='ga' ? (a,b2)=>a[1].g-b2[1].g : so==='gd' ? (a,b2)=>b2[1].g-a[1].g : ()=>0;
-  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || gc(a,b2) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
+  const nc = so==='nm' ? (a,b2)=>koCmp(a[1].n, b2[1].n) : ()=>0;   /* 이름순은 분류와 상관없이 이름만으로 */
+  list.sort((a,b2)=> (q ? rankOf(q,a[1].n)-rankOf(q,b2[1].n) : 0) || gc(a,b2) || nc(a,b2) || (TIER_ORDER[a[1].tier]-TIER_ORDER[b2[1].tier]) || koCmp(a[1].n, b2[1].n));
   return list;
 }
 function trayHTML(b){
@@ -2042,7 +2048,7 @@ function pickFootHTML(b){
 function updatePicker(){
   const b = S.picker && S.builds.get(S.picker.bid); if(!b) return;
   const pp=pickerPage(), g=$('#pick-grid'), c=$('#ifbar-pk'), t=$('#pick-tray'), f=pp&&pp.foot;
-  if(g) g.innerHTML = pickGridHTML(b); if(c && !c.contains(document.activeElement)) setHTML(c, ifBarHTML('pk')); if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
+  if(g) g.innerHTML = pickGridHTML(b); if(c){ if(!c.contains(document.activeElement)) setHTML(c, ifBarHTML('pk')); else { const tl=$('#ift-pk'); if(tl) setHTML(tl, ifTailHTML('pk')); } } if(t) t.innerHTML = trayHTML(b); if(f) f.innerHTML = pickFootHTML(b);
 }
 
 /* ------------------------------------------------------------ 동작 */
@@ -2340,7 +2346,7 @@ document.addEventListener('input', e => {
   const upd = (sel, fn) => { clearTimeout(qT); qT = setTimeout(() => { const l = $(sel); if(l) setHTML(l, fn()); }, 80); };
   if(t.id==='q-home'){ S.q=t.value; upd('#home-list', buildsListHTML); }
   else if(t.id==='q-champs'){ S.qc=t.value; HM.ck=''; upd('#champ-list', champsListHTML); }
-  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'); if(l) setHTML(l, itemsListHTML()); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
+  else if(t.id==='q-items'){ S.qi=t.value; clearTimeout(qT); qT=setTimeout(()=>{ const l=$('#it-list'), tl=$('#ift-it'); if(l) setHTML(l, itemsListHTML()); if(tl) setHTML(tl, ifTailHTML('it')); HM.ik = itKey(); HM.fk = ifKey(); ifTop('it'); },80); }
   else if(t.id==='q-apply'){ S.qa=t.value; const sh=topSheet(); const st=sh&&setById(sh.props.sid); if(st) upd('#apply-list', () => applyListHTML(st, S.atab==='new'?'new':'build')); }
   else if(t.id==='q-cpick'){ S.qp=t.value; upd('#cpick-list', () => cpickListHTML('pick-champ-new')); }
   else if(t.id==='f-setname'){ const st=curSet(); if(st){ st.n = t.value.slice(0,30) || '세트'; st.updated = Date.now(); savePrefs(); const r=$('#it-sets'); if(r) setHTML(r, setsRowHTML()); } }
