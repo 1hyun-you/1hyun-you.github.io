@@ -85,9 +85,15 @@ await tap('[data-act=it-stat][data-v=ap]'); const na = await cnt(); check('능�
 await tap('[data-act=it-reset]'); check('필터 초기화 = 완성', await cnt()===nl);
 const gs0 = await p.evaluate(() => [...document.querySelectorAll('#it-list .pit .g')].slice(0,30).map(e=>+e.textContent.replace(/\D/g,'')));
 check('기본 낮은 가격순', gs0.every((g,i)=>!i||g>=gs0[i-1]), gs0.slice(0,6).join());
+const railY0 = await p.evaluate(() => Math.round(document.querySelector('#rail-it').getBoundingClientRect().top - document.querySelector('.hm-pane[data-tab=items]').getBoundingClientRect().top));
+await p.evaluate(() => document.querySelector('.hm-pane[data-tab=items]').scrollTop = 150); await p.waitForTimeout(200);
+const railY1 = await p.evaluate(() => Math.round(document.querySelector('#rail-it').getBoundingClientRect().top - document.querySelector('.hm-pane[data-tab=items]').getBoundingClientRect().top));
+check('막대는 처음부터 고정(조금 내려도 위치 그대로)', railY0===6 && railY1===6, `${railY0} → ${railY1}`);
+const cols = await p.evaluate(() => getComputedStyle(document.querySelector('#it-list .pgrid')).gridTemplateColumns.split(' ').length);
+check('막대 옆 아이템 4열(390px 화면)', cols===4, String(cols));
 await p.evaluate(() => document.querySelector('.hm-pane[data-tab=items]').scrollTop = 1200); await p.waitForTimeout(200);
 const stk = await p.evaluate(() => { const r=document.querySelector('#rail-it').getBoundingClientRect(), pn=document.querySelector('.hm-pane[data-tab=items]').getBoundingClientRect(), f=document.querySelector('#it-filters').getBoundingClientRect(); return [Math.round(r.top-pn.top), r.bottom<=pn.bottom+1, f.bottom<pn.top].join(); });
-check('스크롤해도 왼쪽 막대 고정·화면 안, 위 줄은 따라오지 않음', stk==='8,true,true', stk);
+check('스크롤해도 왼쪽 막대 고정·화면 안, 위 줄은 따라오지 않음', stk==='6,true,true', stk);
 await tap('.hm-seg [data-v=items]', 900); check('탭 다시 누르기 = 맨 위로', (await p.evaluate(() => document.querySelector('.hm-pane[data-tab=items]').scrollTop))===0);
 await tap('[data-act=if-search][data-c=it]'); await p.fill('#q-items', 'ㄹㅇㄷㄹ'); await p.waitForTimeout(250);
 check('초성 검색', (await p.evaluate(() => [...document.querySelectorAll('#it-list .pit .nm')].map(e=>e.textContent).join(','))).includes('리안드리의 고통'));
