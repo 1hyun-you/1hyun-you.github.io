@@ -3,14 +3,16 @@
 새 대화에서 이 앱을 이어서 고칠 때 먼저 읽는 문서. 사용자 응답 형식 규칙(사무적 어조, 개조식·명사형 종결, 선택지는 번호)은 Claude 메모리의 preferences에 있음.
 
 ## 1. 현재 상태
-- 앱: 설치형 웹앱(PWA) https://1hyun-you.github.io/ — 폰(안드로이드 크롬 설치)·PC에서 사용 중
+- 앱: 설치형 웹앱(PWA) https://1hyun-you.github.io/temtree/ — 폰(안드로이드 크롬 설치)·PC에서 사용 중
+- 2026-11-02 주소 이동: 최상위(1hyun-you.github.io/) → /temtree/. 최상위 설치 앱이 같은 주소의 다른 앱(/loop-game/ 등)까지 범위로 덮어 별도 설치 불가였기 때문. **최상위에는 앱 설치 금지**(최상위 = 이동 안내 index.html + 기존 오프라인 기능 해제용 sw.js만, 원본 site-src/root/)
 - 빌드 기록 동기화: 비공개 저장소 `1hyun-you/tem-tree-sync`의 `builds.json` (앱이 사용자 토큰으로 GitHub API 직접 읽기·쓰기)
 - Claude 페이지(https://claude.ai/artifact/U79KLdzMdL6e7ZShouKoUE): 2026-10-20 Version 15에서 동결. 데이터 갱신·기능 추가 모두 하지 않음 (사용자 결정)
 - 매주 금요일 08:50 예약 작업 `템트리 노트 패치 갱신`(trig_01XyewH8DsjyM3Ro1iR4DPD4): 패치 데이터만 새로 만들어 `main`에 덮어씀. 앱 원본(app 가지)·tem-tree-sync는 건드리지 않음
 
 ## 2. 저장소 구조 (`1hyun-you/1hyun-you.github.io`, 공개)
 - `main`: 공개 사이트. 커밋 하나로 매번 덮어씀(force push, 이력 없음)
-  - index.html(감싼 앱), sw.js, manifest.webmanifest, icons/, data.json, skills.json, sprites/*.webp, tools/aram_raw.txt·aram_ko.json(최신 칼바람 보정 원본)
+  - 최상위: index.html(이동 안내), sw.js(해제용), .nojekyll
+  - temtree/: index.html(감싼 앱), sw.js, manifest.webmanifest, icons/, data.json, skills.json, sprites/*.webp, tools/aram_raw.txt·aram_ko.json(최신 칼바람 보정 원본)
 - `app`: 앱 원본 (이 가지). 앱을 고칠 때만 커밋 추가
   - `index.html` = 앱 본문 전체(CSS·JS 한 파일, 약 18만 자). **수정은 이 파일을 직접 고침**
   - `site-src/` = manifest, sw.js(`__V__` 자리), 아이콘
@@ -23,12 +25,12 @@
 1. add_repo: owner `1hyun-you`, repo `1hyun-you.github.io`, access `push` (빌드 기록을 직접 다룰 때만 `tem-tree-sync`도)
 2. 원본 작업 폴더 만들기
    - `git clone -b app https://github.com/1hyun-you/1hyun-you.github.io /home/claude/tem-tree`
-   - 데이터 복사: `git clone --depth 1 -b main https://github.com/1hyun-you/1hyun-you.github.io /tmp/site-main` 후 `cp -r /tmp/site-main/{data.json,skills.json,sprites} /home/claude/tem-tree/`
+   - 데이터 복사: `git clone --depth 1 -b main https://github.com/1hyun-you/1hyun-you.github.io /tmp/site-main` 후 `cp -r /tmp/site-main/temtree/{data.json,skills.json,sprites} /home/claude/tem-tree/`
    - (data.json·skills.json·sprites는 app 가지에 커밋하지 말 것: `.gitignore` 없음 → `git add`할 때 파일 지정)
 3. 사이트 배포용 폴더: `git clone --depth 1 -b main https://github.com/1hyun-you/1hyun-you.github.io /home/claude/1hyun-you.github.io`
 
 ## 4. 배포 절차 (앱 수정 후)
-1. `cd /home/claude/tem-tree && python3 tools/build_site.py . . /home/claude/1hyun-you.github.io`
+1. `cd /home/claude/tem-tree && python3 tools/build_site.py . . /home/claude/1hyun-you.github.io` (출력 폴더 = 사이트 최상위, 앱은 그 안의 temtree/에 생성)
 2. `cd /home/claude/1hyun-you.github.io && git add -A && git commit --amend --date=now -m "템트리 노트 설치형 앱" && git push -f origin main` (커밋 표기 줄은 세션 안내에 따름, 작성자 `1hyun-you <1hyun-you@users.noreply.github.com>`)
 3. app 가지에 `index.html`(및 바꾼 원본) 커밋 후 `git push origin app`
 4. `gh api repos/1hyun-you/1hyun-you.github.io/actions/runs`로 최신 실행이 success인지 확인 (가끔 GitHub 대기열에서 10~20분 걸림)

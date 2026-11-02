@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주소 이동 안내</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=temtree/">
+<style>
+:root{color-scheme:light dark}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font:16px system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#0A1016;color:#E6EBF0;padding:16px;box-sizing:border-box}
+a{color:#7FB8E6}
+</style>
+</head>
+<body>
+<p>템트리 노트 주소 변경: <a href="temtree/">1hyun-you.github.io/temtree/</a></p>
+<script>
+/* 최상위에 남은 기존 오프라인 기능 해제 후 새 주소로 이동 (최상위는 앱 설치 금지 구역) */
+(async () => {
+  try { if ('serviceWorker' in navigator) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.filter(r => new URL(r.scope).pathname === '/').map(r => r.unregister())); } } catch (e) {}
+  location.replace('temtree/' + location.search + location.hash);
+})();
+</script>
+</body>
+</html>

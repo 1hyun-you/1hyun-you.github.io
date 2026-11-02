@@ -3,12 +3,17 @@
 Claude 페이지 본문(index.html)을 일반 웹 문서로 감싸고, 앱 설치 정보(manifest)·오프라인 보관(sw.js)·아이콘을 붙여
 <출력 폴더>에 올릴 파일 전체를 만든다. 게임 데이터(data.json·skills.json·sprites)도 함께 복사.
 
+2026-11-02 구조 변경: 앱은 <출력 폴더>/temtree/ 하위 폴더에 생성(주소 1hyun-you.github.io/temtree/),
+최상위에는 이동 안내 페이지(index.html)·기존 최상위 오프라인 기능 해제용 sw.js만 둠.
+이유: 최상위 설치 앱은 같은 주소의 다른 앱(예: /loop-game/)까지 범위로 덮어 안드로이드 크롬에서 별도 설치 불가 → 최상위에는 앱 설치 금지.
+
 사용법: python3 build_site.py <앱 원본 폴더(index.html, site-src/, tools/)> <데이터 폴더(data.json, skills.json, sprites/)> <출력 폴더> [칼바람 보정 폴더]
 칼바람 보정 폴더(aram_raw.txt, aram_ko.json)를 생략하면 앱 원본 폴더의 tools/ 사용. 사이트의 tools/에 복사됨
 """
 import hashlib, os, re, shutil, sys
 
-SRC, DATA, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
+SRC, DATA, ROOT = sys.argv[1], sys.argv[2], sys.argv[3]
+OUT = os.path.join(ROOT, "temtree")   # 앱 위치 (최상위 아님)
 ARAM = sys.argv[4] if len(sys.argv) > 4 else os.path.join(SRC, "tools")   # 칼바람 보정 원본(aram_raw.txt, aram_ko.json): 사이트 tools/에 보관해 다음 주 갱신의 이전 값으로 사용
 page = open(os.path.join(SRC, "index.html"), encoding="utf-8").read()
 page = re.sub(r"^\s*<title>.*?</title>\s*", "", page, flags=re.S)
@@ -52,5 +57,8 @@ os.makedirs(os.path.join(OUT, "tools"), exist_ok=True)
 for f in ("aram_raw.txt", "aram_ko.json"):
     if os.path.exists(os.path.join(ARAM, f)):
         shutil.copy(os.path.join(ARAM, f), os.path.join(OUT, "tools", f))
-open(os.path.join(OUT, ".nojekyll"), "w").close()
-print({"out": OUT, "shell_version": ver, "files": sum(len(fs) for _, _, fs in os.walk(OUT))})
+open(os.path.join(ROOT, ".nojekyll"), "w").close()
+# 최상위: 앱 없음. 기존 주소 접속 시 새 주소로 이동, 기존 최상위 오프라인 기능(sw.js) 해제
+shutil.copy(os.path.join(SRC, "site-src", "root", "index.html"), ROOT)
+shutil.copy(os.path.join(SRC, "site-src", "root", "sw.js"), ROOT)
+print({"out": OUT, "root": ROOT, "shell_version": ver, "files": sum(len(fs) for _, _, fs in os.walk(OUT))})

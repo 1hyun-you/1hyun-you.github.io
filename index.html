@@ -934,7 +934,7 @@ const buildsOf = champId => sortBuilds([...S.builds.values()].filter(b=>b.champ=
 const LS_GH = 'ttn.v1.gh', LS_GHM = 'ttn.v1.ghm';
 const inClaude = () => !!(window.claude && window.claude.use);   /* Claude 페이지 안인지 (실행 시점마다 확인) */
 const STANDALONE = (() => { try{ return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }catch{ return false; } })();
-const APP_URL = 'https://1hyun-you.github.io/';   /* 설치형 앱 주소 (GitHub Pages) — Claude 페이지 정보 화면에 안내 */
+const APP_URL = 'https://1hyun-you.github.io/temtree/';   /* 설치형 앱 주소 (GitHub Pages) — Claude 페이지 정보 화면에 안내 */
 const SYNC_REPO = 'tem-tree-sync';
 function ghOwner(){ const m = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i); return m ? m[1] : ''; }
 function ghCfg(){
