@@ -514,10 +514,10 @@ html.rm .hm-track,html.rm .seg-ind{transition:none}
 .if-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .sb .if-main{gap:10px}
 .if-list{min-width:0}
-/* 막대 옆에서도 4열: 아이템 탭·추가 창은 양옆 여백 12px, 칸 최소 64px·가로 간격 2px */
+/* 막대 옆에서도 4열: 아이템 탭·추가 창은 양옆 여백 12px, 칸 최소 57px(360px 폭까지 4열)·가로 간격 2px */
 .hm-pane[data-tab=items]>.wrap{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
 .sb:has(>.if-body){padding-left:max(12px,env(safe-area-inset-left,0px),calc((100% - 720px)/2));padding-right:max(12px,env(safe-area-inset-right,0px),calc((100% - 720px)/2))}
-.if-list .pgrid{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px 2px}
+.if-list .pgrid{grid-template-columns:repeat(auto-fill,minmax(57px,1fr));gap:10px 2px}
 .sb:has(>.if-body){padding-bottom:0}
 #pick-grid{padding-bottom:28px}
 .if-rail{--chh:34px;flex:none;width:92px;position:sticky;top:6px;z-index:2;display:flex;flex-direction:column;gap:4px}
