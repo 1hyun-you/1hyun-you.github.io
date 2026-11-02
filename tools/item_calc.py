@@ -304,4 +304,8 @@ if __name__ == "__main__":
     d = json.load(open(path, encoding="utf-8"))
     n = enrich(d["items"], clean, fmt_value, cache)
     if n:
+        # 내용 지문(rev)을 build_data.py와 같은 방식으로 다시 계산: 지문이 같으면 앱이 기기에 저장된 예전 데이터를 계속 씀
+        import hashlib
+        d.pop("rev", None)
+        d["rev"] = hashlib.md5(json.dumps(d, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")).hexdigest()[:10]
         json.dump(d, open(path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
