@@ -129,7 +129,7 @@ def enrich(skill_out, clean, fmt_value, cache_dir=None, log=print):
         st = ic.fetch(ic.URL_STR, cache_dir, "lol.stringtable.ko.json")
     except Exception as ex:
         log(f"[skill_calc] 자료 받기 실패, 기존 설명 유지: {ex}")
-        return 0
+        return 0, 0
     entries = st.get("entries", st)
     ids = list(skill_out)
     with ThreadPoolExecutor(8) as ex:
@@ -175,7 +175,7 @@ def enrich(skill_out, clean, fmt_value, cache_dir=None, log=print):
             except (ic.Fail, TypeError, KeyError, ValueError, IndexError, ZeroDivisionError, AttributeError):
                 fails += 1   # 해석 못 한 계산식은 기존 설명 유지
     log(f"[skill_calc] 패시브 {done['P']}개, '?' 스킬 {done['S']}개 수치 채움, 기존 유지 {fails}개")
-    return done["P"] + done["S"]
+    return done["P"], done["S"]   # (패시브 채운 수, '?' 스킬 채운 수)
 
 
 if __name__ == "__main__":
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     cache = sys.argv[3] if len(sys.argv) > 3 else None
     clean, fmt_value = ic._load_builder()
     sk = json.load(open(sk_path, encoding="utf-8"))
-    n = enrich(sk["champs"], clean, fmt_value, cache)
+    n = sum(enrich(sk["champs"], clean, fmt_value, cache))
     if n:
         sk_text = json.dumps(sk, ensure_ascii=False, separators=(",", ":"))
         open(sk_path, "w", encoding="utf-8").write(sk_text)

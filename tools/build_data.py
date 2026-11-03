@@ -609,8 +609,9 @@ for k in sorted(all_ids, key=lambda x: (raw[x]["gold"]["total"], raw[x]["name"])
 try:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import item_calc
-    item_calc.enrich(items, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
+    n_item_calc = item_calc.enrich(items, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
 except Exception as ex:
+    n_item_calc = 0
     print(f"[item_calc] 건너뜀: {ex}")
 
 # ---------------------------------------------------------------- 룬
@@ -771,9 +772,18 @@ out = {
 # 패시브·'?' 스킬 세부 수치 (CommunityDragon 게임 원본 계산식, 받기 실패 시 기존 설명 유지)
 try:
     import skill_calc
-    skill_calc.enrich(skill_out, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
+    n_passive_calc, n_skill_calc = skill_calc.enrich(skill_out, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
 except Exception as ex:
+    n_passive_calc = n_skill_calc = 0
     print(f"[skill_calc] 건너뜀: {ex}")
+# CommunityDragon 자료 버전 (예약 갱신에서 패치 번호가 같아도 수치가 바뀌었는지 비교하는 데 사용)
+try:
+    import urllib.request
+    with urllib.request.urlopen(urllib.request.Request(item_calc.CD + "/content-metadata.json", headers={"User-Agent": "tem-tree-note"}), timeout=30) as r:
+        cd_version = json.loads(r.read()).get("version", "")
+except Exception:
+    cd_version = ""
+out["cdv"] = cd_version
 sk_text = json.dumps({"v": dd_version, "sv": facts_version, "champs": skill_out}, ensure_ascii=False, separators=(",", ":"))
 out["skrev"] = hashlib.md5(sk_text.encode("utf-8")).hexdigest()[:10]
 out["rev"] = hashlib.md5(json.dumps(out, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")).hexdigest()[:10]
@@ -787,4 +797,5 @@ print(json.dumps({
     "champions": len(champs), "items": len(items), "sr_items": len(sr_ids), "aram_items": len(ar_ids),
     "runes": len(runes), "spells": len(spells), "skills_fully_resolved": resolved, "skills_partial": unresolved,
     "aram_champions": len(aram), "aram_source_patch": aram_src or "없음", "aram_untranslated": sorted(set(aram_missing)),
+    "cd_version": cd_version or "없음", "item_numbers": n_item_calc, "passive_numbers": n_passive_calc, "skill_q_numbers": n_skill_calc,
 }, ensure_ascii=False))
