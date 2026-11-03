@@ -110,6 +110,11 @@ class Item:
         if t == "AbilityResourceByCoefficientCalculationPart":
             f = p.get("mStatFormula")
             return 0.0, [(float(p.get("mCoefficient", 0)), "추가 마나" if f == 2 else "기본 마나" if f == 1 else "최대 마나")]
+        if t == "ByCharLevelFormulaCalculationPart":   # 레벨별 값 목록 (칸 번호 = 레벨)
+            vs = p.get("values") or []
+            if len(vs) < 19:
+                raise Fail("lvformula")
+            return ("lv", (float(vs[1]), float(vs[18]))), []
         if t == "ByCharLevelBreakpointsCalculationPart":
             v1 = float(p.get("mLevel1Value", 0))
             v18, per = v1, 0.0
@@ -194,7 +199,12 @@ class Item:
             head = f"{num(base * k, prec)}{u}"
         else:
             head = ""
-        tail = " ".join(f"(+ {num(cf * mult * 100, 2)}% {n})" for cf, n in ratios)
+        if pct:   # 퍼센트 값의 계수: 능력치 1당 소수 → '주문력 100당 5%' 꼴
+            tail = " ".join(f"(+ {n} 100당 {num(cf * mult * 100 * 100, 2)}%)" for cf, n in ratios)
+        else:
+            tail = " ".join(f"(+ {num(cf * mult * 100, 2)}% {n})" for cf, n in ratios)
+        if not head and pct:
+            raise Fail("pct ratio only")
         if not head:   # 계수만 있는 값: '최대 체력의 2%' 꼴
             if len(ratios) == 1:
                 cf, n = ratios[0]

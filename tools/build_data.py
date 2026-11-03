@@ -768,6 +768,12 @@ out = {
     "spells": spells, "sheets": sheets, "aramSrc": aram_src,
 }
 # 내용 지문: 날짜·버전이 같아도 내용이 바뀌면 값이 달라져 폰에 저장된 예전 데이터를 확실히 교체
+# 패시브·'?' 스킬 세부 수치 (CommunityDragon 게임 원본 계산식, 받기 실패 시 기존 설명 유지)
+try:
+    import skill_calc
+    skill_calc.enrich(skill_out, clean, fmt_value, os.environ.get("ITEM_CALC_CACHE"))
+except Exception as ex:
+    print(f"[skill_calc] 건너뜀: {ex}")
 sk_text = json.dumps({"v": dd_version, "sv": facts_version, "champs": skill_out}, ensure_ascii=False, separators=(",", ":"))
 out["skrev"] = hashlib.md5(sk_text.encode("utf-8")).hexdigest()[:10]
 out["rev"] = hashlib.md5(json.dumps(out, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")).hexdigest()[:10]
