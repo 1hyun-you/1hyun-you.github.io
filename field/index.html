@@ -72,6 +72,8 @@ button.pri{background:#463c8c;border-color:var(--accent)}
 .sel-actions button.on{background:#7a2e3a;border-color:#c25060}
 button:disabled{opacity:.4}
 .build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:420px}
+.rsum{width:100%;max-width:380px;display:flex;flex-direction:column;gap:5px;align-items:stretch}.rsum h3{margin:6px 0 2px;font-size:13px;color:var(--muted);text-align:center;font-weight:normal}.rsum .build{align-self:center}
+.dbar{display:grid;grid-template-columns:7.5em 1fr 3em;gap:8px;align-items:center;font-size:13px}.dbar .dn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}.dbar .dt{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}.dbar .dt i{display:block;height:100%;background:#ffd24a}.dbar .dk{font-variant-numeric:tabular-nums;color:var(--muted)}
 .chip{font-size:13px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--line);background:var(--panel)}
 .devbtn{position:fixed;left:8px;bottom:calc(var(--sab) + 10px);z-index:6;pointer-events:auto;
   padding:6px 9px;font-size:12px;font-family:var(--f-mono);border-radius:7px;background:rgba(34,31,46,.8)}
@@ -112,6 +114,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
 .layer.ending h2{font-size:32px;letter-spacing:2px}
 #ui>.layer.scroll{justify-content:flex-start;overflow-y:auto;touch-action:pan-y;background:rgba(14,12,22,.94)}
 .layer.scroll>h2{margin-top:6vh}
+#ui>.layer.fit{overflow-y:auto;touch-action:pan-y;justify-content:safe center}
 .layer h3{margin:6px 0 0;font-size:16px;color:var(--muted);align-self:center}
 .menu.row2{flex-direction:row;flex-wrap:wrap;justify-content:center;width:min(340px,90vw)}.menu.row2 button{flex:1;min-width:30%;white-space:nowrap;word-break:keep-all;padding:12px 8px}
 .rows{display:flex;flex-direction:column;gap:8px;width:100%;max-width:420px}
@@ -126,7 +129,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
 .cx b{font-size:15px;margin-right:6px}.cx .tag{font-size:12px;color:var(--muted)}.cx p{margin:3px 0 0;font-size:13.5px;line-height:1.5;color:var(--muted);word-break:keep-all}
 .cx.lock b{color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:420px}
-.chipb{padding:7px 11px;font-size:13px;border-radius:20px;display:inline-flex;gap:6px;align-items:center}.chipb i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.chipb{padding:7px 11px;min-height:40px;font-size:13px;border-radius:20px;display:inline-flex;gap:6px;align-items:center}.chipb i{width:12px;height:12px;border-radius:50%;display:inline-block}
 .card.armed{outline:3px solid #fff;outline-offset:1px}
 @media (orientation:landscape) and (pointer:coarse){.rot{display:flex}}
 @media (prefers-reduced-motion:reduce){button:active{transform:none}}
@@ -143,7 +146,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.30',
+  VERSION: '0.31',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -270,6 +273,9 @@ function nearestEnemy(x, y, maxR = 600) {
   for (const e of G.enemies) { if (e.dead) continue; const d = dist2(x, y, e.x, e.y); if (d < bd) { bd = d; best = e; } }
   return best;
 }
+
+/* 0.31 같은 화면 다시 그릴 때 스크롤 위치 유지 (설정·도전 준비·도감·선택 화면 토글 시 맨 위로 튀는 문제) */
+function keepScroll(fn) { const a = UI && UI.querySelector('.layer'), y = a ? a.scrollTop : 0; fn(); const b = UI && UI.querySelector('.layer'); if (b && y) b.scrollTop = y; }
 /* ============================================================
    화면 크기 · 입력 (유동형 조이스틱: 중심은 첫 터치 위치 고정)
    ============================================================ */
@@ -400,6 +406,7 @@ function step(dt) {
   G.time += dt;
   if (G.time >= (G.stats.dmgMin.length + 1) * 60) G.stats.dmgMin.push(Object.assign({}, G.stats.dmg));   // 분 단위 피해 누적 스냅숏
   updatePlayer(dt);
+  guideUpdate(dt);                                           // 첫 판 안내 (0.31)
   if (!G.result) { updatePhase(dt); if (!G.result) updateEvent(dt); updateEliteSpawn(dt); }
   if (!G.result) updateSpawn(dt);
   gridBuild(G.enemies);
@@ -515,7 +522,7 @@ function updateEnemies(dt) {
 
 /* 피해·처치 */
 function damageEnemy(e, dmg, o = {}) {
-  if (e.dead || e.inv > 0) return;                         // 마왕 페이즈 전환 중 무적 (0.12)
+  if (e.dead) return;                                       // 0.31 마왕 전환 무적 폐지
   dmg *= jobDmgMul(e, o) * traitDmgMul(e) * (e.mb ? mobDmgMul(e, o) : 1);   // 숙련 특성·방패병 (0.23)
   if (G.tm.storm > 0 && o.src === 'spin') dmg *= 1.3;
   if (e.gk === 'demon') { dmg = dmAdjust(e, dmg); if (dmg <= 0) return; }   // 마왕 처치 시간 편차 억제 (0.16) — 모든 피해 배율 적용 후 보정 (0.18: 칼날 폭풍 배율이 보정 뒤에 곱해져 페이즈 조기 전환되던 결함 수정)
@@ -694,7 +701,8 @@ const PH_CFG = { gap: 6, warnAt: 3, zoneR: 70, zoneNeed: 5, zoneN: 4, zoneDist: 
   strongAt: 0.82, weakAt: 0.55, ambushMul: 1.35, ambushElites: 2,
   pickW: { strong: [0.4, 1, 2.6], mid: [1, 1.2, 1.4], weak: [2.4, 1.4, 1] },   // 다음 페이즈 가중치 [휴식형, 기본형, 전투·기믹형]
   accPerKill: 0.025, accMax: 0.2,                                     // 시간형 페이즈: 처치 1회당 시계 추가 진행(초), 단축 상한 20% (0.24 시험: 30% 상한 시 무적 판 길이 11.7분)
-  cartAggro: 0.45, cartBlock: 0.2,                                    // 수레 표적 적 비율, 붙은 적 1체당 감속 20% (5체 정지)
+  cartAggro: 0.45, cartBlock: 0.2, cartWarn: 0.3, cartFailElites: 2,   // 0.31 수레 체력 경고 기준·실패 시 정예 수
+                                     // 수레 표적 적 비율, 붙은 적 1체당 감속 20% (5체 정지)
 };
 
 /* 판당 투입 페이즈 구성 — 유형별 perType종 이상 보장 후 나머지 무작위 */
@@ -908,6 +916,7 @@ function updatePhaseGimmick(P, dt) {
     c.block = n; c.sp = paused ? 0 : PH_CFG.cartSpeed * Math.max(0, 1 - n * PH_CFG.cartBlock); c.moving = c.sp > 0;
     if (c.moving) { const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy); if (d < 8) { c.done = true; } else { c.x += dx / d * c.sp * dt; c.y += dy / d * c.sp * dt; } }
     if (hurt) { c.hp -= hurt * PH_CFG.cartHurt * dt; c.hit = 0.15; }
+    if (!c.warned && c.hp <= c.maxHp * PH_CFG.cartWarn) { c.warned = true; toast('수레 위험 · 체력 30% 이하', '#ff6a4a'); sfx('preview'); }   // 0.31 수레 위험 경고
     c.hit -= dt;
   }
   // 의식 저지: 남은 마법진마다 주기 소환
@@ -938,7 +947,11 @@ function phaseCleanup(outcome) {
     if (left.length) { spawnElite(); toast('의식 완성 · 정예 소환', '#c8a0ff'); }
   }
   if (id === 'hunt') for (const e of G.enemies) if (e.hunt && !e.dead) e.hunt = false;
-  if (id === 'escort' && outcome !== 'ok') toast('수레 파손', '#ff9a7a');
+  if (id === 'escort' && outcome !== 'ok') {                // 0.31 수레 실패: 정예 2체 습격, 보물 상자 없음
+    toast('수레 파손 · 정예 습격', '#ff9a7a');
+    for (let i = 0; i < PH_CFG.cartFailElites; i++) { const e = spawnElite(); e.noChest = true; e.cartRaid = true; }
+    G.stats.cartFail = (G.stats.cartFail || 0) + 1;
+  }
   ph.cart = null; ph.rits = null; ph.cracks = []; ph.camp = null; ph.huntQ = null;
 }
 
@@ -985,7 +998,7 @@ function drawPhaseGround(c) {
     drawSprite(c, 'flag', f2(3), k.tx + 8, k.ty, { mul: 2 });                                       // 0.30 목적지 깃발 도트
     if (k.block) { c.fillStyle = '#ff8a6a'; c.font = 'bold 11px Galmuri11, system-ui'; c.textAlign = 'center'; c.fillText(k.sp > 0 ? '감속' : '정지', k.x, k.y - 26); }
     drawSpriteC(c, 'cart', 0, k.x, k.y, { mode: k.hit > 0 ? 'white' : 'n' });   // 0.20 도트
-    c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(k.x - 18, k.y - 20, 36, 4); c.fillStyle = '#8ff0b0'; c.fillRect(k.x - 18, k.y - 20, 36 * Math.max(0, k.hp / k.maxHp), 4);
+    c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(k.x - 18, k.y - 20, 36, 4); c.fillStyle = k.hp <= k.maxHp * PH_CFG.cartWarn ? (Math.floor(G.time * 6) % 2 ? '#ff6a4a' : '#ffd0c0') : '#8ff0b0'; c.fillRect(k.x - 18, k.y - 20, 36 * Math.max(0, k.hp / k.maxHp), 4);   // 0.31 30% 이하 깜빡임
   }
   if (ph.spring && !ph.spring.used) {
     const s = ph.spring;
@@ -1570,11 +1583,12 @@ function drawEnemyShotOrb(c, b, t) {                         // 도트 없는 �
    2페이즈(60~25%) 암흑 결계: 수축하는 결계 밖 지속 피해, 회전 광선 3갈래, 낫 휘두르기
    3페이즈(25% 이하) 종언: 운석 연속 낙하(이동 경로 추적), 광선 4갈래 가속, 추적탄 증가, 패턴 간격 단축
    전환: 1.6초 무적·탄환 소거·포효 연출 / 시간 정지·빙결 면역(둔화 0.3배), 넉백 면역
+   0.31 무적 교체: 체력 고정(최소 지속 시간 하한)·전환 무적 폐지 → 전환 시 공격 정지 연출(피해는 받음), 체력 0 즉시 처치
    명칭 '마왕'은 가칭 (서사·명칭은 4단계)
    ============================================================ */
 const DEMON = { name: '마왕', gate: '마왕성', ds: '그림자 군주', color: '#7a4ad0', r: 34, speed: 70, shape: 'hex' };
 const DM_CFG = {
-  hpMul: 360, retryHp: 0.65, dmgMul: 1.2,   // 0.12 1차(무적 12·일반 12): 재도전 판 처치 191~320초·퇴각 2, 일반 판 마왕전 사망 8/10 → 재도전 체력·패턴 피해 하향 / 2차: 무적 처치 평균 235초·마지막 판 19분 → 체력 420→360
+  hpMul: 470, retryHp: 0.65, dmgMul: 1.2,   // 0.12 1차(무적 12·일반 12): 재도전 판 처치 191~320초·퇴각 2, 일반 판 마왕전 사망 8/10 → 재도전 체력·패턴 피해 하향 / 2차: 무적 처치 평균 235초·마지막 판 19분 → 체력 420→360
   spawn: [240, 280], fail: 420, stages: [0.6, 0.25], trans: 1.6, spawnMul: 0.3,
   every: [2.6, 2.3, 1.7],                                   // 패턴 간격 (페이즈별)
   scR: 150, scArc: 2.1, scWarn: [0.85, 0.75, 0.6], scDmg: 18,  // 낫 휘두르기
@@ -1584,8 +1598,9 @@ const DM_CFG = {
   bmN: [0, 3, 4], bmLen: 340, bmW: 18, bmWarn: 1.1, bmDur: [0, 3.2, 3.6], bmRot: [0, 0.55, 0.8], bmDmg: 8,   // 회전 광선
   mtN: 7, mtGap: 0.32, mtR: 58, mtWarn: 0.9, mtDmg: 17,      // 운석 낙하
   // 0.16 처치 시간 편차 억제 (5단계 결정 안건 1-3): 페이즈별 최소 지속 시간(이전 하한 체력 고정) + 목표 초과 시 받는 피해 점증
-  stMin: [60, 55, 40], stTgt: [70, 60, 45], catchUp: 0.04, catchMax: 3, finalHp: 0.75, preDmg: 0.6,
-  erode: 20, seg: [0.4, 0.35, 0.25],   // 0.18: 목표 시간 초과 시 페이즈 남은 구간을 20초에 걸쳐 잠식 → 처치 시간 상한 약 235초 (최소 지속 합 155초)   // preDmg: 진엔딩 전 패턴 피해 배율 (진엔딩 경로 안정화)
+  stTgt: [70, 60, 45], catchUp: 0.04, catchMax: 3, finalHp: 0.75, preDmg: 0.6,
+  erode: 20, seg: [0.4, 0.35, 0.25], stun: 1.8, rate: 0.0062, burst: 0.04,   // 0.31 stun: 전환 공격 정지 시간 (피해 받음) / rate·burst: 초당 체력 감소 상한(최대 체력 비율)·누적 한도 → 강한 빌드 처치 시간 하한 약 150초 (체력 고정 대체)
+    // 0.18: 목표 시간 초과 시 페이즈 남은 구간을 20초에 걸쳐 잠식 → 처치 시간 상한 약 235초 (최소 지속 합 155초)   // preDmg: 진엔딩 전 패턴 피해 배율 (진엔딩 경로 안정화)
 };
 const bossDef = (k) => k === 'demon' ? DEMON : GATEKEEPERS[k];
 
@@ -1602,7 +1617,7 @@ function dmSpawn() {
   sfx('boss'); jBoss(DEMON.name || '마왕', '마왕성 · 최후의 결전');
   const q = ringAt(DM_CFG.spawn[0], DM_CFG.spawn[1]), e = makeEnemy('brute', q.x, q.y);
   e.hp = e.maxHp = e.hp * DM_CFG.hpMul * (G.runType === 'retry' ? DM_CFG.retryHp : DM_CFG.finalHp); e.dmg *= DM_CFG.dmgMul; e.r = DEMON.r; e.speed = DEMON.speed; e.color = DEMON.color; e.shape = DEMON.shape; e.xp = 0;
-  e.cmd = true; e.boss = true; e.gk = 'demon'; e.ai = { cd: 2.0, n: 0 }; e.st = 0; e.inv = 0; e.stT0 = G.time;
+  e.cmd = true; e.boss = true; e.gk = 'demon'; e.ai = { cd: 2.0, n: 0 }; e.st = 0; e.inv = 0; e.stun = 0; e.stT0 = G.time;
   G.gkMob = e; G.eb = []; G.hz = []; G.arena = null;
   G.stats.demon = { t0: G.time, st: [null, null], type: G.runType, n: ((G.stats.demon && G.stats.demon.n) || 0) + 1 };   // n: 생성 횟수 (0.18 계측)
   toast('마왕 강림', DEMON.color); toast('그림자 군주', '#fff');
@@ -1619,12 +1634,12 @@ function dmUpdate(e, dt, d, dx, dy) {
   const nx = e.st < 2 && e.hp <= e.maxHp * DM_CFG.stages[e.st];
   if (nx) {
     (G.stats.demon.tr || (G.stats.demon.tr = [])).push([e.id, e.st, Math.round(G.time - e.stT0), Math.round(e.hp / e.maxHp * 100), G.gkMob === e ? 1 : 0]);   // 전환 추적 (0.18 조기 전환 원인 확인)
-    e.st++; e.stT0 = G.time; e.inv = DM_CFG.trans; ai.cd = DM_CFG.trans + 0.6; G.eb = []; G.hz = G.hz.filter(h => h.k === 'arena');
+    e.st++; e.stT0 = G.time; e.stun = DM_CFG.stun; ai.cd = DM_CFG.stun + 0.5; ai.blink = null; G.eb = []; G.hz = G.hz.filter(h => h.k === 'arena');
     G.stats.demon.st[e.st - 1] = Math.round(G.time - G.stats.demon.t0);
     toast(e.st === 1 ? '암흑 결계' : '종언', '#c9a8ff'); fx({ kind: 'ring', x: e.x, y: e.y, r0: 10, r1: 280, dur: 1.0, color: '#c9a8ff' });
     if (e.st === 1) G.arena = { x: p.x, y: p.y, R: DM_CFG.arR0, t: 0, tick: 0 };
   }
-  if (e.inv > 0) e.inv -= dt;
+  if (e.stun > 0) { e.stun -= dt; if (Math.random() < dt * 10) fx({ kind: 'ring', x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), r0: 4, r1: 22, dur: 0.35, color: '#c9a8ff' }); }   // 0.31 전환 공격 정지 연출
   else if (G.time - e.stT0 > DM_CFG.stTgt[e.st]) {               // 잠식 (0.18): 목표 시간 초과 시 체력 자연 감소, 페이즈 경계에서 정지
     const loss = e.maxHp * DM_CFG.seg[e.st] / DM_CFG.erode * dt, floor = e.st < 2 ? e.maxHp * DM_CFG.stages[e.st] : 0;
     e.hp = Math.max(floor, e.hp - loss); if (e.st === 2 && e.hp <= 0) { killEnemy(e); return; }
@@ -1633,11 +1648,12 @@ function dmUpdate(e, dt, d, dx, dy) {
   if (ai.blink) {                                                // 그림자 도약: 예고 후 착지
     ai.blink.t -= dt; mv = 0;
     if (ai.blink.t <= 0) { e.x = ai.blink.x; e.y = ai.blink.y; ai.blink = null; fx({ kind: 'ring', x: e.x, y: e.y, r0: 10, r1: DM_CFG.blR, dur: 0.4, color: '#b080ff' }); }
-  } else if (e.inv <= 0) {
+  } else if (!(e.stun > 0)) {
     ai.cd -= dt;
     if (ai.cd <= 0) { ai.cd = DM_CFG.every[e.st]; ai.n++; mv = dmPattern(e, ai); }
   }
   // 이동: 1페이즈 중거리 압박, 2·3페이즈 원거리 유지 (결계 안 제한)
+  if (e.stun > 0) mv = 0;
   if (mv && !ai.blink) {
     const lo = e.st ? 170 : 110, hi = e.st ? 250 : 180;
     gkKeep(e, d, 0, lo, hi);
@@ -1745,13 +1761,14 @@ function dmOnBeam(h, x, y, pad) {
 }
 function dmHzAlive(h) { return h.k === 'sect' ? h.t < h.warn + 0.3 : h.t < h.warn + h.dur; }
 
-/* 받는 피해 보정 (damageEnemy에서 호출, 0.16): 최소 지속 시간 전에는 해당 페이즈 하한 체력 아래로 내려가지 않음, 목표 시간 초과 시 피해 점증 */
+/* 받는 피해 보정 (damageEnemy에서 호출, 0.16 → 0.31): 체력 하한 고정 폐지(체력 0 즉시 처치), 목표 시간 초과 시 피해 점증, 초당 감소 상한 */
 function dmAdjust(e, dmg) {
   if (e.stT0 == null) e.stT0 = G.time;
-  const el = G.time - e.stT0, floor = e.st < 2 ? e.maxHp * DM_CFG.stages[e.st] : 0;
+  const el = G.time - e.stT0;
   if (el > DM_CFG.stTgt[e.st]) dmg *= Math.min(DM_CFG.catchMax, 1 + (el - DM_CFG.stTgt[e.st]) * DM_CFG.catchUp);
-  if (el < DM_CFG.stMin[e.st]) dmg = Math.min(dmg, Math.max(0, e.hp - floor - 1));
-  else if (e.st < 2) dmg = Math.min(dmg, Math.max(0, e.hp - floor));   // 한 번의 피해로 다음 페이즈를 건너뛰지 않도록 페이즈 경계에서 정지
+  const t = G.time, bud = e.bud == null ? e.maxHp * DM_CFG.burst : e.bud;   // 초당 감소 상한: 예산은 시간에 따라 충전, 정지 없이 체력 막대가 꾸준히 감소
+  e.bud = Math.min(e.maxHp * DM_CFG.burst, bud + (t - (e.budT == null ? t : e.budT)) * e.maxHp * DM_CFG.rate); e.budT = t;
+  dmg = Math.min(dmg, e.bud); e.bud -= dmg;
   return dmg;
 }
 function dmKilled(e) {
@@ -2028,10 +2045,12 @@ function showSettings(back) {
     ${T('shake', '화면 흔들림', '피격·보스 등장 시 화면 흔들림')}
     ${T('dmgNum', '피해 숫자', '적에게 준 피해를 숫자로 표시')}
     ${V('sfx', '효과음 음량')}${V('bgm', '배경음 음량')}
+    <div class="row"><div class="rt"><b>첫 판 안내</b><span>조작·목표 안내를 처음부터 다시 표시</span></div><button class="tg" id="s_guide">다시 보기</button></div>
     </div><div class="menu"><button id="s_back">돌아가기</button></div></div>`;
-  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); showSettings(back); }));
+  on('s_guide', () => { guideReset(); const b = document.getElementById('s_guide'); if (b) { b.textContent = '초기화됨'; b.classList.add('pri'); } });
+  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); keepScroll(() => showSettings(back)); }));
   UI.querySelectorAll('input[data-v]').forEach(i => i.addEventListener('input', () => { SETTINGS[i.dataset.v] = +i.value; i.nextElementSibling.textContent = i.value; saveSettings(); auVol(); if (i.dataset.v === 'sfx') sfx('ui'); }));
-  on('s_joy', () => { SETTINGS.joy = SETTINGS.joy === 'fixed' ? 'float' : 'fixed'; saveSettings(); showSettings(back); });
+  on('s_joy', () => { SETTINGS.joy = SETTINGS.joy === 'fixed' ? 'float' : 'fixed'; saveSettings(); keepScroll(() => showSettings(back)); });
   on('s_back', back);
 }
 
@@ -2062,7 +2081,7 @@ function showCodex(tab, back) {
     <div class="tabs">${CODEX_TABS.map(([k, nm]) => `<button class="${tab === k ? 'pri' : ''}" data-tab="${k}">${nm}</button>`).join('')}</div>
     <div class="cxl">${body}</div><div class="menu"><button id="cx_back">돌아가기</button></div></div>`;
   UI.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => showCodex(b.dataset.tab, back)));
-  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; showCodex('u', back); };
+  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; keepScroll(() => showCodex('u', back)); };
   UI.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => setS('title', b.dataset.t || null)));
   UI.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => setS('color', b.dataset.c)));
   on('cx_back', back);
@@ -2078,11 +2097,11 @@ function showPrep(back) {
     <p class="hint">${META.tier ? `적 체력·피해 +${Math.round(TIERS[META.tier].k * 100)}% · 배율 ×${TIERS[META.tier].mul}` : '기본 난이도'} · 단계별 마왕 처치 시 다음 단계 개방</p>
     <h3>도전 조건</h3><div class="rows">${COND_ORDER.map(k => { const C = CONDS[k], v = META.conds.includes(k); return `<div class="row"><div class="rt"><b>${C.nm}</b><span>${C.ds} · ×${C.mul}${(s.titles || []).includes('c_' + k) ? ' · 돌파' : ''}</span></div><button class="tg ${v ? 'pri' : ''}" data-cond="${k}">${v ? '켜짐' : '꺼짐'}</button></div>`; }).join('')}</div>
     <div class="menu"><button class="pri" id="pr_go">이대로 시작</button><button id="pr_back">돌아가기</button></div></div>`;
-  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); showPrep(back); }));
+  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); keepScroll(() => showPrep(back)); }));
   UI.querySelectorAll('[data-cond]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.cond, i = META.conds.indexOf(k);
     if (i >= 0) META.conds.splice(i, 1); else { META.conds.push(k); const ex = CONDS[k].ex; if (ex) META.conds = META.conds.filter(x => x !== ex); }
-    saveMeta(); showPrep(back);
+    saveMeta(); keepScroll(() => showPrep(back));
   }));
   on('pr_go', startRun);
   on('pr_back', back);
@@ -2538,7 +2557,7 @@ const owns = id => hasW(id) || hasP(id);
 function wBr(id) { const w = G.p.weapons.find(x => x.id === id); return w && w.br; }
 function pBr(id) { const x = G.p.passives.find(q => q.id === id); return x && x.br; }
 function hasRelic(id) { return G.p.relics.includes(id); }
-function relicReady(id) { const R = RELICS[id]; return !hasRelic(id) && owns(R.a) && owns(R.b); }
+function relicReady(id) { const R = RELICS[id]; return !hasRelic(id) && !G.banished.has('r:' + id) && owns(R.a) && owns(R.b); }   // 0.31 제외한 유물 재등장 방지
 function itemName(id) { return (WEAPONS[id] || PASSIVES[id]).name; }
 
 /* 강화 3단계 도달 → 분기 대기열 적재 */
@@ -3127,7 +3146,8 @@ const SEL_HEAD = {
   bond: s => ['유대 성장', `${PET[s.q.id || s.q.kind].name} 유대 Lv ${BOND_CFG.tiers[s.q.ti]} · 전용 능력 선택`],
   job2: () => ['2차 전직', `${JOBS[G.p.job].name} · 필수 선택 · 전용 무기 ${EXW[G.p.job].name} 지급`],
 };
-function renderSelect() {
+function renderSelect() { const s0 = G.sel; if (s0 && s0._drawn && !s0._top) return keepScroll(renderSelect0); if (s0) { s0._drawn = true; s0._top = false; } renderSelect0(); }
+function renderSelect0() {
   const s = G.sel, kind = s.kind || 'level';
   let cards;
   if (kind === 'job' && s.offer) cards = G.p.weapons.map((w, i) => { const d = WEAPONS[w.id]; return `<button class="card k-${d.cat} banish" data-w="${w.id}"><span class="ic" style="background:${CFG.colors[d.cat]}">${esc(d.ic)}</span><span class="tx"><span class="nm">${esc(d.name)} <span class="tag">Lv ${w.lvl}</span></span><span class="ds">봉헌 시 무기 삭제</span></span></button>`; }).join('');
@@ -3176,7 +3196,7 @@ function pickCard(i) {
   if (s.kind === 'start') { addWeapon(c.id); G.stats.start = c.id; recalc(); return closeSel(); }
   if (s.banish) {
     if (isFill(c) || !G.banishes) return;
-    G.banished.add(c.id); G.banishes--; s.banish = false;
+    G.banished.add(c.t === 'relic' ? 'r:' + c.id : c.id); G.banishes--; s.banish = false;
     s.cards[i] = drawCards(1, s.cards)[0] || FILL_CARDS[1];
     renderSelect(); return;
   }
@@ -5236,6 +5256,46 @@ SPR.meat = { px: 2, frames: [[
   '.......kk..kk...',
 ]] };
 /* ============================================================
+   첫 판 안내 (0.31) — 완성도 제안 승인분
+   상황이 처음 생길 때 한 번씩 하단 안내 띠 표시 (진행 정지 없음), 본 항목은 저장해 다시 표시 안 함
+   ============================================================ */
+const GUIDE_KEY = () => CFG.SAVE_KEY + '_guide';
+const GUIDE = [
+  { id: 'move', tx: '화면을 누른 채 끌어 이동 · 공격은 자동', when: () => G.time > 0.6 },
+  { id: 'gem', tx: '적이 남긴 보석을 모으면 레벨 업 · 카드 1장 선택', when: () => G.gems.length > 0 && G.time > 4 },
+  { id: 'phase', tx: '상단 노란 막대는 페이즈 목표 · 채우면 다음 페이즈', when: () => G.p.level >= 2 },
+  { id: 'chest', tx: '보물 상자를 열면 무기 강화 또는 유물', when: () => G.chests.some(c => !c.dead) },
+  { id: 'altar', tx: '빛나는 제단 위에 잠시 서면 직업 선택', when: () => !!G.altar },
+  { id: 'ult', tx: () => SETTINGS.autoUlt ? '궁극기 준비 완료 · 적이 몰리면 자동 발동' : '궁극기 준비 완료 · 손을 떼고 멈추면 발동', when: () => typeof ultReady === 'function' && ultReady() },
+  { id: 'warn', tx: '붉은 장판과 ! 표식은 공격 예고 · 밖으로 피하기', when: () => G.hz.length > 0 },
+  { id: 'hp', tx: '체력 부족 · 고기를 먹으면 회복', when: () => G.p.hp < G.p.maxHp * 0.4 },
+];
+const GD = { seen: null, cur: null, t: 0, dur: 4.2, gap: 0 };
+function guideSeen() {
+  if (!GD.seen) { try { GD.seen = new Set(JSON.parse(localStorage.getItem(GUIDE_KEY()) || '[]')); } catch (e) { GD.seen = new Set(); } }
+  return GD.seen;
+}
+function guideMark(id) { const S = guideSeen(); S.add(id); try { localStorage.setItem(GUIDE_KEY(), JSON.stringify([...S])); } catch (e) { } }
+function guideReset() { GD.seen = new Set(); GD.cur = null; try { localStorage.removeItem(GUIDE_KEY()); } catch (e) { } }
+function guideUpdate(dt) {
+  if (G.result) { GD.cur = null; return; }
+  if (GD.cur) { GD.t += dt; if (GD.t >= GD.dur) { GD.cur = null; GD.gap = 1.2; } return; }
+  if (GD.gap > 0) { GD.gap -= dt; return; }
+  const S = guideSeen();
+  for (const g of GUIDE) if (!S.has(g.id) && g.when()) { GD.cur = g; GD.t = 0; guideMark(g.id); (G.stats.guide || (G.stats.guide = [])).push(g.id); break; }
+}
+function drawGuide(c) {
+  const g = GD.cur; if (!g || STATE.mode !== 'play') return; const tx = typeof g.tx === 'function' ? g.tx() : g.tx;
+  const W = VIEW.cw, a = Math.min(1, GD.t * 4, (GD.dur - GD.t) * 3), y = VIEW.ch * 0.7;
+  c.save(); c.globalAlpha = a; c.font = 'bold 13px Galmuri11, system-ui';
+  const tw = Math.min(W - 32, c.measureText(tx).width + 28), h = 34, x = (W - tw) / 2;
+  c.fillStyle = 'rgba(20,16,32,0.86)'; c.fillRect(x, y, tw, h);
+  c.strokeStyle = '#ffe08a'; c.lineWidth = 2; c.strokeRect(x + 1, y + 1, tw - 2, h - 2);
+  c.fillStyle = '#ffe08a'; c.fillRect(x + 4, y + 4, 4, 4); c.fillRect(x + tw - 8, y + 4, 4, 4); c.fillRect(x + 4, y + h - 8, 4, 4); c.fillRect(x + tw - 8, y + h - 8, 4, 4);   // 도트 모서리
+  c.fillStyle = '#fff6d8'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tx, W / 2, y + h / 2 + 1, tw - 20);
+  c.restore();
+}
+/* ============================================================
    그리기 — 0.19 도트 적용 시작(주인공·잡몹 4종·바르간·지형), 나머지 도형은 0.20 교체
    ============================================================ */
 const PAL = [GROUND_BASE];   // 들판 바탕 (0.19 도트 타일)
@@ -5531,6 +5591,7 @@ function drawHUD(c) {
   let ty = VIEW.ch * 0.3;
   for (const t of G.toasts) { c.globalAlpha = Math.min(1, (t.dur - t.t) * 3); c.font = 'bold 16px Galmuri11, system-ui'; c.fillStyle = t.color; txt(t.text, W / 2, ty, 'center'); ty += 26; c.fillStyle = '#fff'; }
   c.globalAlpha = 1;
+  drawGuide(c);                                             // 첫 판 안내 (0.31)
 }
 
 /* 상단 아래 아이콘 줄: 무기 5칸 · 보조 효과 5칸 */
@@ -5761,6 +5822,26 @@ const buildChips = () => (G.p.job ? `<span class="chip" style="border-color:#d9a
   + G.p.passives.map(x => `<span class="chip" style="border-color:${CFG.colors.passive}">${PASSIVES[x.id].name} ${x.lvl}${brName(x.id, x.br)}</span>`).join('')
   + G.p.relics.map(r => `<span class="chip" style="border-color:#ffd24a">유물 ${RELICS[r].name}</span>`).join('');
 
+/* 결과 화면 빌드 요약 (0.31): 피해 비중 상위 5개 막대 + 보유 능력 칩 */
+const SRC_NM = { ult: '궁극기', pet: '야수 동료', maul: '곰 강타', howl: '늑대 울부짖음', minion: '소환수', turret: '포탑', react: '반응 폭발', bleed: '출혈', trail: '불길 자국', mark: '사냥 표식',
+  dance: '칼춤', banner: '정복의 깃발', holy: '정화 폭발', wx: '직업 변환', fireball_pool: '화염구 불바다', bomb_pool: '폭탄 화염', fissure: '균열', split: '분열 화살', mbolt: '비전 탄', wind: '질풍 창', thunder: '뇌광',
+  waraxe: '전투 도끼', shade: '그림자 칼날', gshield: '금빛 방패', xbow: '연발 석궁', coil: '전기 코일', shard: '시간 파편', flameorb: '불꽃 구슬', bonehand: '해골 손', bless: '축복 고리', thornshot: '가시 사출',
+  quake: '지진 망치', dagger: '독 단검', longbow: '관통 장궁', mine: '지뢰', frost: '서리', pendulum: '시간 진자', orb: '영혼 구체', radiance: '광휘', thorn: '가시 덤불', shatter: '얼음 파쇄' };
+function srcName(k) {
+  if (WEAPONS[k]) return WEAPONS[k].name;
+  if (SRC_NM[k]) return SRC_NM[k];
+  if (RELICS[k]) return '유물 ' + RELICS[k].name;
+  return '기타 효과';
+}
+function buildSummary() {
+  const agg = {};
+  for (const [k, v] of Object.entries(G.stats.dmg)) { const n = srcName(k); agg[n] = (agg[n] || 0) + v; }
+  const tot = Object.values(agg).reduce((a, b) => a + b, 0);
+  const top = Object.entries(agg).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const bars = tot > 0 ? top.map(([n, v]) => { const k = Math.round(v / tot * 100); return `<div class="dbar"><span class="dn">${esc(n)}</span><span class="dt"><i style="width:${Math.max(2, k)}%"></i></span><span class="dk">${k}%</span></div>`; }).join('') : '';
+  return `<div class="rsum">${bars ? `<h3>피해 비중</h3>${bars}` : ''}<h3>빌드</h3><div class="build">${buildChips()}</div></div>`;
+}
+
 /* 설정·도감·도전 준비 화면은 meta.js (0.14·0.15) */
 const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
 
@@ -5837,7 +5918,7 @@ function showResult() {
   const R = G.report, done = G.ph.log.filter(x => x[2] === 'ok').length;
   const D = GATEKEEPERS[G.gk], dm = R.demon, gk = R.gate && R.gate[1] === 'kill';
   const head = dm ? (dm[0] === 'kill' ? '마왕 처치' : R.result === 'retreat' ? '마왕성 소멸' : '쓰러졌다') : R.result === 'clear' ? '들판 돌파' : R.result === 'retreat' ? '수문장 퇴각' : '쓰러졌다';
-  UI.innerHTML = `<div class="layer"><h2>${head}</h2>
+  UI.innerHTML = `<div class="layer fit"><h2>${head}</h2>
     ${gk && D ? `<p class="best">${D.name} 처치 · ${D.gate} 개방 (열린 문 ${R.gates || 0}/4)</p>` : ''}
     ${dm ? `<p class="best">${dm[0] === 'kill' ? `마왕 처치 (누적 ${R.demonKills}회)` : `마왕 ${dm[3]}/3 페이즈 · 남은 체력 ${dm[2]}%`}</p>` : ''}
     ${R.newBest ? '<p class="best">최고 생존 기록 갱신</p>' : ''}
@@ -5845,7 +5926,7 @@ function showResult() {
     ${(R.newTitles || []).map(t => `<p class="best">칭호 해금 · ${esc(t)}</p>`).join('')}
     <p class="score">점수 ${R.score || 0}${R.mul > 1 ? ` <small>×${R.mul}</small>` : ''}${R.newBestScore ? ' <small>최고 기록</small>' : ''}</p>
     <div class="stats"><span>생존 시간</span><span>${fmtTime(R.time)}</span><span>돌파 페이즈</span><span>${done}/${G.ph.order.length}</span><span>레벨</span><span>${R.level}</span><span>처치</span><span>${R.kills}</span><span>마지막 피격</span><span>${R.result === 'clear' ? '-' : (R.lastHit || '-')}</span></div>
-    <div class="build">${buildChips()}</div>
+    ${buildSummary()}
     <div class="menu"><button class="pri" id="again">다시 시작</button><button id="home">처음 화면</button></div></div>`;
   on('again', newRun); on('home', showTitle);
 }
