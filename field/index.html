@@ -113,7 +113,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
 #ui>.layer.scroll{justify-content:flex-start;overflow-y:auto;touch-action:pan-y;background:rgba(14,12,22,.94)}
 .layer.scroll>h2{margin-top:6vh}
 .layer h3{margin:6px 0 0;font-size:16px;color:var(--muted);align-self:center}
-.menu.row2{flex-direction:row;flex-wrap:wrap;justify-content:center;width:min(340px,90vw)}.menu.row2 button{flex:1;min-width:30%}
+.menu.row2{flex-direction:row;flex-wrap:wrap;justify-content:center;width:min(340px,90vw)}.menu.row2 button{flex:1;min-width:30%;white-space:nowrap;word-break:keep-all;padding:12px 8px}
 .rows{display:flex;flex-direction:column;gap:8px;width:100%;max-width:420px}
 .row{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .row .rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.row .rt span{font-size:13px;color:var(--muted)}
@@ -143,7 +143,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.28',
+  VERSION: '0.30',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -705,8 +705,8 @@ function pickPhaseOrder(retry) {
   for (const t in by) out.push(...shuffle(by[t].slice()).slice(0, retry ? 1 : PH_CFG.perType));
   const rest = shuffle(pool.filter(id => !out.includes(id)));
   while (out.length < n && rest.length) out.push(rest.pop());
-  const o = shuffle(out); let f = o.findIndex(id => phTier(id) === 1);   // 첫 페이즈는 기본형(휴식형 제외) 우선 (0.27: 봉인석·전투형 첫 페이즈 조기 사망 대응), 이후 순서는 강함 판정으로 매번 결정
-  if (f < 0) f = o.findIndex(id => !REST_PH.includes(id));
+  const o = shuffle(out); let f = o.findIndex(id => phTier(id) === 1 && id !== 'fog');   // 첫 페이즈는 기본형(휴식형·안개 평원 제외) 우선 (0.30 안개 평원 제외) (0.27: 봉인석·전투형 첫 페이즈 조기 사망 대응), 이후 순서는 강함 판정으로 매번 결정
+  if (f < 0) f = o.findIndex(id => !REST_PH.includes(id) && id !== 'fog');
   if (f > 0) [o[0], o[f]] = [o[f], o[0]];
   return o;
 }
@@ -963,12 +963,12 @@ function drawPhaseGround(c) {
     c.fillStyle = `rgba(120,170,255,${0.14 + pulse * 0.08})`; c.beginPath(); c.arc(z.x, z.y, z.r, 0, 7); c.fill();
     c.strokeStyle = 'rgba(160,200,255,0.8)'; c.lineWidth = 3; c.beginPath(); c.arc(z.x, z.y, z.r, 0, 7); c.stroke();
     c.strokeStyle = '#e8f0ff'; c.lineWidth = 6; c.beginPath(); c.arc(z.x, z.y, z.r - 8, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * z.prog / PH_CFG.zoneNeed); c.stroke();
-    c.fillStyle = '#5a6f9a'; c.fillRect(z.x - 9, z.y - 16, 18, 26); c.strokeStyle = '#cfe0ff'; c.lineWidth = 2; c.strokeRect(z.x - 9, z.y - 16, 18, 26);
+    drawSprite(c, 'sealst', f2(2), z.x, z.y + 14, { mul: 2 });                                    // 0.30 봉인석 도트
   }
   for (const k of ph.cracks) {
     const a = Math.min(1, k.t / PH_CFG.crackWarn);
     if (!k.done) { c.fillStyle = `rgba(200,80,50,${0.12 + 0.25 * a})`; c.beginPath(); c.arc(k.x, k.y, k.r * a, 0, 7); c.fill(); c.strokeStyle = 'rgba(255,140,90,0.85)'; c.lineWidth = 2; c.beginPath(); c.arc(k.x, k.y, k.r, 0, 7); c.stroke(); }
-    else { c.fillStyle = 'rgba(40,28,20,0.6)'; c.beginPath(); c.arc(k.x, k.y, k.r, 0, 7); c.fill(); }
+    else { c.fillStyle = 'rgba(40,28,20,0.45)'; c.beginPath(); c.arc(k.x, k.y, k.r, 0, 7); c.fill(); drawSpriteC(c, 'crack', 0, k.x, k.y, { mul: 2 }); }   // 0.30 붕괴 흔적 도트
   }
   if (ph.rits) for (const e of ph.rits) {
     if (e.dead) continue;
@@ -977,13 +977,12 @@ function drawPhaseGround(c) {
   }
   if (ph.camp && !ph.camp.used) {
     const m = ph.camp; c.fillStyle = 'rgba(255,190,90,0.18)'; c.beginPath(); c.arc(m.x, m.y, m.r + 10, 0, 7); c.fill();
-    c.fillStyle = '#8a5a30'; c.beginPath(); c.moveTo(m.x - 18, m.y + 10); c.lineTo(m.x, m.y - 16); c.lineTo(m.x + 18, m.y + 10); c.closePath(); c.fill();
-    c.fillStyle = '#ffb040'; c.beginPath(); c.arc(m.x + 16, m.y + 14, 4 + Math.sin(G.time * 9), 0, 7); c.fill();
+    drawSprite(c, 'tent', 0, m.x, m.y + 14, { mul: 2 }); drawSprite(c, 'fire2', f2(6), m.x + 30, m.y + 22, { mul: 2 });   // 0.30 천막·모닥불 도트
   }
   if (ph.cart) {
     const k = ph.cart;
     c.strokeStyle = 'rgba(255,230,150,0.35)'; c.lineWidth = 2; c.setLineDash([8, 8]); c.beginPath(); c.moveTo(k.x, k.y); c.lineTo(k.tx, k.ty); c.stroke(); c.setLineDash([]);
-    c.fillStyle = '#e8d070'; c.fillRect(k.tx - 1.5, k.ty - 28, 3, 28); c.fillRect(k.tx + 1.5, k.ty - 28, 14, 9);
+    drawSprite(c, 'flag', f2(3), k.tx + 8, k.ty, { mul: 2 });                                       // 0.30 목적지 깃발 도트
     if (k.block) { c.fillStyle = '#ff8a6a'; c.font = 'bold 11px Galmuri11, system-ui'; c.textAlign = 'center'; c.fillText(k.sp > 0 ? '감속' : '정지', k.x, k.y - 26); }
     drawSpriteC(c, 'cart', 0, k.x, k.y, { mode: k.hit > 0 ? 'white' : 'n' });   // 0.20 도트
     c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(k.x - 18, k.y - 20, 36, 4); c.fillStyle = '#8ff0b0'; c.fillRect(k.x - 18, k.y - 20, 36 * Math.max(0, k.hp / k.maxHp), 4);
@@ -991,7 +990,7 @@ function drawPhaseGround(c) {
   if (ph.spring && !ph.spring.used) {
     const s = ph.spring;
     c.fillStyle = 'rgba(120,240,170,0.35)'; c.beginPath(); c.arc(s.x, s.y, s.r + 6 + Math.sin(G.time * 5) * 3, 0, 7); c.fill();
-    c.fillStyle = '#6fe0a0'; c.beginPath(); c.arc(s.x, s.y, s.r * 0.6, 0, 7); c.fill();
+    drawSpriteC(c, 'well', f2(2), s.x, s.y, { mul: 2 });                               // 0.30 회복 샘 도트
   }
 }
 /* 안개 평원 시야 축소 (화면 좌표, 플레이어 중심) */
@@ -1158,18 +1157,20 @@ function applyCamp(c) {
 function drawEventGround(c) {
   const E = G.ev, v = E && E.cur; if (!v || v.state === 'done') return;
   if (v.type === 'cave') {
-    c.fillStyle = v.state === 'active' ? 'rgba(20,30,40,0.55)' : 'rgba(20,30,40,0.8)'; c.beginPath(); c.ellipse(v.x, v.y, v.r + 6, v.r, 0, 0, 7); c.fill();
-    c.strokeStyle = '#7fe0ff'; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = 'rgba(127,224,255,0.5)'; c.lineWidth = 2; c.beginPath(); c.ellipse(v.x, v.y, v.r + 6, v.r, 0, 0, 7); c.stroke();
+    drawSprite(c, 'cave', 0, v.x, v.y + 18, { mul: 2, mode: v.state === 'active' ? 'gold' : 'n' });   // 0.30 동굴 입구 도트
     if (v.state === 'idle' && v.stay > 0) { c.strokeStyle = '#e8f8ff'; c.lineWidth = 4; c.beginPath(); c.arc(v.x, v.y, v.r + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * v.stay / EV_CFG.caveEnter); c.stroke(); }
     if (v.state === 'active') { c.strokeStyle = '#ffd24a'; c.lineWidth = 4; c.beginPath(); c.arc(v.x, v.y, v.r + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * v.act / EV_CFG.caveDur); c.stroke(); }
   }
   if (v.type === 'door') {
     c.fillStyle = 'rgba(200,160,255,0.15)'; c.beginPath(); c.arc(v.x, v.y, v.r + 8, 0, 7); c.fill();
-    c.fillStyle = '#4a3a5a'; c.fillRect(v.x - 13, v.y - 22, 26, 30); c.strokeStyle = '#c8a0ff'; c.lineWidth = 2; c.strokeRect(v.x - 13, v.y - 22, 26, 30);
+    drawSprite(c, 'sdoor', f2(2), v.x, v.y + 14, { mul: 2 });                                    // 0.30 봉인된 문 도트
     if (v.stay > 0) { c.strokeStyle = '#f0e0ff'; c.lineWidth = 4; c.beginPath(); c.arc(v.x, v.y, v.r + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * v.stay / EV_CFG.doorStay); c.stroke(); }
   }
   if (v.type === 'giant' && v.mob && v.mob.sleep && !v.mob.dead) {
-    c.fillStyle = '#fff'; c.font = 'bold 14px Galmuri11, system-ui'; c.textAlign = 'center'; c.fillText('Z', v.mob.x + 26, v.mob.y - 30 + Math.sin(G.time * 2) * 4);
+    const zt = G.time % 2.4;                                                          // 0.30 'Z' 도트 3개가 차례로 떠오름
+    for (let i = 0; i < 3; i++) { const q = (zt / 2.4 + i / 3) % 1; c.globalAlpha = Math.sin(q * Math.PI); drawSpriteC(c, 'zzz', 0, v.mob.x + v.mob.r * 0.7 + q * 14, v.mob.y - v.mob.r - 6 - q * 26, { mul: q > 0.5 ? 2 : 1 }); }
+    c.globalAlpha = 1;
   }
 }
 
@@ -1482,13 +1483,14 @@ function drawBossGround(c) {
       c.fillStyle = 'rgba(255,40,70,0.13)'; c.fillRect(0, -h.w / 2, h.len, h.w);
       c.fillStyle = `rgba(255,40,70,${0.18 + 0.22 * a})`; c.fillRect(0, -h.w / 2, h.len * a, h.w);       // 0.26a 진행 방향으로 차오르는 예고
       c.strokeStyle = `rgba(255,${90 + 120 * a},${110 + 100 * a},0.9)`; c.lineWidth = 2; c.strokeRect(0, -h.w / 2, h.len, h.w);
-      c.restore();
+      c.restore(); drawChevrons(c, h, a);   // 0.30 돌진 방향 도트 화살표
     } else if (!h.fired) {
       c.fillStyle = 'rgba(255,40,70,0.12)'; c.beginPath(); c.arc(h.x, h.y, h.r, 0, 7); c.fill();
       c.fillStyle = `rgba(255,40,70,${0.16 + 0.2 * a})`; c.beginPath(); c.arc(h.x, h.y, h.r, 0, 6.2832); c.moveTo(h.x + h.r * (1 - a), h.y); c.arc(h.x, h.y, h.r * (1 - a), 6.2832, 0, true); c.fill();   // 0.26a 가장자리부터 차오름
       c.strokeStyle = `rgba(255,${90 + 140 * a},${110 + 120 * a},0.95)`; c.lineWidth = 2 + a; c.beginPath(); c.arc(h.x, h.y, h.r, 0, 7); c.stroke();
       c.save(); c.translate(h.x, h.y); c.rotate(G.time * 1.6); c.setLineDash([6, 8]); c.strokeStyle = 'rgba(255,120,140,0.55)'; c.lineWidth = 1.5;
       c.beginPath(); c.arc(0, 0, h.r * 0.78, 0, 7); c.stroke(); c.restore(); c.setLineDash([]);
+      drawWarnMark(c, h.x, h.y, a);                                                  // 0.30 중심 위험 표식
     } else if (h.pool) {
       const k = 1 - (h.t - h.warn) / h.pool;
       const g = c.createRadialGradient(h.x, h.y, h.r * 0.1, h.x, h.y, h.r);
@@ -1496,6 +1498,7 @@ function drawBossGround(c) {
       c.fillStyle = g; c.beginPath(); c.arc(h.x, h.y, h.r, 0, 7); c.fill();
       c.save(); c.translate(h.x, h.y); c.rotate(-G.time * 1.2); c.setLineDash([5, 6]); c.strokeStyle = `rgba(255,110,150,${0.8 * k})`; c.lineWidth = 2;
       c.beginPath(); c.arc(0, 0, h.r - 2, 0, 7); c.stroke(); c.restore(); c.setLineDash([]);
+      drawLavaPool(c, h, k);                                                         // 0.30 장판 기포 도트
     }
   }
 }
@@ -1503,10 +1506,7 @@ function drawBossTop(c, inView) {
   if (!G.eb) return;
   for (const e of G.enemies) {
     if (e.dead || !e.gk || !inView(e.x, e.y, e.r)) continue;
-    c.fillStyle = '#ffd24a'; c.beginPath();                                       // 관 장식 (수문장 표식)
-    for (let i = 0; i < 3; i++) { const x = e.x - 10 + i * 10; c.moveTo(x - 4, e.y - e.r + 2); c.lineTo(x, e.y - e.r - 9); c.lineTo(x + 4, e.y - e.r + 2); }
-    c.fill();
-    if (e.rage) { c.strokeStyle = 'rgba(255,90,60,0.7)'; c.lineWidth = 3; c.beginPath(); c.arc(e.x, e.y, e.r + 5, 0, 7); c.stroke(); }
+    drawSprite(c, 'crown', 0, e.x, e.y - e.r - 1 + (f2(2) ? -1 : 0));             // 0.30 도트 관 (수문장 표식), 격노는 도트 외곽선(rage)으로 표시
     if (e.gk === 'seren' && !e.clone && (G.time % 1.3) < 0.2) { c.strokeStyle = 'rgba(255,255,255,0.95)'; c.lineWidth = 3; c.beginPath(); c.arc(e.x, e.y, e.r + 8, 0, 7); c.stroke(); }   // 본체 미광
   }
   drawEnemyShots(c, inView);
@@ -1544,9 +1544,10 @@ function eShotImg(col, r) {
 }
 function drawEnemyShots(c, inView) {
   if (!G.eb.length) return;
-  const t = G.time;
-  for (const b of G.eb) {
-    if (!inView(b.x, b.y, b.r + 20)) continue;
+  drawEnemyShotsDot(c, inView);                              // 0.29 출처별 도트 + 공통 위험 표시 (dot29.js)
+}
+function drawEnemyShotOrb(c, b, t) {                         // 도트 없는 출처용 발광 구슬 (0.26a)
+  {
     const r = Math.round(b.r), I = eShotImg(b.col || '#ffb050', r), sp = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / sp, uy = b.vy / sp;
     c.globalAlpha = 0.22; c.drawImage(I.cv, b.x - ux * r * 2.6 - I.R * 0.7, b.y - uy * r * 2.6 - I.R * 0.7, I.R * 1.4, I.R * 1.4);   // 잔광 2개
     c.globalAlpha = 0.4; c.drawImage(I.cv, b.x - ux * r * 1.4 - I.R * 0.85, b.y - uy * r * 1.4 - I.R * 0.85, I.R * 1.7, I.R * 1.7);
@@ -1766,17 +1767,20 @@ function drawDemonGround(c) {
   if (A) {
     c.strokeStyle = 'rgba(30,8,50,0.62)'; c.lineWidth = 900; c.beginPath(); c.arc(A.x, A.y, A.R + 450, 0, 7); c.stroke();
     c.strokeStyle = 'rgba(190,140,255,0.85)'; c.lineWidth = 3; c.beginPath(); c.arc(A.x, A.y, A.R, 0, 7); c.stroke();
+    drawArenaPillars(c, A);                                                          // 0.30 결계 기둥 도트
   }
   for (const h of G.hz) {
     const a = Math.min(1, h.t / h.warn);
     if (h.k === 'sect' && !h.fired) {
       c.fillStyle = `rgba(150,70,230,${0.12 + 0.25 * a})`; c.beginPath(); c.moveTo(h.x, h.y); c.arc(h.x, h.y, h.r, h.a - h.arc / 2, h.a + h.arc / 2); c.closePath(); c.fill();
       c.strokeStyle = 'rgba(200,150,255,0.9)'; c.lineWidth = 2; c.stroke();
+      drawWarnMark(c, h.x + Math.cos(h.a) * h.r * 0.55, h.y + Math.sin(h.a) * h.r * 0.55, a);   // 0.30 위험 표식
     } else if (h.k === 'beam') {
       c.save(); c.translate(h.x, h.y); c.rotate(h.a);
       if (h.t <= h.warn) { c.fillStyle = `rgba(190,120,255,${0.15 + 0.2 * a})`; c.fillRect(0, -2, h.len, 4); }
-      else { c.fillStyle = 'rgba(170,90,255,0.75)'; c.fillRect(0, -h.w / 2, h.len, h.w); c.fillStyle = 'rgba(255,240,255,0.9)'; c.fillRect(0, -3, h.len, 6); }
+      else { c.fillStyle = 'rgba(170,90,255,0.35)'; c.fillRect(0, -h.w / 2 - 4, h.len, h.w + 8); }
       c.restore();
+      if (h.t > h.warn) drawDemonBeam(c, h);                                         // 0.30 광선 도트 마디
     }
   }
 }
@@ -3513,7 +3517,7 @@ function getSprite(name, frame, opt) {
   let s = SPR_CACHE.get(key);
   if (!s) {
     const pal = tint ? Object.assign({}, DOT_PAL, { P: tint, p: shadeHex(tint, 0.68) }) : DOT_PAL;
-    s = bakeGrid(D.frames[frame % D.frames.length], pal, t, flip, mode === 'white' ? 'white' : 'n', mode === 'gold' ? '#ffd24a' : mode === 'rage' ? '#ff5a3a' : null);
+    s = bakeGrid(D.frames[frame % D.frames.length], pal, t, flip, mode === 'white' ? 'white' : 'n', mode === 'gold' ? '#ffd24a' : mode === 'rage' ? '#ff5a3a' : mode === 'danger' ? '#ff2a55' : null);
     s.t = t; SPR_CACHE.set(key, s);
     if (SPR_CACHE.size > 600) SPR_CACHE.delete(SPR_CACHE.keys().next().value);
   }
@@ -4551,8 +4555,7 @@ function drawArsenal(c, inView) {
         const a = s.a + i * Math.PI, bx = p.x + Math.cos(a) * s.R, by = p.y + Math.sin(a) * s.R;
         c.globalAlpha = 0.35; c.strokeStyle = col; c.lineWidth = s.bs * 1.2; c.beginPath(); c.arc(p.x, p.y, s.R, a - 0.9, a); c.stroke();
         c.globalAlpha = 0.9; c.strokeStyle = '#8a8a9a'; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(bx, by); c.stroke(); c.setLineDash([]);
-        c.globalAlpha = 1; c.fillStyle = '#3a3a48'; c.beginPath(); c.arc(bx, by, s.bs * 0.75, 0, 7); c.fill(); c.fillStyle = '#c8c8d8'; c.beginPath(); c.arc(bx - 2, by - 2, s.bs * 0.5, 0, 7); c.fill();
-        c.fillStyle = '#ffffff'; for (let q = 0; q < 6; q++) { const qa = q * 1.047 + a; c.fillRect(bx + Math.cos(qa) * s.bs * 0.78 - 1.5, by + Math.sin(qa) * s.bs * 0.78 - 1.5, 3, 3); }
+        c.globalAlpha = 1; drawSpriteRot(c, 'flail', 0, bx, by, a + G.time * 6, { mul: s.bs > 11 ? 2 : 1 });   // 0.29 도트 철퇴
       }
     }
     if (w.bm) {                                                     // 빛줄기: 외곽 발광 + 백색 중심선
@@ -4571,8 +4574,7 @@ function drawArsenal(c, inView) {
     const k = b.t / b.fly, x = lerp(b.x0, b.x, k), y = lerp(b.y0, b.y, k), h = Math.sin(Math.PI * k) * 60;
     c.strokeStyle = 'rgba(255,214,120,0.7)'; c.lineWidth = 1.5; c.setLineDash([5, 4]); c.beginPath(); c.arc(b.x, b.y, b.R * (0.5 + 0.5 * k), 0, 7); c.stroke(); c.setLineDash([]);
     c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(x, y + 4, 6, 3, 0, 0, 7); c.fill();
-    c.fillStyle = '#2a2a34'; c.beginPath(); c.arc(x, y - h, 6, 0, 7); c.fill(); c.fillStyle = '#5a5a6a'; c.beginPath(); c.arc(x - 2, y - h - 2, 2.5, 0, 7); c.fill();
-    c.fillStyle = (G.time * 12 & 1) ? '#ffd24a' : '#ff6a3a'; c.fillRect(x + 3, y - h - 9, 3, 3);
+    drawSpriteRot(c, 'bomb', (G.time * 12) & 1, x, y - h, k * 6);   // 0.29 도트 폭탄 (회전 비행, 심지 깜빡임)
   }
   if (G.afx) for (const f of G.afx) {
     const k = f.t / f.dur;
@@ -4580,15 +4582,360 @@ function drawArsenal(c, inView) {
       const ext = Math.min(1, k * 4), L = f.L * ext, ux = Math.cos(f.a), uy = Math.sin(f.a), nx = -uy, ny = ux, x = p.x, y = p.y, fade = 1 - Math.max(0, (k - 0.3) / 0.7);
       c.globalAlpha = 0.3 * fade; c.fillStyle = f.col; c.beginPath(); c.moveTo(x + nx * f.wd, y + ny * f.wd); c.lineTo(x + ux * L, y + uy * L); c.lineTo(x - nx * f.wd, y - ny * f.wd); c.closePath(); c.fill();
       c.globalAlpha = 0.95 * fade; c.strokeStyle = '#ffffff'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + ux * L * 0.2, y + uy * L * 0.2); c.lineTo(x + ux * L, y + uy * L); c.stroke();
-      c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(x + ux * (L + 8), y + uy * (L + 8)); c.lineTo(x + ux * L + nx * 5, y + uy * L + ny * 5); c.lineTo(x + ux * L - nx * 5, y + uy * L - ny * 5); c.closePath(); c.fill();
+      drawSpriteRot(c, 'spear', 0, x + ux * (L - 2), y + uy * (L - 2), f.a);   // 0.29 도트 창날
     }
     if (f.k === 'hand') {                                           // 해골 손: 솟았다 가라앉는 뼈 손가락
       const up = Math.sin(Math.PI * Math.min(1, k)) * 16; c.globalAlpha = 1 - k * 0.5;
       c.fillStyle = 'rgba(40,20,60,0.45)'; c.beginPath(); c.ellipse(f.x, f.y + 3, 14, 5, 0, 0, 7); c.fill();
-      c.fillStyle = '#e8e0cc'; for (let i = -2; i <= 2; i++) c.fillRect(f.x + i * 4 - 1.5, f.y - up * (1 - Math.abs(i) * 0.18), 3, up * (1 - Math.abs(i) * 0.18) + 2);
+      c.save(); c.beginPath(); c.rect(f.x - 14, f.y - 30, 28, 32); c.clip(); drawSprite(c, 'bhand', 0, f.x, f.y + 16 - up, {}); c.restore();   // 0.29 도트 해골 손 (땅에서 솟음)
     }
     c.globalAlpha = 1;
   }
+}
+/* ============================================================
+   도트화 1 (0.29) — 적 탄환 출처별 고유 도트 + 공통 위험 표시
+   공통 위험 표시: 붉은 번짐(맥동) + 붉은 외곽선(#ff2a55) + 진행 방향 잔상 2개
+   출처별 도트: 이그나 화염탄(불꽃 혜성)·모르덴 뼈 화살·세렌 빛살/거울 파편(결정)·고블린 화살(조잡한 나무 화살)·마왕 혼령(보라 망령)
+   ============================================================ */
+Object.assign(SPR, {
+  eb_fire: { px: 2, frames: [[
+    '.....kkk..',
+    '..okkyyyk.',
+    '.ooyywwyyk',
+    'ooyywwwwyk',
+    '.ooyywwyyk',
+    '..okkyyyk.',
+    '.....kkk..',
+  ], [
+    '.....kkk..',
+    '.o.kkyyyk.',
+    'ooyyywwyyk',
+    '.oyywwwwyk',
+    'ooyyywwyyk',
+    '.o.kkyyyk.',
+    '.....kkk..',
+  ]] },
+  eb_bone: { px: 2, frames: [[
+    '.kk......k..',
+    'kEekkkkkkMk.',
+    '.keeeeeeeWMk',
+    'kEekkkkkkMk.',
+    '.kk......k..',
+  ]] },
+  eb_shard: { px: 2, frames: [[
+    '...kkk...',
+    '.kkcwwkk.',
+    'kbccwwwwk',
+    '.kkcwwkk.',
+    '...kkk...',
+  ], [
+    '...kkk...',
+    '.kkwcckk.',
+    'kbcwwccwk',
+    '.kkwcckk.',
+    '...kkk...',
+  ]] },
+  eb_arrow: { px: 2, frames: [[
+    'kvk.....kk.',
+    'GvGnnnnnngk',
+    'kvk.....kk.',
+  ]] },
+  eb_spirit: { px: 2, frames: [[
+    '....kkkkk.',
+    '..kkuuuuuk',
+    'kUUuuwkuwk',
+    '.kUuuuuuuk',
+    '..kkUuuuuk',
+    '....kkkkk.',
+  ], [
+    '....kkkkk.',
+    '.kkkuuuuuk',
+    '.UUuuwkuwk',
+    'kUuuuuuuuk',
+    '..kUUuuuuk',
+    '....kkkkk.',
+  ]] },
+});
+/* 출처 → 도트 이름 (탄환마다 1회 판별 후 저장) */
+function ebSprite(b) {
+  if (b._s !== undefined) return b._s;
+  const s = b.src || '';
+  return (b._s = /화염|불꽃/.test(s) ? 'eb_fire' : /뼈/.test(s) ? 'eb_bone' : /세렌|거울/.test(s) ? 'eb_shard' : /궁수|고블린/.test(s) ? 'eb_arrow' : /혼령/.test(s) ? 'eb_spirit' : null);
+}
+/* 공통 위험 번짐: 반경별 사전 그림 */
+const EB_HALO = {};
+function ebHalo(r) {
+  if (EB_HALO[r]) return EB_HALO[r];
+  const S = 3, R = r + 8, cv2 = document.createElement('canvas'); cv2.width = cv2.height = Math.ceil(R * 2 * S);
+  const g = cv2.getContext('2d'); g.scale(S, S);
+  const gr = g.createRadialGradient(R, R, r * 0.4, R, R, R); gr.addColorStop(0, 'rgba(255,30,70,0.6)'); gr.addColorStop(0.55, 'rgba(255,30,70,0.25)'); gr.addColorStop(1, 'rgba(255,30,70,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(R, R, R, 0, 7); g.fill();
+  return (EB_HALO[r] = { cv: cv2, R });
+}
+/* 0.29 적 탄환 그리기 (boss.js drawEnemyShots에서 호출, 도트 없는 출처는 0.26a 발광 구슬 유지) */
+function drawEnemyShotsDot(c, inView) {
+  const t = G.time, pulse = 0.85 + 0.15 * Math.sin(t * 14);
+  for (const b of G.eb) {
+    if (!inView(b.x, b.y, b.r + 20)) continue;
+    const nm = ebSprite(b), r = Math.round(b.r), sp = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / sp, uy = b.vy / sp, ang = Math.atan2(uy, ux);
+    if (!nm) { drawEnemyShotOrb(c, b, t); continue; }
+    const H = ebHalo(r), fr = SPR[nm].frames.length > 1 ? (Math.floor(t * 10 + b.x * 0.01) & 1) : 0, hs = H.R * 2 * pulse;
+    c.globalAlpha = 0.9; c.drawImage(H.cv, b.x - hs / 2, b.y - hs / 2, hs, hs);                             // 공통 위험 번짐
+    const ga = nm === 'eb_spirit' ? 0 : ang, fl = nm === 'eb_spirit' && ux < 0;
+    c.globalAlpha = 0.25; drawSpriteRot(c, nm, fr, b.x - ux * r * 2.4, b.y - uy * r * 2.4, ga, { mode: 'danger', flip: fl });   // 잔상 2개
+    c.globalAlpha = 0.45; drawSpriteRot(c, nm, fr, b.x - ux * r * 1.2, b.y - uy * r * 1.2, ga, { mode: 'danger', flip: fl });
+    c.globalAlpha = 1; if (nm === 'eb_spirit') drawSpriteC(c, nm, fr, b.x, b.y, { mode: 'danger', flip: ux < 0 }); else drawSpriteRot(c, nm, fr, b.x, b.y, ang, { mode: 'danger' });   // 망령은 기울지 않고 좌우만 반전
+  }
+  c.globalAlpha = 1;
+}
+
+/* ============================================================
+   0.29 아군 신규 무기·전용 무기 도트 — 0.27 추가 무기(사슬 철퇴·폭탄·창 찌르기)·해골 손·직업 전용 투사체
+   아군 공격은 붉은 외곽선 없음(적 탄환과 구분)
+   ============================================================ */
+Object.assign(SPR, {
+  pj_xbow: { px: 2, frames: [['.kk..kkk.', 'kMMnnnMWk', '.kk..kkk.']] },
+  pj_longbow: { px: 2, frames: [['kyk........kk.', 'kYyYYYYYYYYwyk', 'kyk........kk.']] },
+  pj_dagger: { px: 2, frames: [['kk.kkkk.', 'UUkuuuwk', 'kk.kkkk.']] },
+  pj_thorn: { px: 2, frames: [['kk.....', 'GGggvvk', 'kk.....']] },
+  pj_wind: { px: 2, frames: [['.cc.....kk..', 'cwwccccccWwk', '.cc.....kk..']] },
+  pj_gear: { px: 2, frames: [['..kkk..', '.kyyyk.', 'kyykyyk', 'kykkyyk', 'kyyyyyk', '.kyyyk.', '..kkk..']] },
+  pj_arcane: { px: 2, frames: [['..kkk..', '.kccbk.', 'kcwccbk', 'kcccbbk', '.kbbbk.', '..kkk..'], ['..kkk..', '.kcccb.', 'kwwccbk', 'kccbbbk', '.kbbbk.', '..kk...']] },
+  pj_soul: { px: 2, frames: [['.kkkk.', 'kuwwuk', 'kwkkwk', 'kuwwuk', '.kuUk.', '..kk..'], ['.kkkk.', 'kuwwuk', 'kwkkwk', 'kuwwuk', '.kUuk.', '...kk.']] },
+  flail: { px: 2, frames: [['...k...', '.kkkkk.', '.kMWMk.', 'kkWMMkk', '.kMMmk.', '.kkkkk.', '...k...']] },
+  bomb: { px: 2, frames: [['.....yk.', '....kk..', '..kkkk..', '.kKKKKk.', 'kKmKKKKk', 'kKKKKKKk', '.kKKKKk.', '..kkkk..'], ['.....ok.', '....kk..', '..kkkk..', '.kKKKKk.', 'kKmKKKKk', 'kKKKKKKk', '.kKKKKk.', '..kkkk..']] },
+  spear: { px: 2, frames: [['......k..', 'kkkk.kWk.', 'nnnnkWWWk', 'kkkk.kWk.', '......k..']] },
+  bhand: { px: 2, frames: [['kk.kk.kk.', 'ke.ke.ke.', 'ke.ke.kek', 'keekeekek', 'keeeeeeek', '.keeeeek.', '..kEEEk..', '..kkkkk..']] },
+});
+/* 투사체 출처 → 도트 (없으면 기존 그림) */
+const PJ_SPR = { xbow: 'pj_xbow', longbow: 'pj_longbow', dagger: 'pj_dagger', thornshot: 'pj_thorn', wind: 'pj_wind', shard: 'pj_gear', flameorb: 'pj_arcane' };
+function pjSprite(pr) {
+  if (pr._s !== undefined) return pr._s;
+  return (pr._s = PJ_SPR[pr.src] || (pr.kind === 'orb' && pr.color === '#c8a8ff' ? 'pj_soul' : null));
+}
+/* ============================================================
+   도트화 2 (0.30) — 수문장·마왕 패턴, 곁가지 사건, 페이즈 기믹 도트 + 상태 표시줄 색 맞춤
+   — 예고 구역(붉은 원·띠)은 판정 범위 표시라 도형 유지, 중심·가장자리에 도트 표식 추가
+   ============================================================ */
+Object.assign(SPR, {
+  /* 수문장 관 (기존 삼각형 3개 대체) */
+  crown: { px: 2, frames: [['k....k....k', 'kyk.kyk.kyk', 'kyykyyykyyk', 'kyrYyyyYryk', 'kYYYYYYYYYk', '.kkkkkkkkk.']] },
+  /* 위험 표식 '!' (예고 구역 중심) */
+  warn: { px: 2, frames: [['.kkk.', 'kwrwk', 'kwrwk', 'kwrwk', '.kwk.', 'kwrwk', '.kkk.']] },
+  /* 이그나 화염 장판 기포 */
+  lava: { px: 2, frames: [['.kk.', 'kyok', 'kook', '.kk.'], ['....', '.kk.', 'kyok', '.kk.']] },
+  /* 바르간 돌진 예고 화살표 */
+  chev: { px: 2, frames: [['kk...', 'krrk.', '.krrk', 'krrk.', 'kk...']] },
+  /* 마왕 결계 기둥 (경계선 위 배치) */
+  dpil: { px: 2, frames: [['..kk..', '.kuwk.', 'kuwuUk', 'kuuuUk', 'kuuUUk', 'kuuUUk', 'kUuUUk', 'kKKKKk', '.kkkk.'], ['..kk..', '.kwuk.', 'kwuuUk', 'kuuuUk', 'kuuUUk', 'kuUUUk', 'kUuUUk', 'kKKKKk', '.kkkk.']] },
+  /* 마왕 광선 마디 (가로 방향 반복) */
+  dbeam: { px: 2, frames: [['kkkkkkkk', 'uUuUuUuU', 'wwuwwwuw', 'wwwwwwww', 'wwuwwwuw', 'uUuUuUuU', 'kkkkkkkk']] },
+  /* 동굴 입구 */
+  cave: { px: 2, frames: [[
+    '.....kkkkkkkk.....',
+    '...kkmMMMMMMmkk...',
+    '..kmMMmmmmmmMMmk..',
+    '.kmMmkkkkkkkkmMmk.',
+    '.kMmkKKKKKKKKkmMk.',
+    'kmMkKKKKKKKKKKkMmk',
+    'kmMkKKKKKKKKKKkMmk',
+    'kMmkKKKKKKKKKKkmMk',
+    'kmmkKKKKKKKKKKkmmk',
+    'kGmkKKKKKKKKKKkmGk',
+    'kGGkkkkkkkkkkkkGGk',
+    '.kkk..........kkk.',
+  ]] },
+  /* 봉인된 문 */
+  sdoor: { px: 2, frames: [[
+    '...kkkkkkkk...',
+    '..kMMMMMMMMk..',
+    '.kMmkkkkkkmMk.',
+    'kMmkUUUUUUkmMk',
+    'kMmkUuUUuUkmMk',
+    'kMmkUUuuUUkmMk',
+    'kMmkUUwwUUkmMk',
+    'kMmkUUuuUUkmMk',
+    'kMmkUuUUuUkmMk',
+    'kMmkUUUUUUkmMk',
+    'kMmkUUUUUUkmMk',
+    'kMmkkkkkkkkmMk',
+    'kmmmmmmmmmmmmk',
+    '.kkkkkkkkkkkk.',
+  ], [
+    '...kkkkkkkk...',
+    '..kMMMMMMMMk..',
+    '.kMmkkkkkkmMk.',
+    'kMmkUUUUUUkmMk',
+    'kMmkUuUUuUkmMk',
+    'kMmkUUuuUUkmMk',
+    'kMmkUUwwUUkmMk',
+    'kMmkUUwwUUkmMk',
+    'kMmkUuUUuUkmMk',
+    'kMmkUUUUUUkmMk',
+    'kMmkUUUUUUkmMk',
+    'kMmkkkkkkkkmMk',
+    'kmmmmmmmmmmmmk',
+    '.kkkkkkkkkkkk.',
+  ]] },
+  /* 잠든 거대 몹 'Z' */
+  zzz: { px: 2, frames: [['kkkkk', 'kwwwk', '.kwk.', 'kwkkk', 'kwwwk', 'kkkkk']] },
+  /* 봉인석 (구역 중심) */
+  sealst: { px: 2, frames: [[
+    '...kkk...',
+    '..kMWMk..',
+    '.kMWcWMk.',
+    '.kMcccMk.',
+    'kMMWcWMMk',
+    'kMmMcMmMk',
+    'kMmMMMmMk',
+    'kmmMMMmmk',
+    'kmmmmmmmk',
+    'kKmmmmmKk',
+    '.kkkkkkk.',
+  ], [
+    '...kkk...',
+    '..kMWMk..',
+    '.kMWwWMk.',
+    '.kMcwcMk.',
+    'kMMWcWMMk',
+    'kMmMcMmMk',
+    'kMmMMMmMk',
+    'kmmMMMmmk',
+    'kmmmmmmmk',
+    'kKmmmmmKk',
+    '.kkkkkkk.',
+  ]] },
+  /* 붕괴 지대 흔적 */
+  crack: { px: 2, frames: [[
+    '....k.......k...',
+    '.....k.....k....',
+    'kk....kNNNk.....',
+    '..kNNNNKKNNk..kk',
+    '....kNKKKKNkkk..',
+    '...kNNKKKNNk....',
+    '..k...kNNk..k...',
+    '.k.....k.....k..',
+  ]] },
+  /* 야영지 천막·모닥불 */
+  tent: { px: 2, frames: [[
+    '.......kk.......',
+    '......kook......',
+    '.....kooOOk.....',
+    '....kooOkOOk....',
+    '...kooOkKkOOk...',
+    '..kooOkKKKkOOk..',
+    '.kooOkKKKKKkOOk.',
+    'kooOOkKKKKKkOOOk',
+    'kkkkkkkkkkkkkkkk',
+  ]] },
+  fire2: { px: 2, frames: [['..k..', '.kyk.', 'kyoyk', 'koyok', 'knnnk', '.kkk.'], ['.k...', '.kyk.', 'koyyk', 'kyook', 'knnnk', '.kkk.']] },
+  /* 수레 목적지 깃발 */
+  flag: { px: 2, frames: [[
+    'kkkkkkk.',
+    'knyyyyyk',
+    'knyrryk.',
+    'knyyyyyk',
+    'knkkkkk.',
+    'kn......',
+    'kn......',
+    'kn......',
+    'kn......',
+    'kN......',
+    'kk......',
+  ], [
+    'kkkkkk..',
+    'knyyyyk.',
+    'knyrryyk',
+    'knyyyyk.',
+    'knkkkk..',
+    'kn......',
+    'kn......',
+    'kn......',
+    'kn......',
+    'kN......',
+    'kk......',
+  ]] },
+  /* 회복 샘 */
+  well: { px: 2, frames: [[
+    '...kkkkkk...',
+    '.kkmmmmmmkk.',
+    'kmmkccccckmk',
+    'kmkcwcccwckk',
+    'kmkccccccckk',
+    'kmmkcccccmmk',
+    '.kkmmmmmmkk.',
+    '...kkkkkk...',
+  ], [
+    '...kkkkkk...',
+    '.kkmmmmmmkk.',
+    'kmmkcccwckmk',
+    'kmkccccccckk',
+    'kmkcwccccckk',
+    'kmmkcccccmmk',
+    '.kkmmmmmmkk.',
+    '...kkkkkk...',
+  ]] },
+});
+['cave', 'sdoor'].forEach(n => SPR[n].frames = SPR[n].frames.map(f => f.map(r => r.padEnd(f[0].length, '.'))));
+
+const f2 = (hz) => Math.floor(G.time * hz) & 1;
+/* 예고 구역 중심 '!' 표식 (차오를수록 커짐) */
+function drawWarnMark(c, x, y, a) { c.globalAlpha = 0.55 + 0.45 * a; drawSpriteC(c, 'warn', 0, x, y, { mul: a > 0.7 ? 2 : 1 }); c.globalAlpha = 1; }
+/* 이그나 장판 기포 */
+function drawLavaPool(c, h, k) {
+  const n = Math.max(3, Math.round(h.r / 14)); c.globalAlpha = 0.5 + 0.5 * k;
+  for (let i = 0; i < n; i++) { const a = i * 2.39996 + (h.seed || (h.seed = rand(6.28))), rr = h.r * (0.25 + 0.6 * ((i * 0.618) % 1)); drawSpriteC(c, 'lava', (Math.floor(G.time * 3 + i) & 1), h.x + Math.cos(a) * rr, h.y + Math.sin(a) * rr); }
+  c.globalAlpha = 1;
+}
+/* 돌진 예고 띠 위 화살표 */
+function drawChevrons(c, h, a) {
+  const ang = Math.atan2(h.dy, h.dx), ux = Math.cos(ang), uy = Math.sin(ang), step = 34, n = Math.floor(h.len * a / step);
+  for (let i = 1; i <= n; i++) drawSpriteRot(c, 'chev', 0, h.x + ux * i * step, h.y + uy * i * step, ang);
+}
+/* 마왕 결계 기둥 */
+function drawArenaPillars(c, A) {
+  const n = 16, fr = f2(3);
+  for (let i = 0; i < n; i++) { const a = i * Math.PI * 2 / n + G.time * 0.05; drawSprite(c, 'dpil', (fr + i) & 1, A.x + Math.cos(a) * A.R, A.y + Math.sin(a) * A.R + 8); }
+}
+/* 마왕 광선: 도트 마디 반복 */
+function drawDemonBeam(c, h) {
+  const S = getSprite('dbeam', 0), k = 1 / (VIEW.zoom * VIEW.dpr), W = S.cv.width * k, H = S.cv.height * k, sy = h.w / H;
+  const off = (G.time * 160) % W;
+  c.save(); c.translate(h.x, h.y); c.rotate(h.a); c.scale(1, Math.max(0.6, sy));
+  for (let x = -off; x < h.len; x += W) c.drawImage(S.cv, x, -H / 2, W, H);
+  c.restore();
+}
+
+/* ============================================================
+   상태 표시줄 색 맞춤 (0.30) — 화면별 배경색을 theme-color에 반영, 전투 화면은 상단 옅어지는 띠
+   ============================================================ */
+const SBAR = { el: null, cur: '', t: 0 };
+function mixHex(a, b, k) {
+  const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16), m = s => Math.round(((A >> s) & 255) * (1 - k) + ((B >> s) & 255) * k);
+  return '#' + ((m(16) << 16) | (m(8) << 8) | m(0)).toString(16).padStart(6, '0');
+}
+/* 현재 화면 상단 색 추정: 겹침 화면 종류별 덮개 농도를 지형 색에 섞음 */
+function statusColor() {
+  const ter = (TERRAIN[TER.cur] || TERRAIN.field).a, L = UI.firstElementChild;
+  if (!L || STATE.mode === 'play') return shadeHex(ter, 0.62);                 // 전투: 띠 시작색과 동일
+  const cl = L.classList, al = cl.contains('title') ? 0.55 : cl.contains('scroll') ? 0.94 : cl.contains('sel') ? 0.9 : cl.contains('dlg-wrap') ? 0 : 0.78;
+  const base = cl.contains('title') ? '#0c0a12' : cl.contains('scroll') || cl.contains('sel') ? '#0e0c16' : '#0c0a12';
+  return al ? mixHex(ter, base, al) : shadeHex(ter, 0.62);
+}
+function statusSync(now) {
+  if (now - SBAR.t < 200) return; SBAR.t = now;
+  if (!SBAR.el) SBAR.el = document.querySelector('meta[name="theme-color"]');
+  const col = statusColor(); if (col === SBAR.cur || !SBAR.el) return;
+  SBAR.cur = col; SBAR.el.setAttribute('content', col);
+  document.documentElement.style.background = col;
+}
+/* 전투 화면 상단 띠: 표시줄 색에서 시작해 아래로 옅어짐 (투명 표시줄 불가 대응) */
+function drawTopBand(c) {
+  if (STATE.mode === 'title') return;
+  const h = VIEW.sat + 30, col = SBAR.cur || shadeHex((TERRAIN[TER.cur] || TERRAIN.field).a, 0.62);
+  const n = parseInt(col.slice(1), 16), rgb = `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`;
+  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(VIEW.sat / h, `rgba(${rgb},0.9)`); g.addColorStop(1, `rgba(${rgb},0)`);
+  c.fillStyle = g; c.fillRect(0, 0, VIEW.cw, h);
 }
 /* ============================================================
    타격 연출 (0.22) — 피격 반짝임·밀림 강화, 처치 파편, 치명타 강조,
@@ -4931,6 +5278,7 @@ function render() {
   drawPhaseFog(c);
   drawPhaseTint(c);
   drawReactScreen(c);                                       // 피격 가장자리·색 섬광 (0.28)
+  drawTopBand(c);                                           // 0.30 상태 표시줄 이어지는 상단 띠
   drawJoy(c);
   if (STATE.mode === 'title') return;          // 시작 화면에서는 상단 정보 숨김
   drawHUD(c);
@@ -5014,7 +5362,7 @@ function drawEnemySprites(c, list) {
   c.fill();
   for (const e of list) {
     const nm = spriteFor(e), fr = Math.floor(G.time * (e.type === 'bat' ? 8 : 4) + e.id * 0.37) & 1, flip = G.p.x < e.x, mul = spriteMul(e), by = e.y + e.r * 0.95;
-    if (e.elite || e.rage) drawSprite(c, nm, fr, e.x, by, { flip, mul, mode: e.rage ? 'rage' : 'gold' });
+    if (e.elite || e.rage || e.thief) drawSprite(c, nm, fr, e.x, by, { flip, mul, mode: e.rage ? 'rage' : 'gold' });
     drawSprite(c, nm, fr, e.x, by, { flip, mul, mode: e.flash > 0 ? 'white' : 'n' });
   }
 }
@@ -5140,6 +5488,8 @@ function drawWeapons(c, inView) {
     if (!inView(pr.x, pr.y, pr.r + 10)) continue;
     const a = Math.atan2(pr.vy, pr.vx);
     if (pr.jt) { c.globalAlpha = 0.35; c.fillStyle = pr.jt; c.beginPath(); c.arc(pr.x, pr.y, pr.r + 5, 0, 7); c.fill(); c.globalAlpha = 1; }   // 직업 변환 발광 (0.26)
+    const ps = pjSprite(pr);                                  // 0.29 전용 무기·신규 투사체 도트
+    if (ps) { const fr = SPR[ps].frames.length > 1 ? Math.floor(G.time * 10 + pr.id) & 1 : 0; if (ps === 'pj_gear') drawSpriteRot(c, ps, 0, pr.x, pr.y, pr.t * 6); else if (ps === 'pj_soul') drawSpriteC(c, ps, fr, pr.x, pr.y, { flip: pr.vx < 0 }); else drawSpriteRot(c, ps, fr, pr.x, pr.y, a); continue; }
     if (pr.kind === 'star') drawSpriteRot(c, 'star', 0, pr.x, pr.y, pr.t * 16);
     else if (pr.kind === 'arrow') drawSpriteRot(c, pr.src === 'knife' ? 'knife' : 'arrow', 0, pr.x, pr.y, a);
     else if (pr.kind === 'boom') drawSpriteRot(c, 'axe', 0, pr.x, pr.y, pr.spin, { mul: pr.r > 15 ? 2 : 1 });
@@ -5530,6 +5880,7 @@ function dlgFull() {
   if (SETTINGS.dlgAuto || STATE.dev.auto) { const L = DLG.lines, i = DLG.i; setTimeout(() => { if (DLG.lines === L && DLG.i === i && !DLG.timer) dlgTap(); }, STATE.dev.auto ? 400 : 1800); }   // 대사 자동 넘김 (0.14)
 }
 function dlgTap() {
+  if (!DLG.lines) return;                                  // 0.30 닫힌 직후 중복 입력 무시
   if (DLG.timer) return dlgFull();                         // 출력 중 누르면 전체 표시
   if (++DLG.i < DLG.lines.length) return dlgLine();
   hideUI(); STATE.mode = DLG.prev; const f = DLG.done; DLG.lines = null; DLG.done = null; lastT = performance.now(); if (f) f();
@@ -5569,6 +5920,7 @@ function frame(now) {
       for (let i = 0; i < n; i++) { step(raw * sp / n * rs); if (STATE.mode !== 'play') break; }
     }
     if (G) render();
+    statusSync(now);                                          // 0.30 상태 표시줄 색 맞춤
     auWatch();
     syncPauseBtn();
     if (DEV.open && Math.floor(now / 500) !== Math.floor((now - raw * 1000) / 500)) DEV.info();
