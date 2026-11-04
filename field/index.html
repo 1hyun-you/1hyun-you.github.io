@@ -143,7 +143,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.27e',
+  VERSION: '0.27f',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -1931,25 +1931,10 @@ function showEnding(next) {
    보상은 성능 영향 없음(판 점수 배율·칭호·주인공 색상), 배율·강화 수치는 초기값 (5단계 시험으로 확정)
    ============================================================ */
 /* ---------- 설정 (기기 저장) ---------- */
-const SET_DEF = { autoUlt: false, joy: 'float', confirm2: false, sfx: 80, bgm: 60, vibe: true, shake: true, dlgAuto: false, dmgNum: false, fullscr: false };
+const SET_DEF = { autoUlt: false, joy: 'float', confirm2: false, sfx: 80, bgm: 60, vibe: true, shake: true, dlgAuto: false, dmgNum: false };
 const SETTINGS = (() => { try { return Object.assign({}, SET_DEF, JSON.parse(localStorage.getItem(CFG.SAVE_KEY + '_set') || '{}')); } catch (e) { return Object.assign({}, SET_DEF); } })();
 function saveSettings() { try { localStorage.setItem(CFG.SAVE_KEY + '_set', JSON.stringify(SETTINGS)); } catch (e) { } }
-let FS_SELF = 0;
-/* 0.27d 전체 화면 옵션 (기본 꺼짐): 켜면 화면을 누를 때 상태 표시줄 숨김, 끄면 표시 (브라우저 정책상 터치 시점에만 요청 가능) */
-function applyFull() {
-  const d = document, fe = d.fullscreenElement || d.webkitFullscreenElement;
-  try {
-    if (SETTINGS.fullscr && !fe) { const el = d.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen; if (rq) { const r = rq.call(el, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => { }); } }
-    else if (!SETTINGS.fullscr && fe) { FS_SELF = performance.now(); const ex = d.exitFullscreen || d.webkitExitFullscreen; if (ex) { const r = ex.call(d); if (r && r.catch) r.catch(() => { }); } }
-  } catch (e) { }
-}
-document.addEventListener('pointerup', () => { if (SETTINGS.fullscr) applyFull(); }, true);
-['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {
-  if (typeof resize === 'function') setTimeout(resize, 60);
-  const fe = document.fullscreenElement || document.webkitFullscreenElement;
-  // 0.27e 옵션 켜짐 상태에서 화면이 보이는 중 해제됨 = 뒤로가기 동작으로 처리 (직접 끈 경우 제외)
-  if (!fe && SETTINGS.fullscr && document.visibilityState === 'visible' && performance.now() - FS_SELF > 500 && typeof backAct === 'function') { BACK.fsT = performance.now(); backAct(); }
-}));
+/* 0.27f 전체 화면 옵션 삭제: 상태 표시줄 표시형 확정 (웹 전체 화면은 뒤로가기 시 해제·재적용 버벅임 발생) */
 let vibeAt = 0;
 function vibe(ms) {
   if (!SETTINGS.vibe || STATE.dev.auto || !navigator.vibrate) return;
@@ -2037,10 +2022,9 @@ function showSettings(back) {
     ${T('vibe', '진동', '피격·보스 등장 시 짧은 진동')}
     ${T('shake', '화면 흔들림', '피격·보스 등장 시 화면 흔들림')}
     ${T('dmgNum', '피해 숫자', '적에게 준 피해를 숫자로 표시')}
-    ${T('fullscr', '전체 화면', '상단 시간·알림 표시줄 숨김 (화면을 누르면 적용)')}
     ${V('sfx', '효과음 음량')}${V('bgm', '배경음 음량')}
     </div><div class="menu"><button id="s_back">돌아가기</button></div></div>`;
-  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); if (k === 'fullscr') applyFull(); showSettings(back); }));
+  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); showSettings(back); }));
   UI.querySelectorAll('input[data-v]').forEach(i => i.addEventListener('input', () => { SETTINGS[i.dataset.v] = +i.value; i.nextElementSibling.textContent = i.value; saveSettings(); auVol(); if (i.dataset.v === 'sfx') sfx('ui'); }));
   on('s_joy', () => { SETTINGS.joy = SETTINGS.joy === 'fixed' ? 'float' : 'fixed'; saveSettings(); showSettings(back); });
   on('s_back', back);
@@ -5252,9 +5236,7 @@ function showTitle() {
 const BACK = { armT: 0 };
 function backInit() { try { history.pushState({ g: 1 }, ''); } catch (e) { } window.addEventListener('popstate', onBack); }
 function backHint(t) { let d = document.getElementById('backhint'); if (!d) { d = document.createElement('div'); d.id = 'backhint'; document.body.appendChild(d); } d.textContent = t; d.style.display = 'block'; clearTimeout(BACK.h); BACK.h = setTimeout(() => { d.style.display = 'none'; }, 2000); }
-/* 0.27e 전체 화면 중 뒤로가기: 시스템이 전체 화면 해제로 먼저 소비 → 해제 순간을 뒤로가기 1회로 처리 (다음 터치 시 전체 화면 재적용) */
 function onBack() {
-  if (performance.now() - (BACK.fsT || 0) < 400) { try { history.pushState({ g: 1 }, ''); } catch (e) { } return; }   // 같은 동작 중복 방지
   backAct();
   try { history.pushState({ g: 1 }, ''); } catch (e) { }
 }
