@@ -3,7 +3,7 @@
   "short_name": "템트리 노트",
   "description": "롤 챔피언별 아이템·룬·소환사 주문·선마 빌드 기록",
   "lang": "ko",
-  "id": "./",
+  "id": "/temtree/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
