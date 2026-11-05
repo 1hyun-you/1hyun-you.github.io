@@ -37,7 +37,7 @@ canvas#c{position:fixed;left:0;top:0;width:100vw;height:100vh;display:block;touc
 .ab b{font-size:14px}.ab .lv{color:var(--muted);font-size:12px;margin-left:4px}.ab p{margin:2px 0 0;font-size:12px;color:var(--muted);white-space:pre-line}
 .ab.exw{border-color:#ffd24a}
 .sel-head{position:relative;width:100%;max-width:420px}
-#abtn{position:absolute;right:0;top:0;padding:6px 10px;font-size:13px}
+.sel-tools{display:flex;gap:10px;justify-content:center;margin-top:10px}.sel-tools button{padding:9px 18px;font-size:14px;border:2px solid #ffe08a;color:#ffe08a;background:rgba(40,30,10,.55)}.sel-tools button.on{background:#ffe08a;color:#2a1e08}
 #backhint{position:fixed;left:50%;bottom:calc(var(--sab) + 70px);transform:translateX(-50%);background:rgba(20,18,30,.92);border:1px solid var(--line);border-radius:20px;padding:8px 16px;font-size:14px;z-index:9;pointer-events:none}
 #ui{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:5}
 #ui>.layer{position:absolute;inset:0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -153,7 +153,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.34',
+  VERSION: '0.35b',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -402,7 +402,10 @@ function recalc() {
   if (p.maxHp > prevMax && !hasCond('noheal')) p.hp += p.maxHp - prevMax;     // 늘어난 최대 체력만큼 회복 (도전 조건 회복 없음 제외)
   p.hp = Math.min(p.hp, p.maxHp);
 }
-function heal(v) { const p = G.p; if (hasCond('noheal')) return; if (hasCurse('blight')) v *= 0.6; p.hp = Math.min(p.maxHp, p.hp + v); }
+/* 0.35 처치 연동 회복 공통 상한: 흡혈·피의 칼날·피의 갈증 합계 초당 최대 체력 0.12% (최대 5초분 적립) */
+const KILL_HEAL = { rate: 0.0012, keep: 5 };
+function killHeal(v, src) { const p = G.p, K = G.kh || (G.kh = { b: p.maxHp * KILL_HEAL.rate * KILL_HEAL.keep, t: G.time }); K.b = Math.min(p.maxHp * KILL_HEAL.rate * KILL_HEAL.keep, K.b + (G.time - K.t) * p.maxHp * KILL_HEAL.rate); K.t = G.time; const g = Math.min(v, K.b); if (g <= 0) return; K.b -= g; heal(g, src); }
+function heal(v, src = '기타') { const p = G.p; if (hasCond('noheal')) return; if (hasCurse('blight')) v *= 0.6; const b = p.hp; p.hp = Math.min(p.maxHp, p.hp + v); const H = G.stats.healBy || (G.stats.healBy = {}); H[src] = (H[src] || 0) + (p.hp - b) / p.maxHp; }   // 0.35 회복원별 실회복량(최대 체력 비율) 기록
 function clearInput() { INPUT.active = false; INPUT.id = null; INPUT.mag = 0; }
 function toast(text, color = '#fff') { G.toasts.push({ text, color, t: 0, dur: 2 }); if (G.toasts.length > 3) G.toasts.shift(); }
 function fx(o) { if (G.fx.length < 220) G.fx.push(Object.assign({ t: 0 }, o)); }
@@ -554,7 +557,7 @@ function killEnemy(e) {
   if (e.gk) gkKilled(e);
   ultOnKill(e);                                              // 0.32 사령술사·정복왕
   if (e.slowT > 0 && wBr('icering') === 'shatter') { const x = e.x, y = e.y, d = wStats(G.p.weapons.find(w => w.id === 'icering')).dmg * 2.5; G.later.push({ t: 0, f: () => explode(x, y, 46, d, 'shatter', '#bfe8ff') }); }
-  if (pBr('regen') === 'vamp') heal(0.4);
+  if (pBr('regen') === 'vamp') killHeal(0.4, '흡혈');
   relicKill(e);                                              // 0.27 유물 처치 연계
   onEnemyKill(e);
   if (e.mb) mobKilled(e); traitKill(e);                     // 분열·숙련 특성 (0.23)
@@ -570,15 +573,18 @@ function hurtPlayer(dmg, src) {
   vibe(25); sfx('hurt');
   onPlayerHurt();
   G.ph.hurtEma += dmg / 40;                                  // 강함 판정용 최근 피해 (0.24)
+  ultHurtGain(Math.min(dmg, Math.max(0, p.hp)));                // 0.35 피격 충전
   p.hp -= dmg; p.invT = CFG.player.invuln + (tr('guard') ? 0.2 : 0); p.flash = 0.2; G.lastHit = src;
   G.stats.hurt[src] = (G.stats.hurt[src] || 0) + dmg; ultOnHurt();   // 0.32 성자 반격 섬광
   if (p.hp <= 0 && pBr('regen') === 'second' && !p.revived) { p.revived = true; p.hp = p.maxHp * 0.4; p.invT = 2; toast('불굴', '#ffb070'); return; }
   if (p.hp <= 0) { p.hp = 0; sfx('dead'); G.result = 'dead'; G.endT = 1.4; fx({ kind: 'ring', x: p.x, y: p.y, r0: 10, r1: 200, dur: 1, color: '#ff6a6a' }); }
 }
 
+/* 흡수 범위 (경험치·고기 공용, 0.35) */
+function pickR() { return CFG.player.pickup * (1 + PASSIVES.magnet.per * passLv('magnet')) * (tr('magnet') ? 1.25 : 1); }
 /* 경험치·레벨업 (레벨업마다 3지선다 대기열 적재) */
 function updateGems(dt) {
-  const p = G.p, R = CFG.player.pickup * (1 + PASSIVES.magnet.per * passLv('magnet')) * (tr('magnet') ? 1.25 : 1), R2 = R * R;
+  const p = G.p, R = pickR(), R2 = R * R;
   for (const g of G.gems) {
     const d2 = dist2(g.x, g.y, p.x, p.y);
     if (!g.mag && d2 < R2) g.mag = true;
@@ -621,7 +627,7 @@ function buildReport() {
     dmgShare: Object.entries(G.stats.dmg).map(([k, v]) => [k, Math.round(v / tot * 100)]).sort((a, b) => b[1] - a[1]),
     hurt: G.stats.hurt, maxEnemies: G.stats.maxEnemies, levelAt: G.stats.levelAt,
     build: { w: G.p.weapons.map(w => w.id + ':' + w.lvl), p: G.p.passives.map(x => x.id + ':' + x.lvl) },
-    meat: G.rc ? [G.rc.meatN, G.rc.meatEat, G.rc.meatTimes] : [0, 0, []],
+    meat: G.rc ? [G.rc.meatN, G.rc.meatEat, G.rc.meatTimes, G.rc.meatFar || 0] : [0, 0, [], 0], healBy: G.stats.healBy || {}, ultBy: G.stats.ultBy || {}, ultAt: G.ultAt || [],
     xp: [G.stats.xpGot, G.stats.xpDrop], selOpen: G.stats.selOpen, pendingLv: G.pendingLv, lastMinShare: lastMinShare(), picks: G.stats.picks, wFullAt: G.stats.wFullAt, pFullAt: G.stats.pFullAt,
     phases: G.ph.log, phaseReached: G.ph.i + 1, phaseAt: G.ph.id || 'gap',
     rerollsUsed: CFG.select.rerolls - G.rerolls, banishUsed: CFG.select.banishes - G.banishes,
@@ -865,7 +871,7 @@ function updatePhase(dt) {
   if (P.goal === 'time' && ph.t >= P.dur) return phaseEnd('ok');
   if (P.fail && ph.t >= P.fail) return phaseEnd('timeout');
   if (ph.spring && !ph.spring.used && dist2(p.x, p.y, ph.spring.x, ph.spring.y) < (ph.spring.r + p.r) ** 2) {
-    ph.spring.used = true; heal(p.maxHp * PH_CFG.springHeal); toast('회복의 샘', '#8ff0b0');
+    ph.spring.used = true; heal(p.maxHp * PH_CFG.springHeal, '회복의 샘'); toast('회복의 샘', '#8ff0b0');
     fx({ kind: 'ring', x: ph.spring.x, y: ph.spring.y, r0: 8, r1: 60, dur: 0.5, color: '#8ff0b0' });
   }
   if (P.goal === 'kill' && ph.cmd && ph.cmd.dead && ph.t >= (P.min || 0)) return phaseEnd('ok');
@@ -2370,7 +2376,7 @@ Object.assign(WEAPON_FIRE, {
     shieldBash(p.x, p.y, R, S.dmg, D.kb);
     if (w.br === 'wall') G.tm.wall = 1.5;
     if (w.br === 'twin') G.later.push({ t: 0.4, f: () => shieldBash(G.p.x, G.p.y, R * 1.4, S.dmg * 0.5, D.kb * 0.6) });
-    if (hasRelic('bulwark')) heal(p.maxHp * 0.03);
+    if (hasRelic('bulwark')) heal(p.maxHp * 0.01, '수호 방패');   // 0.35 3% → 1%
   },
   /* 대지 강타: 원형 충격파 · 여진 분기: 1초 뒤 같은 자리 재충격 · 균열 분기: 네 방향 균열 장판 */
   slam(w, S) {
@@ -2545,7 +2551,7 @@ const BRANCHES = {
   area: [{ k: 'giant', nm: '거대화', ds: '범위 추가 +15%, 모든 무기 피해 +8%' }, { k: 'dense', nm: '응축', ds: '범위 증가 대신 단계당 피해 +12%' }],
   multi: [{ k: 'barrage', nm: '일제 사격', ds: '개수 추가 +1, 해당 무기 재사용 +20%' }, { k: 'velocity', nm: '고속탄', ds: '개수형 무기 피해 +20%' }],
   magnet: [{ k: 'vacuum', nm: '자석 파동', ds: '30초마다 주변 경험치 전부 흡수' }, { k: 'greed', nm: '성장 가속', ds: '경험치 획득 +15%' }],
-  regen: [{ k: 'vamp', nm: '흡혈', ds: '처치 시 체력 0.4 회복' }, { k: 'second', nm: '불굴', ds: '판당 1회 치명 피해 시 체력 40%로 버팀' }],
+  regen: [{ k: 'vamp', nm: '흡혈', ds: '처치 시 체력 0.4 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' }, { k: 'second', nm: '불굴', ds: '판당 1회 치명 피해 시 체력 40%로 버팀' }],
 };
 const RELICS = {
   bladestorm: { name: '칼날 폭풍', ic: '폭', a: 'cleave', b: 'spin', ds: '베기 시 1.5초간 회전검 속도 2배·피해 +30%' },
@@ -2555,7 +2561,7 @@ const RELICS = {
   /* 3단계 추가 4종 (0.8) */
   frostrift: { name: '서리 균열', ic: '서', a: 'slam', b: 'icering', ds: '대지 강타 충격파가 적을 1.2초 빙결' },
   firetrap: { name: '화염 덫', ic: '덫', a: 'trap', b: 'fireball', ds: '덫 폭발 자리에 2초 화염 장판' },
-  bulwark: { name: '수호 방패', ic: '수', a: 'shield', b: 'vit', ds: '방패 충격마다 최대 체력 3% 회복' },
+  bulwark: { name: '수호 방패', ic: '수', a: 'shield', b: 'vit', ds: '방패 충격마다 최대 체력 1% 회복' },
   arcknife: { name: '마력 단검', ic: '마', a: 'knife', b: 'orb', ds: '단검 명중 시 20% 확률 마력 구체 1발 (구체 피해 60%)' },
 };
 const RELIC_ORDER = ['bladestorm', 'thunderarrow', 'flameaxe', 'firefield', 'frostrift', 'firetrap', 'bulwark', 'arcknife'];
@@ -2647,7 +2653,7 @@ function eliteKilled(e) {
   if (!e.noChest) G.chests.push({ x: e.x, y: e.y, r: 14 });
   phaseEliteKilled(e);
   if (e.elite === 'split') for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; makeEnemy(e.type, e.x + Math.cos(a) * 20, e.y + Math.sin(a) * 20); }
-  if (G.p.job) ultGain(8);
+  if (G.p.job) ultGain(8, 'level');
 }
 function updateChests() {
   const p = G.p;
@@ -2668,10 +2674,10 @@ function updatePools(dt) {
 /* 보조 효과 분기 갱신 */
 function updatePassiveBranches(dt) {
   const p = G.p, T = G.tm;
-  if (passLv('regen')) heal(PASSIVES.regen.per * passLv('regen') * dt);
+  if (passLv('regen')) heal(PASSIVES.regen.per * passLv('regen') * dt, '체력 회복');
   if (T.wall > 0) T.wall -= dt;
   if (pBr('magnet') === 'vacuum') { T.vac = (T.vac == null ? 30 : T.vac) - dt; if (T.vac <= 0) { T.vac = 30; for (const g of G.gems) if (dist2(g.x, g.y, p.x, p.y) < 700 * 700) g.mag = true; fx({ kind: 'ring', x: p.x, y: p.y, r0: 10, r1: 160, dur: 0.4, color: '#7fe0ff', follow: true }); } }
-  if (pBr('vit') === 'regen') heal(p.maxHp * 0.006 * dt);
+  if (pBr('vit') === 'regen') heal(p.maxHp * 0.006 * dt, '재생');
   if (pBr('vit') === 'shield' && !p.shield) { T.shield -= dt; if (T.shield <= 0) { p.shield = true; T.shield = 12; } }
   if (pBr('swift') === 'trail' && p.moving) { T.trail -= dt; if (T.trail <= 0) { T.trail = 0.3; addPool({ x: p.x, y: p.y, r: 18, dur: 1.2, every: 0.35, dmg: (8 + passLv('swift') * 2) * p.mod.dmg, src: 'trail', kind: 'trail' }); } }
   if (pBr('haste') === 'charge') { T.charge -= dt; if (T.charge <= 0) { T.charge = 8; for (const w of p.weapons) if (w.id !== 'spin') w.t = Math.min(w.t, 0.05); fx({ kind: 'ring', x: p.x, y: p.y, r0: 8, r1: 40, dur: 0.3, color: '#d6b45a', follow: true }); } }
@@ -2700,7 +2706,7 @@ const JOBS = {
   /* 3단계 추가 4종 (0.9) — 초안 직업 목록 기준, 드루이드는 혼합 계열(근접+마법) */
   sovereign: { name: '군주', cat: 'melee', ic: '군', rule: '10초마다 발밑에 군기 설치, 군기 반경 안에서 피해 +25%·받는 피해 -15%', ult: '왕의 호령: 5초간 모든 적 둔화 50%, 무기 재사용 2배 속도' },
   chrono: { name: '시간술사', cat: 'ranged', ic: '시', rule: '원거리 명중 시 적 시간 지연(둔화) 누적, 5중첩 시 1.5초 정지', ult: '과거의 나: 1.5초 시간 정지, 5초 전 자신의 잔상이 지나온 길을 되감아 달리며 닿은 적 피해·둔화, 끝나면 5초 전 체력으로 되돌림(낮아진 경우)' },
-  priest: { name: '프리스트', cat: 'magic', ic: '프', rule: '처치 20회마다 정화: 체력 10% 회복 + 주변 신성 폭발', ult: '성역: 6초간 성역 안 적 지속 피해, 플레이어 초당 체력 5% 회복' },
+  priest: { name: '프리스트', cat: 'magic', ic: '프', rule: '처치 40회마다 정화: 체력 6% 회복 + 주변 신성 폭발', ult: '성역: 6초간 성역 안 적 지속 피해, 플레이어 초당 체력 5% 회복' },
   druid: { name: '드루이드', cat: 'hybrid', cats: ['melee', 'magic'], ic: '드', rule: '야수 동료 늑대·곰 동행, 늑대 8초마다 울부짖음(주변 둔화), 곰 10초마다 강타(충격파), 피해·범위·이동 속도·재사용 보조 효과가 동료에게도 적용', ult: '대자연의 분노: 8초간 동료 피해 2배·공격 속도 1.5배, 주변 덩굴 장판' },
 };
 const JOB_ORDER = ['warrior', 'rogue', 'sovereign', 'archer', 'engineer', 'chrono', 'mage', 'summoner', 'priest', 'druid'];
@@ -2717,7 +2723,7 @@ const JOB2 = {
   summoner: [{ k: 'necro', nm: '사령술사', ds: '소환 확률 2배, 망령 최대 10' }, { k: 'lord', nm: '망령 군주', ds: '망령 피해 2배, 크기 증가' }],
   sovereign: [{ k: 'conqueror', nm: '정복왕', ds: '군기 반경 +50%, 군기 안 적 지속 피해' }, { k: 'benevolent', nm: '성군', ds: '군기 안에서 초당 체력 2% 회복' }],
   chrono: [{ k: 'accel', nm: '가속자', ds: '이동 속도 +15%, 무기 재사용 -12%' }, { k: 'rewind', nm: '역행자', ds: '정지된 적이 받는 피해 +50%' }],
-  priest: [{ k: 'judge', nm: '심판관', ds: '정화 폭발 피해 2배·범위 +35%' }, { k: 'saint', nm: '성자', ds: '정화 필요 처치 12회, 회복량 20%' }],
+  priest: [{ k: 'judge', nm: '심판관', ds: '정화 폭발 피해 2배·범위 +35%' }, { k: 'saint', nm: '성자', ds: '정화 필요 처치 24회, 회복량 12%' }],
   druid: [{ k: 'ursa', nm: '수호 곰', ds: '곰 크기 증가·피해 1.5배, 강타 범위 +40%, 강타 시 체력 1 회복' }, { k: 'pack', nm: '무리의 우두머리', ds: '늑대 +2 (총 3), 늑대가 처치할 때마다 울부짖음 1초 단축' }],
 };
 const JOB2_STAT = { k: 'veteran', nm: '숙련', ds: '최대 체력 +30, 모든 피해 +15%, 이동 속도 +8%' };
@@ -2734,7 +2740,7 @@ const EXW = {
   priest: { name: '성광', ic: '광', ds: '1.6초마다 체력 높은 적에게 빛 기둥', cd: 1.6, dmg: 32, R: 50 },
   druid: { name: '가시 덩굴', ic: '덩', ds: '2초마다 주변 3곳 가시 장판', cd: 2.0, dmg: 9, R: 36 },
 };
-const JOB_CFG = { altarAfter: 2, altarDist: [170, 240], altarR: 26, altarStay: 0.6, ultNeed: 100, ultKill: 0.12, ultSec: 0.65, ultKillCap: 2, ultBossHit: 0.35, ultBossCap: 1.2, ultWin: 4, ultRefK: 0.5, ultRefMax: 25, job2Min: 60, ultStop: 0.6, ultAutoN: 10, jobCatW: 1.4 };
+const JOB_CFG = { altarAfter: 2, altarDist: [170, 240], altarR: 26, altarStay: 0.6, ultNeed: 100, ultKill: 0.08, ultSec: 0.4, ultKillCap: 3, ultElite: 5, ultHurtK: 1, ultBossHit: 0.35, ultBossCap: 1.8, ultWin: 4, ultRefK: 0.5, ultRefMax: 12, job2Min: 60, ultStop: 0.6, ultAutoN: 10, jobCatW: 1.4 };
 
 /* ---------- 주력 계열 ---------- */
 function catLevels() { const s = { melee: 0, ranged: 0, magic: 0 }; for (const w of G.p.weapons) s[WEAPONS[w.id].cat] += w.lvl; return s; }
@@ -2839,7 +2845,7 @@ function onEnemyHit(e, o) {
 function onEnemyKill(e) {
   const p = G.p; if (!p.job) return;
   ultKillGain(e);
-  if (p.job === 'priest' && ++p.holy >= (p.job2 === 'saint' ? 12 : 20)) { p.holy = 0; purify(); }
+  if (p.job === 'priest' && ++p.holy >= (p.job2 === 'saint' ? 24 : 40)) { p.holy = 0; purify(); }
   jobWeaponKill(e); if (p.job === 'druid') petKilled(e);
   if (p.job === 'summoner' && !e.minionOf) {
     const cap = p.job2 === 'necro' ? 10 : 6, ch = p.job2 === 'necro' ? 0.24 : 0.12;
@@ -2895,25 +2901,28 @@ function reaction(e) {
 /* 0.9 직업 보조 함수 */
 function inBanner() { const b = G.banner, p = G.p, r = b ? b.r * ultBannerR() : 0; return !!(b && dist2(b.x, b.y, p.x, p.y) < r * r) || ultInBanner(); }   // 0.32 호령 반경 2배·정복왕 추가 군기
 function purify() {
-  const p = G.p, j = p.job2 === 'judge', R = 110 * (j ? 1.35 : 1), d = (20 + p.level * 2) * p.mod.dmg * (j ? 2 : 1);
-  heal(p.maxHp * (p.job2 === 'saint' ? 0.2 : 0.1));
+  const p = G.p, j = p.job2 === 'judge', R = 110 * (j ? 1.35 : 1), d = (20 + p.level * 2) * p.mod.dmg * (j ? 2 : 1) * 1.5;   // 0.35 빈도 절반 보상 피해 1.5배
+  heal(p.maxHp * (p.job2 === 'saint' ? 0.12 : 0.06), '정화');   // 0.35 회복 하향(필요 처치 2배·회복량 60%)
   fx({ kind: 'ring', x: p.x, y: p.y, r0: 10, r1: R, dur: 0.4, color: '#fff2a8', fill: true });
   gridQuery(p.x, p.y, R, e => damageEnemy(e, d, { src: 'holy', kb: 160, fx: p.x, fy: p.y }));
 }
 function addMinion(x, y) { G.stats.maxMinions = Math.max(G.stats.maxMinions || 0, G.minions.length + 1); G.minions.push({ id: ++G.pid, x, y, r: G.p.job2 === 'lord' ? 9 : 7, life: 20, hitT: 0 }); }
 
 /* ---------- 궁극기 ---------- */
-function ultGain(v) { const p = G.p; if (tr('focus')) v *= 1.15; if (!p.job || p.ult >= JOB_CFG.ultNeed) return; p.ult = Math.min(JOB_CFG.ultNeed, p.ult + v); if (p.ult >= JOB_CFG.ultNeed) { G.tm.readyAt = G.time; toast('궁극기 준비 · 손 떼고 정지', '#ffe08a'); } }
+function ultGain(v, src = 'etc') { const p = G.p; if (tr('focus')) v *= 1.15; if (!p.job || p.ult >= JOB_CFG.ultNeed) return; const U0 = p.ult; p.ult = Math.min(JOB_CFG.ultNeed, p.ult + v); const UB = G.stats.ultBy || (G.stats.ultBy = {}); UB[src] = (UB[src] || 0) + p.ult - U0; if (p.ult >= JOB_CFG.ultNeed) { G.tm.readyAt = G.time; toast('궁극기 준비 · 손 떼고 정지', '#ffe08a'); } }
 /* 0.26a 궁극기 충전 혼합 보강: 처치 충전은 초당 상한, 엘리트·수문장·마왕 타격 충전(초당 상한), 시전 중 처치분은 환급(1회 상한) */
 function ultBucket() { const B = G.ultB || (G.ultB = { s: -1, k: 0, b: 0, ref: 0 }); const s = Math.floor(G.time); if (s !== B.s) { B.s = s; B.k = 0; B.b = 0; } return B; }
 function ultKillGain(e) {
   const C = JOB_CFG, B = ultBucket(), p = G.p;
   if (G.tm.ultWin > 0) { if (B.ref < C.ultRefMax) { const v = Math.min(C.ultRefK, C.ultRefMax - B.ref); B.ref += v; p.ultRef = Math.min(C.ultNeed, (p.ultRef || 0) + v); } return; }
-  const v = Math.min(C.ultKill * (e && e.elite ? 10 : 1), C.ultKillCap - B.k); if (v <= 0) return; B.k += v; ultGain(v);
+  if (e && e.elite && !e.clone) { ultGain(C.ultElite, 'elite'); return; }   // 0.35 정예 처치 별도 충전 (상한 미적용)
+  const v = Math.min(C.ultKill, C.ultKillCap - B.k); if (v <= 0) return; B.k += v; ultGain(v, 'kill');   // 0.35 처치당 고정 충전, 초당 안전 상한 3%
 }
+/* 0.35 피격 충전: 잃은 체력 비율 1:1, 궁극기 시전 중 미충전 */
+function ultHurtGain(dmg) { const p = G.p; if (!p.job || G.tm.ultWin > 0 || dmg <= 0) return; ultGain(dmg / p.maxHp * 100 * JOB_CFG.ultHurtK, 'hurt'); }
 function ultHitGain(e) {
   if (!G.p.job || !(e.elite || e.gk || e.boss)) return;
-  const C = JOB_CFG, B = ultBucket(), v = Math.min(C.ultBossHit, C.ultBossCap - B.b); if (v <= 0) return; B.b += v; ultGain(v);
+  const C = JOB_CFG, B = ultBucket(), v = Math.min(C.ultBossHit, C.ultBossCap - B.b); if (v <= 0) return; B.b += v; ultGain(v, 'boss');
 }
 function ultReady() { return G.p.job && G.p.ult >= JOB_CFG.ultNeed; }
 /* useUlt: 0.32 재설계로 src/ult.js 이관 */
@@ -2927,8 +2936,8 @@ function ultSlashes(n, d) {
 function updateUlt(dt) {
   const p = G.p; if (!p.job) return;
   if (G.ultLater && G.ultLater.length) G.ultLater = G.ultLater.filter(u => { if (G.time < u.t) return true; ultBlast(u.x, u.y, u.r, u.d, u.kb, u.col); return false; });
-  if (p.ultRef > 0 && !(G.tm.ultWin > 0)) { const v = p.ultRef; p.ultRef = 0; ultGain(v); }   // 시전 종료 후 환급
-  ultGain(JOB_CFG.ultSec * dt);
+  if (p.ultRef > 0 && !(G.tm.ultWin > 0)) { const v = p.ultRef; p.ultRef = 0; ultGain(v, 'refund'); }   // 시전 종료 후 환급
+  ultGain(JOB_CFG.ultSec * dt, 'time');
   if (!ultReady()) { G.tm.stopT = 0; return; }
   if (autoUltSetting()) { let n = 0; gridQuery(p.x, p.y, 200, () => { n++; }); if (n >= JOB_CFG.ultAutoN || G.time - G.tm.readyAt > 12) useUlt(); return; }
   // 정지 입력: 조이스틱에서 손을 뗀 채(이동 입력 없음) 일정 시간 정지 시 발동
@@ -3013,7 +3022,7 @@ function updateJob(dt) {
     if (T.banner <= 0) { T.banner = 10; G.banner = { x: p.x, y: p.y, r: 110 * (p.job2 === 'conqueror' ? 1.5 : 1) }; fx({ kind: 'ring', x: p.x, y: p.y, r0: 10, r1: G.banner.r, dur: 0.4, color: '#ffd24a' }); }
     const b = G.banner;
     if (b && p.job2 === 'conqueror') { T.bt = (T.bt || 0) - dt; if (T.bt <= 0) { T.bt = 0.5; const d = (6 + p.level * 0.6) * p.mod.dmg; gridQuery(b.x, b.y, b.r, e => damageEnemy(e, d, { src: 'banner' })); } }
-    if (p.job2 === 'benevolent' && inBanner()) heal(p.maxHp * 0.02 * dt);
+    if (p.job2 === 'benevolent' && inBanner()) heal(p.maxHp * 0.02 * dt, '성군 군기');
     benevolentHeal(dt);
   }
   if (p.job === 'druid') {
@@ -3024,7 +3033,7 @@ function updateJob(dt) {
   if (G.sanct && T.sanct > 0) {
     const S = G.sanct; T.st = (T.st || 0) - dt;
     if (T.st <= 0) { T.st = 0.4; const d = (14 + p.level * 1.2) * p.mod.dmg; gridQuery(S.x, S.y, S.r, e => damageEnemy(e, d, { src: 'ult' })); }
-    if (dist2(S.x, S.y, p.x, p.y) < S.r * S.r) heal(p.maxHp * 0.05 * dt);
+    if (dist2(S.x, S.y, p.x, p.y) < S.r * S.r) heal(p.maxHp * 0.05 * dt, '성역');
   } else if (G.sanct) G.sanct = null;
   if (p.job === 'warrior') { if (T.furyHold > 0) T.furyHold -= dt; else p.fury = Math.max(0, p.fury - 4 * dt); }
   if (p.job === 'rogue') {
@@ -3154,7 +3163,7 @@ function renderSelect0() {
   if (kind === 'level') acts = `<button id="reroll" ${G.rerolls ? '' : 'disabled'}>다시 뽑기 (${G.rerolls})</button><button id="banish" class="${s.banish ? 'on' : ''}" ${G.banishes ? '' : 'disabled'}>${s.banish ? '제외 취소' : `제외 (${G.banishes})`}</button>`;
   if (kind === 'job') acts = `<button id="offer" class="${s.offer ? 'on' : ''}" ${G.p.weapons.length >= 2 ? '' : 'disabled'}>${s.offer ? '봉헌 취소' : '무기 봉헌'}</button><button id="leave">떠나기</button>`;
   UI.innerHTML = `<div class="layer sel sel-${kind}">
-    <div class="sel-head"><h2>${h}</h2><p class="sub">${sub}</p>${kind === 'start' ? '' : `<button id="abtn">${s.abil ? '닫기' : '내 능력'}</button>`}</div>
+    <div class="sel-head"><h2>${h}</h2><p class="sub">${sub}</p>${kind === 'start' ? '' : `<div class="sel-tools"><button id="abtn" class="${s.abil ? 'on' : ''}">${s.abil ? '능력 닫기' : '내 능력'}</button><button id="cbtn">도감</button></div>`}</div>
     ${s.abil ? abilityHTML() : `<div class="cards">${cards}</div>`}
     ${acts ? `<div class="sel-actions">${acts}</div>` : ''}</div>`;
   s.armed = null;
@@ -3171,6 +3180,7 @@ function renderSelect0() {
   on('offer', () => { if (G.p.weapons.length < 2) return; s.offer = !s.offer; renderSelect(); });
   on('leave', leaveAltar);
   on('abtn', toggleAbil);
+  on('cbtn', () => showCodex('w', () => { if (G && G.sel) { STATE.mode = 'select'; renderSelect(); } }));   // 0.35 선택 화면 도감
 }
 function reroll() {
   if (!G.rerolls || !G.sel) return;
@@ -3208,7 +3218,7 @@ function applyCard(c) {
     case 'relic': p.relics.push(c.id); G.stats.relics.push(c.id); toast(`유물 ${RELICS[c.id].name}`, '#ffd24a'); break;
     case 'power': p.bonusDmg += CFG.fill.power; break;
     case 'trait': applyTrait(c.id); break;
-    default: heal(CFG.fill.heal);
+    default: heal(CFG.fill.heal, '응급 처치');
   }
   recalc();
 }
@@ -3985,7 +3995,7 @@ const TRAITS = {
   dodge: { nm: '회피 본능', ic: '피', ds: '6% 확률로 피해 무시' },
   calm: { nm: '냉정', ic: '냉', ds: '보스전 중 받는 피해 -10%' },
   guard: { nm: '버티기', ic: '버', ds: '피격 후 무적 시간 +0.2초' },
-  leech: { nm: '피의 갈증', ic: '갈', ds: '처치 시 5% 확률로 체력 2 회복' },
+  leech: { nm: '피의 갈증', ic: '갈', ds: '처치 시 5% 확률로 체력 2 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' },
   hunter: { nm: '사냥꾼의 보상', ic: '사', ds: '엘리트 처치 시 체력 15 회복' },
   breath: { nm: '응급 호흡', ic: '호', ds: '10초마다 체력 3 회복' },
   magnet: { nm: '자석 손', ic: '자', ds: '경험치 흡수 범위 +25%' },
@@ -4022,11 +4032,11 @@ function traitHurtMul() { const p = G.p; if (!p.tr) return 1; return (p.tr.armor
 function traitAvoid() { return tr('dodge') && Math.random() < 0.06; }
 function traitKill(e) {
   const p = G.p; if (!p.tr) return;
-  if (p.tr.leech && Math.random() < 0.05) heal(2);
-  if (p.tr.hunter && e.elite) heal(15);
+  if (p.tr.leech && Math.random() < 0.05) killHeal(2, '피의 갈증');
+  if (p.tr.hunter && e.elite) heal(15, '사냥꾼의 보상');
   if (p.tr.chain && Math.random() < 0.08) { const x = e.x, y = e.y; G.later.push({ t: 0, f: () => explode(x, y, 40, 10 * p.mod.dmg * (1 + G.time / 600), 'trait', '#c8b0ff') }); }
 }
-function updateTraits(dt) { const p = G.p; if (!p.tr || !p.tr.breath) return; p.brT = (p.brT || 0) + dt; if (p.brT >= 10) { p.brT = 0; heal(3); } }
+function updateTraits(dt) { const p = G.p; if (!p.tr || !p.tr.breath) return; p.brT = (p.brT || 0) + dt; if (p.brT >= 10) { p.brT = 0; heal(3, '응급 호흡'); } }
 
 /* 잡몹 6종 도트 (밝은 판타지 레트로, 2프레임) */
 Object.assign(SPR, {
@@ -4236,7 +4246,7 @@ function updatePets(dt) {
       if (m.kind === 'wolf') { let n = 0; gridQuery(m.x, m.y, S.skR, t => { n++; t.slowT = Math.max(t.slowT || 0, 2); t.lpk = 'wolf'; damageEnemy(t, S.dmg * (bondHas('wolf', 'howl2') ? 0.3 : 0.45), { src: 'howl' }); }); if (n && bondHas('wolf', 'alpha')) G.tm.alpha = 4; fx({ kind: 'ring', x: m.x, y: m.y, r0: 8, r1: S.skR, dur: 0.4, color: '#c8d4e0' }); if (!n) m.sk = 1; }
       else {
         const x = m.x, y = m.y, R = S.skR, dm = S.dmg; gridQuery(x, y, R, t => { t.lpk = 'bear'; damageEnemy(t, dm * 2.5, { src: 'maul', kb: 260, fx: x, fy: y }); }); fx({ kind: 'ring', x, y, r0: 10, r1: R, dur: 0.35, color: '#c89060', fill: true });
-        if (p.job2 === 'ursa') heal(1); if (bondHas('bear', 'guard')) heal(2);
+        if (p.job2 === 'ursa') heal(1, '수호 곰'); if (bondHas('bear', 'guard')) heal(2, '보호 본능');
         if (bondHas('bear', 'after')) (G.petLater = G.petLater || []).push({ t: G.time + 0.5, x, y, R, d: dm * 1.5 });
       }
     }
@@ -4304,7 +4314,7 @@ function updateRewind(dt) {
   R.x = q.x; R.y = q.y;
   if (R.tick <= 0) { R.tick = 0.15; const d = (22 + p.level * 1.6) * p.mod.dmg; gridQuery(q.x, q.y, RW.R, e => { if ((e.ht.rw || 0) > G.time) return; e.ht.rw = G.time + 0.5; e.slowT = Math.max(e.slowT || 0, 2.5); damageEnemy(e, d, { src: 'ult', kb: 90, fx: q.x, fy: q.y }); }); }
   if (R.t >= RW.dur) {
-    if (R.hp > p.hp) { const g = R.hp - p.hp; heal(g); toast(`시간 역행 · 체력 +${Math.round(g)}`, '#c8c0ff'); }
+    if (R.hp > p.hp) { const g = R.hp - p.hp; heal(g, '시간 역행'); toast(`시간 역행 · 체력 +${Math.round(g)}`, '#c8c0ff'); }
     fx({ kind: 'ring', x: p.x, y: p.y, r0: 6, r1: 60, dur: 0.4, color: '#c8c0ff', follow: true });
     G.rw = null;
   }
@@ -4396,7 +4406,7 @@ function uLine(x, y, ang, len, wid, d, kb, hitF) {
 function useUlt() {
   const p = G.p, j = p.job, U = UU(), vet = ult2('veteran');
   const D = (90 + p.level * 7) * p.mod.dmg * (vet ? 1.25 : 1);
-  p.ult = 0; p.ultRef = 0; G.ultB && (G.ultB.ref = 0); G.stats.ults++; G.tm.stopT = 0; sfx('ult');
+  p.ult = 0; p.ultRef = 0; G.ultB && (G.ultB.ref = 0); G.stats.ults++; (G.ultAt || (G.ultAt = [])).push(Math.round(G.time)); G.tm.stopT = 0; sfx('ult');
   rcSlow(0.05, UC.stop); rcBig(JOB_COL[j] || '#ffe08a', 0.42); shake(5, 0.35);
   const nm2 = p.job2 && p.job2 !== 'veteran' ? JOB2[j].find(o => o.k === p.job2).nm : vet ? '숙련' : '';
   banner(ULT_TXT[j][0], nm2 || null, JOB_COL[j] || '#ffe08a', 1.1);
@@ -4570,7 +4580,7 @@ function ultRelease(U) {
   for (const e of U.held) { if (e.dead || !e.held) continue; const h = e.held; e.held = 0; fx({ kind: 'pop', x: e.x, y: e.y, r: 12, color: '#c8c0ff', dur: 0.25 }); damageEnemy(e, h * 1.5, { src: 'ult', kb: 160, fx: p.x, fy: p.y }); }
   U.held = null;
   for (const e of onScreen()) damageEnemy(e, U.hx * (ult2('rewind') ? 2.2 : 1.6), { src: 'ult', kb: 120, fx: p.x, fy: p.y });
-  if (ult2('rewind')) { if (U.hpAt > p.hp) { const g = U.hpAt - p.hp; heal(g); toast(`시간 역행 · 체력 +${Math.round(g)}`, '#c8c0ff'); } uLater(0.7, () => { G.p.ult = Math.max(G.p.ult, JOB_CFG.ultNeed * 0.3); }); }
+  if (ult2('rewind')) { if (U.hpAt > p.hp) { const g = U.hpAt - p.hp; heal(g, '시간 역행'); toast(`시간 역행 · 체력 +${Math.round(g)}`, '#c8c0ff'); } uLater(0.7, () => { G.p.ult = Math.max(G.p.ult, JOB_CFG.ultNeed * 0.3); }); }
 }
 
 /* ---------- 다른 체계 연계 훅 ---------- */
@@ -4603,7 +4613,7 @@ function ultOnKill(e) {
 }
 function ultBannerR() { const U = G.U; return U && U.rally > 0 && G.p.job === 'sovereign' ? 2 : 1; }
 function ultInBanner() { const U = G.U, p = G.p; return !!(U && U.rally > 0 && U.banners.some(b => dist2(b.x, b.y, p.x, p.y) < b.r * b.r)); }
-function benevolentHeal(dt) { const U = G.U; if (U && U.rally > 0 && ult2('benevolent') && inBanner()) heal(G.p.maxHp * 0.03 * dt); }
+function benevolentHeal(dt) { const U = G.U; if (U && U.rally > 0 && ult2('benevolent') && inBanner()) heal(G.p.maxHp * 0.03 * dt, '성군 호령'); }
 
 /* ---------- 그리기 (월드 좌표) ---------- */
 function drawUlt(c) {
@@ -4676,7 +4686,7 @@ Object.assign(RELICS, {
   chainstar: { name: '연환 수리검', ic: '연', a: 'shuriken', b: 'multi', ds: '수리검 튕김 +2' },
   thunderbeam: { name: '뇌광', ic: '광', a: 'beam', b: 'lightning', ds: '광선 종료 시 가장 먼 적에게 낙뢰 (번개 피해 80%)' },
   eyestorm: { name: '폭풍의 눈', ic: '눈', a: 'vortex', b: 'magnet', ds: '회오리 범위 안 경험치를 플레이어에게 끌어옴' },
-  bloodspin: { name: '피의 칼날', ic: '혈', a: 'spin', b: 'regen', ds: '회전검 처치 시 체력 0.6 회복' },
+  bloodspin: { name: '피의 칼날', ic: '혈', a: 'spin', b: 'regen', ds: '회전검 처치 시 체력 0.6 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' },
   clockwork: { name: '태엽 장치', ic: '태', a: 'boomerang', b: 'haste', ds: '도끼가 손에 돌아올 때 다른 무기 재사용 0.3초 단축' },
   bigorb: { name: '거대 구체', ic: '거', a: 'orb', b: 'area', ds: '마력 구체 크기 2배, 명중 시 작은 폭발 (피해 40%)' },
 });
@@ -4812,7 +4822,7 @@ function arsenalHit(e, o) {
   if (o.src === 'shard' && !e.dead) e.slowT = Math.max(e.slowT || 0, 1);
 }
 function relicKill(e) {
-  if (e.ls === 'spin' && hasRelic('bloodspin')) heal(0.6);
+  if (e.ls === 'spin' && hasRelic('bloodspin')) killHeal(0.6, '피의 칼날');
 }
 function clockTick() { for (const w of G.p.weapons) if (w.id !== 'boomerang' && w.t > 0) w.t = Math.max(0.02, w.t - 0.3); }
 
@@ -4849,7 +4859,7 @@ function updateExw1(dt) {
     case 'mage': { const a0 = aimAng(420); for (let i = 0; i < 2; i++) shoot({ kind: 'fire', x: p.x, y: p.y, ang: a0 + (i ? 0.3 : -0.3), sp: 300, r: 6, dmg: dm, R: D.R, life: 1.0, color: '#ff8a3a', src: 'flameorb' }); break; }
     case 'summoner': { const ts = shuffle(enemiesInRange(p.x, p.y, 300)).slice(0, 2); if (!ts.length) { x.t = 0.3; break; }
       for (const e of ts) { const ex = e.x, ey = e.y; afx({ k: 'hand', x: ex, y: ey, dur: 0.45 }); gridQuery(ex, ey, D.R, t => { if (!t.cmd && !t.boss && !t.gk) t.frz = Math.max(t.frz || 0, 0.4); damageEnemy(t, dm, { src: 'bonehand' }); }); } break; }
-    case 'priest': heal(p.maxHp * 0.02); gridQuery(p.x, p.y, D.R, e => damageEnemy(e, dm, { src: 'bless' }));
+    case 'priest': heal(p.maxHp * 0.02, '축복 고리'); gridQuery(p.x, p.y, D.R, e => damageEnemy(e, dm, { src: 'bless' }));
       fx({ kind: 'ring', x: p.x, y: p.y, r0: 20, r1: D.R, dur: 0.4, color: col, fill: true, follow: true }); break;
     case 'druid': for (let i = 0; i < 8; i++) shoot({ kind: 'arrow', x: p.x, y: p.y, ang: i * Math.PI / 4 + (x.t2 = !x.t2) * 0.2, sp: 420, r: 4, dmg: dm, pierce: 1, life: 0.5, color: '#9fe08a', src: 'thornshot' }); break;
   }
@@ -5608,7 +5618,7 @@ const RC_CFG = {
   slow: { k: 0.25, t: 1.1 },            // 보스 처치 슬로모션
   dust: 0.15,                           // 이동 먼지 간격 (초)
   dustMax: 28, mfMax: 8,
-  meat: { perSec: 0.004, lowMul: 4, gap: 15, maxOn: 2, heal: 0.2, life: 20, blink: 5, elite: 1, sureBelow: 0.8, sureGap: 8, eatBelow: 0.95, r: 14 },   // 엘리트·상자 확정 드롭은 체력 80% 미만·6초 간격 조건부 (0.28 시험: 무조건 확정 시 첫 5분 11개)
+  meat: { perSec: 0.004, lowMul: 4, gap: 15, maxOn: 2, heal: 0.2, life: 20, blink: 5, elite: 1, sureBelow: 0.8, sureGap: 8, eatBelow: 0.95, r: 14, far: 900 },   // 엘리트·상자 확정 드롭은 체력 80% 미만·6초 간격 조건부 (0.28 시험: 무조건 확정 시 첫 5분 11개)
 };
 function RC() {
   return G.rc || (G.rc = { slow: 0, slowK: 1, flash: 0, flashT: 0.4, flashCol: '#ffffff', flashA: 0.5, sq: 0, dustT: 0, dust: [], mf: [], mfT: 0, meat: [], meatAt: -99, meatN: 0, meatEat: 0, meatTimes: [], lvT: 0, xpShow: 0, kr: 0 });
@@ -5688,10 +5698,16 @@ function updateReact(dt) {
   const M = RC_CFG.meat;
   for (const m of r.meat) {
     m.t += dt;
-    if (m.t >= M.life) { m.dead = true; burst(m.x, m.y, 4, '#c8b8a0', 50, 0.4, 2); continue; }
-    if (!G.result && p.hp < p.maxHp * M.eatBelow && dist2(m.x, m.y, p.x, p.y) < (p.r + M.r) ** 2) {
+    const d2 = dist2(m.x, m.y, p.x, p.y);
+    if (m.t >= M.life || d2 > M.far * M.far) { m.dead = true; if (d2 <= M.far * M.far) burst(m.x, m.y, 4, '#c8b8a0', 50, 0.4, 2); else r.meatFar = (r.meatFar || 0) + 1; continue; }   // 0.35 플레이어와 900 이상 멀어지면 소멸
+    const want = !G.result && p.hp < p.maxHp * M.eatBelow;
+    if (want && (m.mag || d2 < pickR() ** 2)) {   // 0.35 경험치와 같은 흡수 범위로 끌려옴 (체력 95% 이상이면 정지)
+      m.mag = true; const d = Math.sqrt(d2) || 1; m.sp = (m.sp || 120) + 900 * dt;
+      m.x += (p.x - m.x) / d * m.sp * dt; m.y += (p.y - m.y) / d * m.sp * dt;
+    } else { m.mag = false; m.sp = 0; }
+    if (want && dist2(m.x, m.y, p.x, p.y) < (p.r + M.r) ** 2) {
       m.dead = true; r.meatEat++;
-      const before = p.hp; heal(p.maxHp * M.heal); const got = Math.round(p.hp - before);
+      const before = p.hp; heal(p.maxHp * M.heal, '고기'); const got = Math.round(p.hp - before);
       sparkUp(p.x, p.y, 8, ['#8cff9a', '#fff6c8', '#b8ffc0']); fx({ kind: 'ring', x: p.x, y: p.y, r0: 6, r1: 34, dur: 0.3, color: '#8cff9a', follow: true });
       sfx('pick'); toast(`고기 +${got}`, '#8cff9a');
     }
