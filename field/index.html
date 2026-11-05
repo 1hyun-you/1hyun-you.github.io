@@ -133,6 +133,12 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
 .cx .cxb{flex:1;min-width:0}.cx .cxh{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px}.cx .cxh b{margin-right:0}
 .cxl .cx p{overflow-wrap:anywhere;font-size:12.5px;line-height:1.45;margin-top:2px}.cx p i{font-style:normal;color:var(--fg);font-weight:700;font-size:12.5px}
 .cx .tag.nw{color:#14121c;background:var(--muted);border-radius:6px;padding:0 5px}
+.cxl .cx{display:block;padding:9px 10px}.cxt{display:flex;gap:9px;align-items:center}.cxt .cxb .cxh+p{margin-top:1px}
+.cxs{display:flex;flex-wrap:wrap;gap:3px 4px;margin-top:4px}.cxs span{font-size:11.5px;line-height:1.3;background:var(--panel2);border-radius:5px;padding:2px 6px;color:var(--fg);white-space:nowrap}.cxs i{font-style:normal;color:var(--muted);margin-right:4px}.cx em{font-style:normal;color:#ffd24a;font-weight:700}
+.cxg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}.cxg div{background:var(--panel2);border-radius:6px;padding:4px 6px;min-width:0}.cxg b{display:block;font-size:12px;margin:0;color:var(--fg)}.cxg span{display:block;font-size:11.5px;line-height:1.35;color:var(--muted);word-break:keep-all;overflow-wrap:anywhere}
+.cxg span.u{margin-top:2px;color:#c8b8ff}
+.cxr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:4px;font-size:12.5px}.cxr b{font-size:13px;margin:0}.cxm{display:inline-flex;align-items:center;gap:4px;color:var(--fg)}.ic.sm{width:20px;height:20px;flex:0 0 20px;border-radius:4px;font-size:11px}.ic.sm.px img{width:14px;height:14px}
+.ic.px{border:2px solid;box-sizing:border-box;padding:0}.ic.px img{image-rendering:pixelated;display:block;width:24px;height:24px}.ab .ic.px img{width:21px;height:21px}.card .ic.px img{width:36px;height:36px}
 .cx.dim{opacity:.55}.cx.dim .ic{filter:grayscale(.7)}
 .cxl h3{align-self:flex-start;margin:10px 0 0}.cxl .hint{margin:0;font-size:12.5px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:420px}
@@ -153,7 +159,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.35b',
+  VERSION: '0.36',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -402,8 +408,8 @@ function recalc() {
   if (p.maxHp > prevMax && !hasCond('noheal')) p.hp += p.maxHp - prevMax;     // 늘어난 최대 체력만큼 회복 (도전 조건 회복 없음 제외)
   p.hp = Math.min(p.hp, p.maxHp);
 }
-/* 0.35 처치 연동 회복 공통 상한: 흡혈·피의 칼날·피의 갈증 합계 초당 최대 체력 0.12% (최대 5초분 적립) */
-const KILL_HEAL = { rate: 0.0012, keep: 5 };
+/* 0.35 처치 연동 회복 공통 상한: 흡혈·피의 칼날·피의 갈증 합계 초당 최대 체력 0.18% (최대 5초분 적립) */
+const KILL_HEAL = { rate: 0.0018, keep: 5 };
 function killHeal(v, src) { const p = G.p, K = G.kh || (G.kh = { b: p.maxHp * KILL_HEAL.rate * KILL_HEAL.keep, t: G.time }); K.b = Math.min(p.maxHp * KILL_HEAL.rate * KILL_HEAL.keep, K.b + (G.time - K.t) * p.maxHp * KILL_HEAL.rate); K.t = G.time; const g = Math.min(v, K.b); if (g <= 0) return; K.b -= g; heal(g, src); }
 function heal(v, src = '기타') { const p = G.p; if (hasCond('noheal')) return; if (hasCurse('blight')) v *= 0.6; const b = p.hp; p.hp = Math.min(p.maxHp, p.hp + v); const H = G.stats.healBy || (G.stats.healBy = {}); H[src] = (H[src] || 0) + (p.hp - b) / p.maxHp; }   // 0.35 회복원별 실회복량(최대 체력 비율) 기록
 function clearInput() { INPUT.active = false; INPUT.id = null; INPUT.mag = 0; }
@@ -2551,7 +2557,7 @@ const BRANCHES = {
   area: [{ k: 'giant', nm: '거대화', ds: '범위 추가 +15%, 모든 무기 피해 +8%' }, { k: 'dense', nm: '응축', ds: '범위 증가 대신 단계당 피해 +12%' }],
   multi: [{ k: 'barrage', nm: '일제 사격', ds: '개수 추가 +1, 해당 무기 재사용 +20%' }, { k: 'velocity', nm: '고속탄', ds: '개수형 무기 피해 +20%' }],
   magnet: [{ k: 'vacuum', nm: '자석 파동', ds: '30초마다 주변 경험치 전부 흡수' }, { k: 'greed', nm: '성장 가속', ds: '경험치 획득 +15%' }],
-  regen: [{ k: 'vamp', nm: '흡혈', ds: '처치 시 체력 0.4 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' }, { k: 'second', nm: '불굴', ds: '판당 1회 치명 피해 시 체력 40%로 버팀' }],
+  regen: [{ k: 'vamp', nm: '흡혈', ds: '처치 시 체력 0.4 회복 (처치 회복 합계 초당 최대 체력 0.18% 상한)' }, { k: 'second', nm: '불굴', ds: '판당 1회 치명 피해 시 체력 40%로 버팀' }],
 };
 const RELICS = {
   bladestorm: { name: '칼날 폭풍', ic: '폭', a: 'cleave', b: 'spin', ds: '베기 시 1.5초간 회전검 속도 2배·피해 +30%' },
@@ -3097,15 +3103,15 @@ function openStart() {
 }
 /* 0.25 보유 능력 목록 (선택 화면·일시정지 화면) */
 function abilityHTML() {
-  const p = G.p, row = (col, ic, nm, lv, ds, cls = '') => `<div class="ab ${cls}"><span class="ic" style="background:${col}">${esc(ic)}</span><span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
+  const p = G.p, row = (col, ic, nm, lv, ds, cls = '', id = '') => `<div class="ab ${cls}">${icBox(col, ic, id)}<span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
   const brNm = (id, k) => { const o = k && BRANCHES[id] && BRANCHES[id].find(x => x.k === k); return o ? `\n분기 · ${o.nm}: ${o.ds}` : ''; };
   let h = '';
   if (p.job) { const J = JOBS[p.job], J2 = p.job2 && JOB2[p.job].concat(JOB2_STAT).find(o => o.k === p.job2);
     h += '<h3>직업</h3>' + row(jobColor(p.job), J.ic, J.name, J2 ? '2차 · ' + J2.nm : '1차', J.rule + '\n궁극기 · ' + J.ult + (J2 ? '\n' + J2.nm + ' · ' + J2.ds : ''));
     if (p.exw1 || p.exw) { h += '<h3>전용 무기</h3>'; if (p.exw1) { const X = EXW1[p.exw1.id]; h += row('#ffd24a', X.ic, X.name, JOBS[p.job].name + ' 1차', X.ds, 'exw'); } if (p.exw) { const X = EXW[p.exw.id]; h += row('#ffd24a', X.ic, X.name, JOBS[p.job].name + ' 2차', X.ds, 'exw'); } }
     if (p.job === 'druid' && G.pets.length) h += '<h3>야수 동료</h3>' + ['wolf', 'bear'].map(k => { const n = G.pets.filter(m => m.kind === k).length; if (!n) return ''; const S = petStat(k), D = PET[k]; const B = bondOf(k); return row('#7fd07a', D.ic, D.name + (n > 1 ? ' ×' + n : '') + ` · 유대 Lv ${B.lv}`, B.lv < BOND_CFG.maxLv ? `다음 ${B.xp}/${bondNeed(B.lv)}` : '최대', `${B.perks.length ? '전용 능력: ' + B.perks.map(x => bondPerk(x).nm).join(', ') + '\n' : ''}피해 ${Math.round(S.dmg)} · 공격 간격 ${S.atk.toFixed(2)}초 · 이동 속도 ${Math.round(S.sp)}\n${k === 'wolf' ? '울부짖음' : '강타'} ${S.sk.toFixed(1)}초마다 · 범위 ${Math.round(S.skR)}`); }).join(''); }
-  if (p.weapons.length) h += '<h3>무기</h3>' + p.weapons.map(w => { const d = WEAPONS[w.id]; const wx = wxOn(d.cat) ? `\n${JOBS[p.job].name} 변환 · ${JOB_WX[p.job].ds}` : ''; return row(CFG.colors[d.cat], d.ic, wName(w.id), 'Lv ' + w.lvl, d.desc + wx + brNm(w.id, w.br)); }).join('');
-  if (p.passives.length) h += '<h3>보조 효과</h3>' + p.passives.map(x => { const d = PASSIVES[x.id]; return row(CFG.colors.passive, d.ic, d.name, 'Lv ' + x.lvl, d.desc(x.lvl) + brNm(x.id, x.br)); }).join('');
+  if (p.weapons.length) h += '<h3>무기</h3>' + p.weapons.map(w => { const d = WEAPONS[w.id]; const wx = wxOn(d.cat) ? `\n${JOBS[p.job].name} 변환 · ${JOB_WX[p.job].ds}` : ''; return row(CFG.colors[d.cat], d.ic, wName(w.id), 'Lv ' + w.lvl, d.desc + wx + brNm(w.id, w.br), '', w.id); }).join('');
+  if (p.passives.length) h += '<h3>보조 효과</h3>' + p.passives.map(x => { const d = PASSIVES[x.id]; return row(CFG.colors.passive, d.ic, d.name, 'Lv ' + x.lvl, d.desc(x.lvl) + brNm(x.id, x.br), '', x.id); }).join('');
   if (p.relics.length) h += '<h3>유물</h3>' + p.relics.map(id => row('#ffd24a', RELICS[id].ic, RELICS[id].name, '', RELICS[id].ds)).join('');
   const tk = Object.keys(p.tr || {}); if (tk.length) h += '<h3>숙련 특성</h3>' + tk.map(k => row('#c8b0ff', TRAITS[k].ic, TRAITS[k].nm, '', TRAITS[k].ds)).join('');
   if (p.curses && p.curses.length) h += '<h3>저주</h3>' + p.curses.map(k => row('#8a6aa0', '저', CURSES[k].name, '', CURSES[k].ds)).join('');
@@ -3117,12 +3123,12 @@ function cardInfo(c) {
   const p = G.p;
   switch (c.t) {
     case 'bond': { const o = bondPerk(c.k); return { k: 'k-relic', col: '#7fd07a', ic: PET[c.id].ic, nm: o.nm, tag: PET[c.id].name + ' 전용', ds: o.ds }; }
-    case 'wnew': { const d = WEAPONS[c.id]; return { k: 'k-' + d.cat, col: CFG.colors[d.cat], ic: d.ic, nm: wName(c.id), tag: '신규 · ' + CAT_NAME[d.cat] + ' 무기', ds: d.desc }; }
-    case 'wup': { const d = WEAPONS[c.id], w = p.weapons.find(x => x.id === c.id); return { k: 'k-' + d.cat, col: CFG.colors[d.cat], ic: d.ic, nm: wName(c.id), tag: `Lv ${w.lvl} → ${w.lvl + 1}`, ds: upText(c.id, d.ups[w.lvl - 1]) }; }
-    case 'pnew': { const d = PASSIVES[c.id]; return { k: 'k-passive', col: CFG.colors.passive, ic: d.ic, nm: d.name, tag: '신규 · 보조 효과', ds: d.desc(1) }; }
-    case 'pup': { const d = PASSIVES[c.id], L = passLv(c.id); return { k: 'k-passive', col: CFG.colors.passive, ic: d.ic, nm: d.name, tag: `Lv ${L} → ${L + 1}`, ds: d.desc(L + 1) }; }
+    case 'wnew': { const d = WEAPONS[c.id]; return { id: c.id, k: 'k-' + d.cat, col: CFG.colors[d.cat], ic: d.ic, nm: wName(c.id), tag: '신규 · ' + CAT_NAME[d.cat] + ' 무기', ds: d.desc }; }
+    case 'wup': { const d = WEAPONS[c.id], w = p.weapons.find(x => x.id === c.id); return { id: c.id, k: 'k-' + d.cat, col: CFG.colors[d.cat], ic: d.ic, nm: wName(c.id), tag: `Lv ${w.lvl} → ${w.lvl + 1}`, ds: upText(c.id, d.ups[w.lvl - 1]) }; }
+    case 'pnew': { const d = PASSIVES[c.id]; return { id: c.id, k: 'k-passive', col: CFG.colors.passive, ic: d.ic, nm: d.name, tag: '신규 · 보조 효과', ds: d.desc(1) }; }
+    case 'pup': { const d = PASSIVES[c.id], L = passLv(c.id); return { id: c.id, k: 'k-passive', col: CFG.colors.passive, ic: d.ic, nm: d.name, tag: `Lv ${L} → ${L + 1}`, ds: d.desc(L + 1) }; }
     case 'relic': { const d = RELICS[c.id]; return { k: 'k-relic', col: '#ffd24a', ic: d.ic, nm: d.name, tag: `유물 · ${itemName(d.a)} + ${itemName(d.b)}`, ds: d.ds }; }
-    case 'branch': { const o = BRANCHES[c.id].find(x => x.k === c.k); return { k: 'k-branch', col: c.kind === 'w' ? CFG.colors[WEAPONS[c.id].cat] : CFG.colors.passive, ic: (WEAPONS[c.id] || PASSIVES[c.id]).ic, nm: o.nm, tag: itemName(c.id) + ' 분기', ds: o.ds }; }
+    case 'branch': { const o = BRANCHES[c.id].find(x => x.k === c.k); return { id: c.id, k: 'k-branch', col: c.kind === 'w' ? CFG.colors[WEAPONS[c.id].cat] : CFG.colors.passive, ic: (WEAPONS[c.id] || PASSIVES[c.id]).ic, nm: o.nm, tag: itemName(c.id) + ' 분기', ds: o.ds }; }
     case 'job': { const d = JOBS[c.id]; return { k: 'k-job', col: jobColor(c.id), ic: d.ic, nm: d.name, tag: d.cats ? '혼합 계열 · ' + d.cats.map(x => CAT_NAME[x]).join('+') : CAT_NAME[d.cat] + ' 계열', ds: d.rule + '\n궁극기 · ' + d.ult + '\n전용 무기 · ' + EXW1[c.id].name + ' (' + EXW1[c.id].ds + ')' + '\n무기 변환 · ' + jobCats(c.id).map(x => CAT_NAME[x]).join('·') + ' 무기 → ' + JOB_WX[c.id].pre + ' 무기 (' + JOB_WX[c.id].ds + ')' }; }
     case 'job2': { const o = JOB2[c.id].concat(JOB2_STAT).find(x => x.k === c.k); return { k: 'k-job', col: c.k === 'veteran' ? '#8a86a0' : jobColor(c.id), ic: o.nm.slice(0, 1), nm: o.nm, tag: c.k === 'veteran' ? '능력치 강화형' : JOBS[c.id].name + ' 2차', ds: o.ds }; }
     case 'campRest': return { k: 'k-fill', col: '#8ff0b0', ic: '휴', nm: '휴식', tag: '야영지', ds: '체력 전부 회복' };
@@ -3151,11 +3157,11 @@ function renderSelect() { const s0 = G.sel; if (s0 && s0._drawn && !s0._top) ret
 function renderSelect0() {
   const s = G.sel, kind = s.kind || 'level';
   let cards;
-  if (kind === 'job' && s.offer) cards = G.p.weapons.map((w, i) => { const d = WEAPONS[w.id]; return `<button class="card k-${d.cat} banish" data-w="${w.id}"><span class="ic" style="background:${CFG.colors[d.cat]}">${esc(d.ic)}</span><span class="tx"><span class="nm">${esc(d.name)} <span class="tag">Lv ${w.lvl}</span></span><span class="ds">봉헌 시 무기 삭제</span></span></button>`; }).join('');
+  if (kind === 'job' && s.offer) cards = G.p.weapons.map((w, i) => { const d = WEAPONS[w.id]; return `<button class="card k-${d.cat} banish" data-w="${w.id}">${icBox(CFG.colors[d.cat], d.ic, w.id)}<span class="tx"><span class="nm">${esc(d.name)} <span class="tag">Lv ${w.lvl}</span></span><span class="ds">봉헌 시 무기 삭제</span></span></button>`; }).join('');
   else cards = s.cards.map((c, i) => {
     const f = cardInfo(c), off = s.banish && isFill(c);
     return `<button class="card ${f.k}${s.banish ? ' banish' : ''}" data-i="${i}" ${off ? 'disabled' : ''}>
-      <span class="ic" style="background:${f.col}">${esc(f.ic)}</span>
+      ${icBox(f.col, f.ic, f.id)}
       <span class="tx"><span class="nm">${esc(f.nm)} <span class="tag">${esc(f.tag)}</span></span><span class="ds">${esc(f.ds)}</span></span></button>`;
   }).join('');
   const [h, sub] = SEL_HEAD[kind](s);
@@ -3924,6 +3930,113 @@ function getTileT(i, tid) {
   return s;
 }
 /* ============================================================
+   0.36 도트 아이콘: 무기 18종 · 보조 효과 8종 (12×12 문자 격자, 외곽선 자동)
+   — 화면 하단 보유 칸(캔버스) · 선택 카드 · 내 능력 · 도감(HTML) 공용
+   — 배경: 계열 색 어둡게 + 계열 색 테두리 (아이콘 대비 확보)
+   ============================================================ */
+const ICON12 = {
+  cleave: [
+    '..........MW', '.........MWM', '........MWM.', '.......MWM..', '......MWM...', '.....MWM....',
+    '..y.MWM.....', '...yWM......', '...nyy......', '..nN.y......', '.nN.........', 'nN..........'],
+  spin: [
+    '....MW......', '...MWW......', '...MW.......', '.....yy..MWM', '....yYYy.WW.', '..WMyYYy....',
+    '....yYYyMW..', '.WW.yYYy....', 'MWM..yy.....', '.......WM...', '......WWM...', '......WM....'],
+  arrow: [
+    '.......MMMW.', '........MWW.', '.......n.MW.', '......n...M.', '.....n......', '....n.......',
+    '...n........', '..n.........', 'een.........', '.ee.........', 'e.e.........', '............'],
+  boomerang: [
+    '..MMMM......', '.MWWWWM.....', 'MWWWWWWn....', 'MWWWWWnN....', '.MWWWnN.....', '..MMnN......',
+    '....nN......', '...nN.......', '..nN........', '.nN.........', 'nN..........', '............'],
+  fireball: [
+    '......r.....', '....r.ro....', '...roooor...', '..rooyyyor..', '.rooyyyyyor.', '.royywwyyor.',
+    '.royywwyyo..', '.rooyyyyor..', '..rooyyoor..', '...rrooorr..', '.....rrr....', '............'],
+  lightning: [
+    '......yyyy..', '.....yyyy...', '....yyyy....', '...yyyy.....', '..yyyyyyyy..', '......yyy...',
+    '.....yyy....', '....yyy.....', '...yyw......', '...yw.......', '..yw........', '..w.........'],
+  shield: [
+    '.mmmmmmmmmm.', '.mWWWWWWWWm.', '.mWWyyyyWWm.', '.mWWyYYyWWm.', '.mWWyYYyWWm.', '.mWWWyyWWWm.',
+    '..mWWWWWWm..', '..mWWWWWWm..', '...mWWWWm...', '....mWWm....', '.....mm.....', '............'],
+  slam: [
+    '..mmmmmmmm..', '..mMMMMMMm..', '..mMMMMMMm..', '..mmmmmmmm..', '.....nn.....', '.....nn.....',
+    '.....nn.....', '.....nn.....', '.o...nn...o.', '..o..nn..o..', 'nnoonnnnoonn', 'NNNNNNNNNNNN'],
+  knife: [
+    '.....W....W.', '....WM...WM.', '...WM...WM..', '..WM...WM...', '.yM...yM....', '..y....y....',
+    '.n.y..n.y...', 'n.....n.....', '............', '..........W.', '.........WM.', '........WM..'],
+  trap: [
+    '............', '............', '.M.M.MM.M.M.', '.MWMWMMWMWM.', '.mMMMMMMMMm.', '.m...rr...m.',
+    '.m...rr...m.', '.mMMMMMMMMm.', '.MWMWMMWMWM.', '.M.M.MM.M.M.', '............', '............'],
+  icering: [
+    '....cccc....', '..ccWWWWcc..', '.cWW....WWc.', '.cW..w...Wc.', 'cW..w.w...Wc', 'cW...w....Wc',
+    'cW...w.w..Wc', 'cW....w...Wc', '.cW......Wc.', '.cWW....WWc.', '..ccWWWWcc..', '....cccc....'],
+  orb: [
+    '....cccc....', '..cccccccc..', '.ccwwcccccc.', '.cwwccccccc.', 'ccwcccccccuc', 'cccccccccuuc',
+    'ccccccccuuuc', 'cccccccuuuuc', '.cccccuuuuc.', '.ccccuuuuuc.', '..ccuuuuuc..', '....uuuu....'],
+  lance: [
+    '.........WWW', '........WWWM', '.........WM.', '.......rM...', '......nr....', '.....n......',
+    '....n.......', '...n........', '..n.........', '.n..........', 'n...........', '............'],
+  flail: [
+    '.......M.M..', '......MMMMM.', '.....MMWMMMM', '......MMMMM.', '.....MMMMMMM', '....m.MMMMM.',
+    '...m...M.M..', '..m.........', '.n..........', 'nN..........', 'N...........', '............'],
+  shuriken: [
+    '....MM......', '....MWM.....', '.....MW.....', '.....MWMMMM.', '.MMMMWKWWWM.', '.MWWWKWMMMM.',
+    '.MMMMWM.....', '......WM....', '......MWM...', '.......MM...', '............', '............'],
+  bomb: [
+    '.........y..', '........yoy.', '.......n.y..', '......n.....', '....KKKK....', '...KkkkkK...',
+    '..KkWkkkkK..', '..KkWkkkkK..', '..KkkkkkkK..', '..KkkkkkkK..', '...KkkkkK...', '....KKKK....'],
+  beam: [
+    '............', '.yy.........', 'yyyy.y.y.y.y', 'yywwyyyyyyyy', 'ywwwwwwwwwww', 'ywwwwwwwwwww',
+    'yywwyyyyyyyy', 'yyyy.y.y.y.y', '.yy.........', '............', '............', '............'],
+  vortex: [
+    '.WWWWWWWWWW.', '..cccccccc..', '..WWWWWWWW..', '...cccccc...', '...WWWWWW...', '....cccc....',
+    '....WWWW....', '.....ccc....', '.....WW.....', '....W.......', '............', '............'],
+  vit: [
+    '............', '..rr....rr..', '.rwrr..rrrr.', '.rwrrrrrrrr.', '.rrrrrrrrrr.', '.rrrrrrrrRr.',
+    '..rrrrrrRr..', '...rrrrRr...', '....rrRr....', '.....rr.....', '............', '............'],
+  might: [
+    '............', '..ssssssss..', '.sSsSsSsSs..', '.ssssssssss.', '.ssssssssss.', '.Sssssssss..',
+    '..ssssssss..', '...SSSSSS...', '...mmmmmm...', '...mMMMMm...', '...mmmmmm...', '............'],
+  swift: [
+    '............', '.....nnn....', '.....nnn.ww.', 'w....nnnwWw.', '.....nnnww..', 'ww...nnn....',
+    '....nnnn....', 'w.nnnnnn....', '.nnnnnnn....', '.NNNNNNN....', '............', '............'],
+  haste: [
+    '.nnnnnnnnnn.', '..eeeeeeee..', '..eyyyyyye..', '...eyyyye...', '....eyye....', '.....ee.....',
+    '....e..e....', '...e.yy.e...', '..e.yyyy.e..', '..eyyyyyye..', '.nnnnnnnnnn.', '............'],
+  area: [
+    '....oooo....', '..oo....oo..', '.o..yyyy..o.', '.o.y....y.o.', 'o.y..rr..y.o', 'o.y.rrrr.y.o',
+    'o.y.rrrr.y.o', 'o.y..rr..y.o', '.o.y....y.o.', '.o..yyyy..o.', '..oo....oo..', '....oooo....'],
+  multi: [
+    '.W...W...W..', 'WWW.WWW.WWW.', '.n...n...n..', '.n...n...n..', '.n...n...n..', '.n...n...n..',
+    '.n...n...n..', 'eee.eee.eee.', 'e.e.e.e.e.e.', '............', '............', '............'],
+  magnet: [
+    '..WW....WW..', '..WW....WW..', '..rr....rr..', '..rr....rr..', '..rr....rr..', '..rr....rr..',
+    '..rrr..rrr..', '...rrrrrr...', '....rrrr....', '............', '.c..c..c..c.', '............'],
+  regen: [
+    '....gggg....', '....gvvg....', '....gvvg....', 'gggggvvggggg', 'gvvvvvvvvvvg', 'gvvvvvvvvvvg',
+    'gggggvvggggg', '....gvvg....', '....gvvg....', '....gggg....', '............', '............'],
+};
+const ICON_URL = new Map();
+/* 아이콘 이미지 주소 (1텍셀 = 4픽셀 고정 생성, 화면에서 정수 비율 축소·확대) */
+function iconURL(id) {
+  if (!ICON12[id]) return null;
+  let u = ICON_URL.get(id);
+  if (!u) { const g = bakeGrid(ICON12[id].map(r => r.padEnd(12, '.')), DOT_PAL, 4, false, 'n', '#1b1626'); u = g.cv.toDataURL(); ICON_URL.set(id, u); }
+  return u;
+}
+/* 캔버스용 아이콘 (보유 칸) */
+const ICON_CV = new Map();
+function iconCanvas(id, t) {
+  if (!ICON12[id]) return null;
+  const key = id + '|' + t; let s = ICON_CV.get(key);
+  if (!s) { s = bakeGrid(ICON12[id].map(r => r.padEnd(12, '.')), DOT_PAL, t, false, 'n', '#1b1626').cv; ICON_CV.set(key, s); }
+  return s;
+}
+/* HTML 아이콘 칸: 도트 아이콘 보유 시 그림, 없으면 기존 글자 */
+function icBox(col, ic, id, cls = '') {
+  const u = id && iconURL(id);
+  if (!u) return `<span class="ic ${cls}" style="background:${col}">${esc(ic)}</span>`;
+  return `<span class="ic px ${cls}" style="background:${shadeHex(col, 0.42)};border-color:${col}"><img src="${u}" alt="${esc(ic)}"></span>`;
+}
+/* ============================================================
    잡몹 확대·숙련 특성 (0.23, 표현·보강 단계)
    — 잡몹 6종 추가(4→10종): 원거리 사격·분열·자폭·돌진·방패·흔들림 이동
    — 숙련 특성 20종: 무기·보조 효과 전부 최대 후 대체 카드 대신 3지선다(칸 미점유, 종류별 1회)
@@ -3995,7 +4108,7 @@ const TRAITS = {
   dodge: { nm: '회피 본능', ic: '피', ds: '6% 확률로 피해 무시' },
   calm: { nm: '냉정', ic: '냉', ds: '보스전 중 받는 피해 -10%' },
   guard: { nm: '버티기', ic: '버', ds: '피격 후 무적 시간 +0.2초' },
-  leech: { nm: '피의 갈증', ic: '갈', ds: '처치 시 5% 확률로 체력 2 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' },
+  leech: { nm: '피의 갈증', ic: '갈', ds: '처치 시 5% 확률로 체력 2 회복 (처치 회복 합계 초당 최대 체력 0.18% 상한)' },
   hunter: { nm: '사냥꾼의 보상', ic: '사', ds: '엘리트 처치 시 체력 15 회복' },
   breath: { nm: '응급 호흡', ic: '호', ds: '10초마다 체력 3 회복' },
   magnet: { nm: '자석 손', ic: '자', ds: '경험치 흡수 범위 +25%' },
@@ -4686,7 +4799,7 @@ Object.assign(RELICS, {
   chainstar: { name: '연환 수리검', ic: '연', a: 'shuriken', b: 'multi', ds: '수리검 튕김 +2' },
   thunderbeam: { name: '뇌광', ic: '광', a: 'beam', b: 'lightning', ds: '광선 종료 시 가장 먼 적에게 낙뢰 (번개 피해 80%)' },
   eyestorm: { name: '폭풍의 눈', ic: '눈', a: 'vortex', b: 'magnet', ds: '회오리 범위 안 경험치를 플레이어에게 끌어옴' },
-  bloodspin: { name: '피의 칼날', ic: '혈', a: 'spin', b: 'regen', ds: '회전검 처치 시 체력 0.6 회복 (처치 회복 합계 초당 최대 체력 0.12% 상한)' },
+  bloodspin: { name: '피의 칼날', ic: '혈', a: 'spin', b: 'regen', ds: '회전검 처치 시 체력 0.6 회복 (처치 회복 합계 초당 최대 체력 0.18% 상한)' },
   clockwork: { name: '태엽 장치', ic: '태', a: 'boomerang', b: 'haste', ds: '도끼가 손에 돌아올 때 다른 무기 재사용 0.3초 단축' },
   bigorb: { name: '거대 구체', ic: '거', a: 'orb', b: 'area', ds: '마력 구체 크기 2배, 명중 시 작은 폭발 (피해 40%)' },
 });
@@ -5888,32 +6001,51 @@ function cxSeen() {
 /* 카드: dim = 미획득 흐림(내용 공개), lock = 잠금(내용 비공개) */
 function cxCard(o) {
   const st = o.lock ? 'lock' : o.dim ? 'dim' : '';
-  const lines = o.lock ? `<p>${esc(o.hint || '')}</p>` : (o.lines || []).filter(Boolean).map(l => `<p>${l}</p>`).join('');
-  return `<div class="cx ${st}"><span class="ic" style="background:${o.lock ? 'var(--panel2)' : o.col}">${esc(o.lock ? '?' : o.ic)}</span><div class="cxb"><div class="cxh"><b>${esc(o.lock ? '???' : o.nm)}</b>${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}${o.dim ? '<span class="tag nw">미획득</span>' : ''}</div>${lines}</div></div>`;
+  const L = o.lock ? [esc(o.hint || '')] : (o.lines || []).filter(Boolean), wrap = l => l.startsWith('<div') ? l : `<p>${l}</p>`;
+  const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : icBox(o.col, o.ic, o.id);
+  return `<div class="cx ${st}"><div class="cxt">${ic}<div class="cxb"><div class="cxh"><b>${esc(o.lock ? '???' : o.nm)}</b>${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}${o.dim ? '<span class="tag nw">미획득</span>' : ''}</div>${L.length ? wrap(L[0]) : ''}</div></div>${L.slice(1).map(wrap).join('')}</div>`;
 }
 const cxL = (k, v) => `<i>${esc(k)}</i> ${esc(v)}`;
+/* 0.36 압축 표기: 수치 칩(1레벨→6레벨) · 분기 2칸 상자 */
+const cxChips = a => `<div class="cxs">${a.filter(Boolean).map(([k, v]) => `<span><i>${esc(k)}</i>${v}</span>`).join('')}</div>`;
+const cxArrow = (a, b, u = '') => a === b ? `${a}${u}` : `${a}<em>→${b}${u}</em>`;
+const cxBr = (list, head) => list && list.length ? `<div class="cxg">${list.map(o => `<div><b>${esc(o.nm)}</b><span>${esc(o.ds).replace(' · 궁극기: ', '</span><span class="u">궁극기 · ')}</span></div>`).join('')}</div>` : '';
+const cxRound = v => Math.round(v * 100) / 100;
 
 function cxWeapon(id, seen) {
-  const D = WEAPONS[id], B = D.base, tot = { dmg: 0, area: 0, cd: 0, n: 0, pierce: 0 };
-  for (const u of D.ups) for (const k in u) if (k in tot) tot[k] += u[k];
-  const base = CX_STAT.filter(([k]) => B[k] != null).map(([k, nm, f]) => `${id === 'boomerang' && k === 'pierce' ? '구간 타격 수' : nm} ${f(B[k])}`).join(' · ');
-  const six = [`피해 ${Math.round(B.dmg * (1 + tot.dmg))}`, B.cd ? `재사용 ${(B.cd * (1 - tot.cd)).toFixed(2)}초` : '', tot.n ? `개수 ${(B.n || 1) + tot.n}` : '', tot.area ? `범위 +${Math.round(tot.area * 100)}%` : '', tot.pierce ? `관통 ${(B.pierce || 0) + tot.pierce}` : ''].filter(Boolean).join(' · ');
-  const br = (BRANCHES[id] || []).map(b => `${b.nm}(${b.ds})`).join(' / ');
-  return cxCard({ dim: !seen, col: CFG.colors[D.cat], ic: D.ic, nm: D.name, tag: CAT_NAME[D.cat], lines: [esc(D.desc), cxL('1레벨', base), cxL('강화', D.ups.map((u, i) => `${i + 2}렙 ${upText(id, u)}`).join(' · ')), cxL('6레벨', six + ' (보조 효과 제외)'), br ? cxL(BRANCH_AT + '렙 분기', br) : ''] });
+  const D = WEAPONS[id], B = D.base, tot = { dmg: 0, area: 0, cd: 0, n: 0, pierce: 0 }, etc = {};
+  for (const u of D.ups) for (const k in u) { if (k in tot) tot[k] += u[k]; else etc[k] = (etc[k] || 0) + u[k]; }
+  const rk = ['R', 'range', 'len'].find(k => B[k] != null);
+  const chips = [
+    ['피해', cxArrow(Math.round(B.dmg), Math.round(B.dmg * (1 + tot.dmg)))],
+    B.cd ? ['재사용', cxArrow(cxRound(B.cd), cxRound(B.cd * (1 - tot.cd)), '초')] : null,
+    (B.n || tot.n) ? [W_UNIT[id] || '개수', cxArrow(B.n || 1, (B.n || 1) + tot.n)] : null,
+    (B.pierce || tot.pierce) ? [id === 'boomerang' ? '타격 수' : '관통', cxArrow(B.pierce || 0, (B.pierce || 0) + tot.pierce)] : null,
+    rk ? [{ R: '범위', range: '사거리', len: '길이' }[rk], `${B[rk]}${tot.area ? `<em>+${Math.round(tot.area * 100)}%</em>` : ''}`] : null,
+    B.dur ? ['지속', B.dur + '초'] : null,
+    ...Object.keys(etc).map(k => { const t = upText(id, { [k]: etc[k] }); const m = t.match(/^(.*?) ([+-].*)$/); return m ? [m[1], `<em>${esc(m[2])}</em>`] : null; }),
+  ];
+  return cxCard({ dim: !seen, id, col: CFG.colors[D.cat], ic: D.ic, nm: D.name, tag: CAT_NAME[D.cat], lines: [esc(D.desc), cxChips(chips), cxBr(BRANCHES[id])] });
+}
+/* 보조 효과: 1단계·5단계 문구의 수치만 화살표로 병합 */
+function cxRange(a, b) {
+  const re = /([+-]?\d+(?:\.\d+)?%?)/, A = a.split(re), Bs = b.split(re);
+  if (A.length !== Bs.length) return esc(a) + ' <em>→ ' + esc(b) + '</em>';
+  return A.map((t, i) => i % 2 && t !== Bs[i] ? `${esc(t)}<em>→${esc(Bs[i])}</em>` : esc(t)).join('');
 }
 function cxPassive(id, seen) {
-  const D = PASSIVES[id], br = (BRANCHES[id] || []).map(b => `${b.nm}(${b.ds})`).join(' / ');
-  return cxCard({ dim: !seen, col: '#8fd0ff', ic: D.ic, nm: D.name, tag: '보조 효과', lines: [cxL('단계별', [1, 2, 3, 4, 5].map(L => `${L}단계 ${D.desc(L)}`).join(' · ')), br ? cxL(BRANCH_AT + '단계 분기', br) : ''] });
+  const D = PASSIVES[id];
+  return cxCard({ dim: !seen, id, col: CFG.colors.passive, ic: D.ic, nm: D.name, tag: '1→5단계', lines: [cxRange(D.desc(1), D.desc(5)), cxBr(BRANCHES[id])] });
 }
+const cxMat = id => `<span class="cxm">${icBox(WEAPONS[id] ? CFG.colors[WEAPONS[id].cat] : CFG.colors.passive, (WEAPONS[id] || PASSIVES[id]).ic, id, 'sm')}${esc(itemName(id))}</span>`;
 function cxRelic(id, seen) {
   const R = RELICS[id];
-  return cxCard({ dim: !seen, col: '#ffd27a', ic: R.ic, nm: R.name, tag: '유물', lines: [cxL('재료', `${itemName(R.a)} + ${itemName(R.b)} 보유 시 후보 등장`), cxL('효과', R.ds)] });
+  return cxCard({ dim: !seen, col: '#ffd27a', ic: R.ic, nm: R.name, tag: '유물', lines: [`<div class="cxr">${cxMat(R.a)}<b>+</b>${cxMat(R.b)}</div>`, esc(R.ds)] });
 }
 function cxJob(id, seen) {
   const J = JOBS[id], U = ULT_TXT[id], X = JOB_WX[id], E1 = EXW1[id], E2 = EXW[id];
   const cats = jobCats(id).map(c => CAT_NAME[c]).join('·');
-  const j2 = JOB2[id].map(o => cxL('2차 ' + o.nm, o.ds));
-  return cxCard({ dim: !seen, col: JOB_COL[id], ic: J.ic, nm: J.name, tag: cats + ' 계열', lines: [cxL('고유 규칙', J.rule), cxL('궁극기', `${U[0]}: ${U[1]}`), cxL('계열 무기 변환', `'${X.pre}' 접두어 · ${X.ds} · 계열 무기 피해 +10%`), cxL('전용 무기', `1차 ${E1.name}(${E1.ds}, 피해 ${E1.dmg}) · 2차 ${E2.name}(${E2.ds}, 피해 ${E2.dmg})`), ...j2, cxL('2차 ' + JOB2_STAT.nm, JOB2_STAT.ds)] });
+  return cxCard({ dim: !seen, col: JOB_COL[id], ic: J.ic, nm: J.name, tag: cats + ' 계열', lines: [esc(J.rule), cxL('궁극기 ' + U[0], U[1]), cxL('계열 변환', `'${X.pre}' · ${X.ds} · 피해 +10%`), cxL('전용 무기', `${E1.name} → ${E2.name}`), cxBr(JOB2[id])] });
 }
 function cxEnemies(S) {
   const mob = ENEMY_ORDER.map(k => { const E = ENEMIES[k], v = S.seenE.has(k); return cxCard({ lock: !v, hint: '조우 시 기록', col: E.color, ic: E.name.slice(0, 1), nm: E.name, tag: '잡몹', lines: [cxL('능력치', `체력 ${E.hp} · 이동 ${E.speed} · 접촉 피해 ${E.dmg} · 경험치 ${E.xp}`), cxL('등장', `${E.from}분 이후`) + (E.mb ? ' · ' + esc(CX_MB[E.mb] || '') : '')] }); });
@@ -5939,10 +6071,10 @@ function cxUnlock(S) {
 
 function showCodex(tab, back) {
   const S = cxSeen(); let body = '';
-  if (tab === 'w') body = WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
-  if (tab === 'p') body = PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
+  if (tab === 'w') body = '<p class="hint">수치: 1레벨 → 6레벨 (보조 효과 미포함) · 아래 2칸: 3렙 분기</p>' + WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
+  if (tab === 'p') body = '<p class="hint">수치: 1단계 → 5단계 · 아래 2칸: 3단계 분기</p>' + PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
   if (tab === 'r') body = RELIC_ORDER.map(id => cxRelic(id, S.seenR.has(id))).join('');
-  if (tab === 'j') body = JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
+  if (tab === 'j') body = `<p class="hint">아래 2칸: 2차 전직 · 공통 선택지 ${esc(JOB2_STAT.nm)}(${esc(JOB2_STAT.ds)})</p>` + JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
   if (tab === 'e') body = cxEnemies(S);
   if (tab === 'f') body = FRAGS.map((f, i) => { const v = (S.s.frags || []).includes(f.id); return cxCard({ lock: !v, hint: '해금 조건 · ' + f.cond, col: '#e8d8ff', ic: String(i + 1), nm: f.nm, lines: [esc(f.tx)] }); }).join('');
   if (tab === 'u') body = cxUnlock(S);
@@ -6260,10 +6392,12 @@ function drawSlots(c, y) {
   const row = (list, n, x0, colorOf, icOf) => {
     for (let i = 0; i < n; i++) {
       const x = x0 + i * (S + gap), it = list[i];
-      c.fillStyle = it ? colorOf(it) : 'rgba(0,0,0,0.35)'; c.fillRect(x, y, S, S);
-      c.strokeStyle = 'rgba(0,0,0,0.55)'; c.lineWidth = 1.5; c.strokeRect(x + 0.5, y + 0.5, S - 1, S - 1);
+      const icv = it && iconCanvas(it.id, Math.max(1, Math.round(1.4 * VIEW.dpr)));   // 0.36 도트 아이콘
+      c.fillStyle = it ? (icv ? shadeHex(colorOf(it), 0.42) : colorOf(it)) : 'rgba(0,0,0,0.35)'; c.fillRect(x, y, S, S);
+      c.strokeStyle = it && icv ? colorOf(it) : 'rgba(0,0,0,0.55)'; c.lineWidth = 1.5; c.strokeRect(x + 0.75, y + 0.75, S - 1.5, S - 1.5);
       if (!it) continue;
-      c.fillStyle = '#14121c'; c.font = 'bold 13px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(icOf(it), x + S / 2, y + S / 2 - 1);
+      if (icv) { const iw = icv.width / VIEW.dpr, ih = icv.height / VIEW.dpr; c.imageSmoothingEnabled = false; c.drawImage(icv, Math.round(x + (S - iw) / 2), Math.round(y + (S - ih) / 2), iw, ih); }
+      else { c.fillStyle = '#14121c'; c.font = 'bold 13px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(icOf(it), x + S / 2, y + S / 2 - 1); }
       c.font = 'bold 9px Galmuri11, system-ui'; c.textAlign = 'right'; c.textBaseline = 'alphabetic'; c.lineWidth = 2.5; c.strokeStyle = 'rgba(0,0,0,0.8)';
       const lv = String(it.lvl); c.strokeText(lv, x + S - 1, y + S - 1); c.fillStyle = '#fff'; c.fillText(lv, x + S - 1, y + S - 1);
     }
