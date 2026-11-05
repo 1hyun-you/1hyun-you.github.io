@@ -146,6 +146,79 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
 .card.armed{outline:3px solid #fff;outline-offset:1px}
 @media (orientation:landscape) and (pointer:coarse){.rot{display:flex}}
 @media (prefers-reduced-motion:reduce){button:active{transform:none}}
+
+/* ===== 0.37 화면 다듬기 ===== */
+button,.card,.chipb,.acc summary,.row.pick{transition:transform .2s,filter .2s,background-color .2s,border-color .2s,color .2s,opacity .2s}
+button:active{transform:none}
+button:not(:disabled):active,.acc summary:active{transform:scale(.95);filter:brightness(1.2)}
+.card:not(:disabled):active,.row.pick:not(:disabled):active{transform:scale(.98);filter:brightness(1.15)}
+@media (hover:hover){button:not(:disabled):hover,.acc summary:hover{filter:brightness(1.1)}}
+/* 화면 진입: 0.2초 흐림·이동 */
+#ui>.layer.enter{animation:lyIn .2s ease-out}
+@keyframes lyIn{from{opacity:0;filter:blur(3px);transform:translateY(8px)}}
+/* 선택 카드 순차 올라옴 · 등급 칩 튀어오름 */
+.layer.enter .cards>.card{animation:cdUp .26s ease-out both;animation-delay:calc(var(--i,0) * 55ms + 60ms)}
+.layer.enter .cards>.card .tag{animation:chipPop .3s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0) * 55ms + 220ms)}
+@keyframes cdUp{from{opacity:0;transform:translateY(16px)}}
+@keyframes chipPop{from{opacity:0;transform:scale(.4)}}
+.card.armed{box-shadow:0 0 0 3px rgba(255,255,255,.18),0 0 18px rgba(255,224,138,.35);animation:armP .22s ease-out}
+@keyframes armP{40%{transform:scale(1.025)}}
+.sub.armtip{color:#ffe08a;animation:chipPop .22s ease-out}
+/* 확정 반짝임 */
+.spark{position:fixed;width:0;height:0;z-index:40;pointer-events:none}
+.spark i{position:absolute;left:-2px;top:-2px;width:5px;height:5px;background:var(--c);animation:spk .45s ease-out forwards}
+.spark i:nth-child(1){--a:0deg}.spark i:nth-child(2){--a:60deg}.spark i:nth-child(3){--a:120deg}.spark i:nth-child(4){--a:180deg}.spark i:nth-child(5){--a:240deg}.spark i:nth-child(6){--a:300deg}
+@keyframes spk{from{transform:rotate(var(--a)) translateX(6px);opacity:1}to{transform:rotate(var(--a)) translateX(38px) scale(.4);opacity:0}}
+/* 첫 화면 히어로형 */
+#ui>.layer.title.hero{padding:0;background:#15122e;overflow:hidden}
+.herobg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges}
+.heroshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,12,30,.35) 0%,rgba(14,12,30,0) 30%,rgba(14,12,30,0) 55%,rgba(14,12,22,.78) 100%);pointer-events:none}
+.hlogo{position:absolute;left:0;right:0;top:calc(var(--sat) + 15vh);text-align:center;padding:0 16px}
+.hlogo h1{margin:0;font-size:42px;letter-spacing:3px;color:#fff3d0;text-shadow:3px 3px 0 #3a2050,-1px -1px 0 #1b1626,1px -1px 0 #1b1626,-1px 1px 0 #1b1626,1px 1px 0 #1b1626}
+.hlogo .best{margin-top:8px;text-shadow:2px 2px 0 #1b1626}
+.hmenu{position:absolute;left:0;right:0;bottom:calc(var(--sab) + 6vh);display:flex;flex-direction:column;align-items:center;gap:2px}
+button.txb{background:none;border:none;border-radius:8px;padding:10px 30px;font-size:21px;line-height:1.25;color:#e8e0f4;text-shadow:2px 2px 0 #1b1626;letter-spacing:1px;white-space:nowrap}
+button.txb.main{font-size:30px;color:#fff3d0;letter-spacing:4px;animation:breathe 2.4s ease-in-out infinite}
+button.txb::before{content:'';display:inline-block;width:0;margin-right:0;transition:width .2s,margin .2s}
+button.txb:active::before{width:.6em;margin-right:.2em;content:'▸'}
+@keyframes breathe{50%{opacity:.72}}
+.hmenu .hint{color:#d8d0ea;text-shadow:1px 1px 0 #1b1626;font-size:13px;margin-top:4px}
+.layer.hero .ver{color:#c8c0dc;text-shadow:1px 1px 0 #1b1626}
+.icb{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(20,18,32,.55);border:1px solid rgba(255,255,255,.16)}
+.icb img{width:24px;height:24px;image-rendering:pixelated;display:block}
+.icb.tl,.icb.tr{position:absolute;top:calc(var(--sat) + 12px)}.icb.tl{left:12px}.icb.tr{right:12px}
+/* 고정 헤더 + 밀기 탭 */
+#ui>.layer.pg{padding-top:0;gap:10px}
+.pgh{position:sticky;top:0;z-index:3;align-self:stretch;margin:0 -16px;padding:calc(var(--sat) + 8px) 12px 0;background:rgba(16,14,24,.97);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.pgt{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding-bottom:4px}
+.pgt h2{text-align:center;font-size:20px;margin:0}
+.pgt .icb{background:transparent;border-color:transparent}
+.pgh>.sub{margin:0 0 4px;font-size:13px}
+.ptabs{position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr)}
+.ptabs button{background:none;border:none;border-radius:0;padding:9px 0 12px;font-size:14px;color:var(--muted);white-space:nowrap;min-width:0}
+.ptabs button.on{color:var(--fg);font-weight:700}
+.ptabs .bar{position:absolute;bottom:0;height:3px;border-radius:2px 2px 0 0;background:var(--accent);width:calc(100% / var(--n));left:calc(100% / var(--n) * var(--i));transition:left .2s ease-out}
+.sl-l{animation:slL .2s ease-out}.sl-r{animation:slR .2s ease-out}
+@keyframes slL{from{opacity:0;transform:translateX(14px)}}@keyframes slR{from{opacity:0;transform:translateX(-14px)}}
+.pgb{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.pgf{position:sticky;bottom:0;width:100%;max-width:420px;margin-top:auto;padding:12px 0 4px;background:linear-gradient(180deg,rgba(14,12,22,0),rgba(14,12,22,.96) 35%)}
+.pgf button{width:100%}
+button.row.pick{width:100%;text-align:left;border-radius:10px;font-size:15px}
+button.row.pick.on{border-color:var(--accent);background:#2e2858}
+/* 설정 스위치: 손잡이 이동 */
+.row button.tg.sw{flex:0 0 56px;min-width:0;width:56px;height:38px;padding:0;border:none;background:none;position:relative}
+.tg.sw::before{content:'';position:absolute;left:2px;right:2px;top:8px;bottom:8px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);transition:background-color .2s,border-color .2s}
+.tg.sw i{position:absolute;top:12px;left:7px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s ease-out,background-color .2s}
+.tg.sw.on::before{background:#463c8c;border-color:var(--accent)}.tg.sw.on i{transform:translateX(28px);background:#fff}
+/* 분기 접기 */
+.acc{margin-top:6px}
+.acc summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:36px;padding:6px 10px;border-radius:6px;background:var(--panel2);font-size:12.5px;color:#c8b8ff}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:'▾';transition:transform .2s;color:var(--muted)}
+.acc[open] summary::after{transform:rotate(180deg)}
+.acc[open] .cxg{animation:accIn .2s ease-out}
+@keyframes accIn{from{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <canvas id="c"></canvas>
 <div id="ui"></div>
@@ -159,7 +232,7 @@ button.warn{background:#6a2a34;border-color:#c25060;font-size:14px}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.36',
+  VERSION: '0.37',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -575,7 +648,7 @@ function hurtPlayer(dmg, src) {
   if (p.invT > 0 || STATE.dev.god || G.result) return;
   if (playerAvoid() || traitAvoid()) return;
   if (ultBlockHit()) return;                                 // 0.32 성군 보호막
-  dmg *= playerHurtMul() * traitHurtMul() * (hasCurse('frail') ? 1.15 : 1) * (1 + tierK());   // 고난도 피해: 모든 피해원 공통 (0.15)
+  dmg *= playerHurtMul() * traitHurtMul() * (hasCurse('frail') ? 1.15 : 1) * (1 + tierK()) * (G.ph && G.ph.id === 'demon' ? DM_CFG.hurtMul : 1);   // 고난도 피해: 모든 피해원 공통 (0.15) · 0.37 마왕전 받는 피해 감소
   vibe(25); sfx('hurt');
   onPlayerHurt();
   G.ph.hurtEma += dmg / 40;                                  // 강함 판정용 최근 피해 (0.24)
@@ -1639,6 +1712,7 @@ function drawEnemyShotOrb(c, b, t) {                         // 도트 없는 �
    ============================================================ */
 const DEMON = { name: '마왕', gate: '마왕성', ds: '그림자 군주', color: '#7a4ad0', r: 34, speed: 70, shape: 'hex' };
 const DM_CFG = {
+  hurtMul: 0.85,                                            // 0.37 마왕전 받는 피해 15% 감소 (모든 피해원)
   hpMul: 470, retryHp: 0.65, dmgMul: 1.2,   // 0.12 1차(무적 12·일반 12): 재도전 판 처치 191~320초·퇴각 2, 일반 판 마왕전 사망 8/10 → 재도전 체력·패턴 피해 하향 / 2차: 무적 처치 평균 235초·마지막 판 19분 → 체력 420→360
   spawn: [240, 280], fail: 420, stages: [0.6, 0.25], trans: 1.6, spawnMul: 0.3,
   every: [2.6, 2.3, 1.7],                                   // 패턴 간격 (페이즈별)
@@ -2086,9 +2160,9 @@ function metaSave(s) {
 
 /* ---------- 설정 화면 ---------- */
 function showSettings(back) {
-  const T = (k, nm, ds) => `<div class="row"><div class="rt"><b>${nm}</b><span>${ds}</span></div><button class="tg ${SETTINGS[k] ? 'pri' : ''}" data-k="${k}">${SETTINGS[k] ? '켜짐' : '꺼짐'}</button></div>`;
+  const T = (k, nm, ds) => `<div class="row"><div class="rt"><b>${nm}</b><span>${ds}</span></div><button class="tg sw ${SETTINGS[k] ? 'on' : ''}" data-k="${k}" role="switch" aria-checked="${!!SETTINGS[k]}" aria-label="${nm}"><i></i></button></div>`;
   const V = (k, nm) => `<div class="row"><div class="rt"><b>${nm}</b><span>0~100</span></div><input type="range" min="0" max="100" step="10" value="${SETTINGS[k]}" data-v="${k}" aria-label="${nm}"><output>${SETTINGS[k]}</output></div>`;
-  UI.innerHTML = `<div class="layer scroll"><h2>설정</h2><div class="rows">
+  UI.innerHTML = `<div class="layer scroll pg">${pgHead('설정', 's_back')}<div class="rows">
     <div class="row"><div class="rt"><b>조이스틱</b><span>${SETTINGS.joy === 'fixed' ? '고정형: 화면 아래 중앙 기준' : '유동형: 처음 누른 위치 기준'}</span></div><button class="tg" id="s_joy">${SETTINGS.joy === 'fixed' ? '고정형' : '유동형'}</button></div>
     ${T('autoUlt', '궁극기 자동 발동', '꺼짐: 손을 떼고 잠시 멈춰 발동 · 켜짐: 적이 몰리면 자동')}
     ${T('confirm2', '두 번 눌러 확정', '선택 카드를 한 번 더 눌러야 선택')}
@@ -2098,9 +2172,9 @@ function showSettings(back) {
     ${T('dmgNum', '피해 숫자', '적에게 준 피해를 숫자로 표시')}
     ${V('sfx', '효과음 음량')}${V('bgm', '배경음 음량')}
     <div class="row"><div class="rt"><b>첫 판 안내</b><span>조작·목표 안내를 처음부터 다시 표시</span></div><button class="tg" id="s_guide">다시 보기</button></div>
-    </div><div class="menu"><button id="s_back">돌아가기</button></div></div>`;
+    </div></div>`;
   on('s_guide', () => { guideReset(); const b = document.getElementById('s_guide'); if (b) { b.textContent = '초기화됨'; b.classList.add('pri'); } });
-  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); keepScroll(() => showSettings(back)); }));
+  UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); b.classList.toggle('on', SETTINGS[k]); b.setAttribute('aria-checked', SETTINGS[k]); sfx('ui'); }));   // 0.37 제자리 전환 (손잡이 이동)
   UI.querySelectorAll('input[data-v]').forEach(i => i.addEventListener('input', () => { SETTINGS[i.dataset.v] = +i.value; i.nextElementSibling.textContent = i.value; saveSettings(); auVol(); if (i.dataset.v === 'sfx') sfx('ui'); }));
   on('s_joy', () => { SETTINGS.joy = SETTINGS.joy === 'fixed' ? 'float' : 'fixed'; saveSettings(); keepScroll(() => showSettings(back)); });
   on('s_back', back);
@@ -2109,22 +2183,29 @@ function showSettings(back) {
 /* ---------- 도감: codex.js (0.34 7탭·세부 수치·게임 중 열람) ---------- */
 
 /* ---------- 도전 준비 (진엔딩 후) ---------- */
-function showPrep(back) {
+const PREP_TABS = [['t', '난이도'], ['c', '도전 조건']];
+function showPrep(back, tab = 't', dir) {
   const s = loadSave(), mx = Math.min(3, s.tierMax || 1);
   if (META.tier > mx) META.tier = mx;
   const o = { tier: META.tier, conds: META.conds };
-  UI.innerHTML = `<div class="layer scroll"><h2>도전 준비</h2><p class="sub">점수 배율 ×${optMul(o).toFixed(2)} · 보상은 성능에 영향 없음</p>
-    <h3>고난도 단계</h3><div class="tabs">${TIERS.map((T, i) => `<button class="${META.tier === i ? 'pri' : ''}" data-tier="${i}" ${i > mx ? 'disabled' : ''}>${i > mx ? '잠김' : T.nm}</button>`).join('')}</div>
-    <p class="hint">${META.tier ? `적 체력·피해 +${Math.round(TIERS[META.tier].k * 100)}% · 배율 ×${TIERS[META.tier].mul}` : '기본 난이도'} · 단계별 마왕 처치 시 다음 단계 개방</p>
-    <h3>도전 조건</h3><div class="rows">${COND_ORDER.map(k => { const C = CONDS[k], v = META.conds.includes(k); return `<div class="row"><div class="rt"><b>${C.nm}</b><span>${C.ds} · ×${C.mul}${(s.titles || []).includes('c_' + k) ? ' · 돌파' : ''}</span></div><button class="tg ${v ? 'pri' : ''}" data-cond="${k}">${v ? '켜짐' : '꺼짐'}</button></div>`; }).join('')}</div>
-    <div class="menu"><button class="pri" id="pr_go">이대로 시작</button><button id="pr_back">돌아가기</button></div></div>`;
-  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); keepScroll(() => showPrep(back)); }));
+  const body = tab === 't'
+    ? `<div class="rows">${TIERS.map((T, i) => `<button class="row pick ${META.tier === i ? 'on' : ''}" data-tier="${i}" ${i > mx ? 'disabled' : ''}><span class="rt"><b>${i > mx ? '잠김' : T.nm}</b><span>${i ? `적 체력·피해 +${Math.round(T.k * 100)}% · 배율 ×${T.mul}` : '기본 난이도 · 배율 ×1'}</span></span></button>`).join('')}</div><p class="hint">단계별 마왕 처치 시 다음 단계 개방</p>`
+    : `<div class="rows">${COND_ORDER.map(k => { const C = CONDS[k], v = META.conds.includes(k); return `<div class="row"><div class="rt"><b>${C.nm}</b><span>${C.ds} · ×${C.mul}${(s.titles || []).includes('c_' + k) ? ' · 돌파' : ''}</span></div><button class="tg sw ${v ? 'on' : ''}" data-cond="${k}" role="switch" aria-checked="${v}" aria-label="${C.nm}"><i></i></button></div>`; }).join('')}</div>`;
+  UI.innerHTML = `<div class="layer scroll pg">${pgHead('도전 준비', 'pr_back', PREP_TABS, tab, 'data-ptab', `<p class="sub" id="pr_mul">점수 배율 ×${optMul(o).toFixed(2)} · 보상은 성능에 영향 없음</p>`)}
+    <div class="pgb">${body}</div><div class="pgf"><button class="pri" id="pr_go">이대로 시작</button></div></div>`;
+  const go = (k, d) => showPrep(back, k, d);
+  UI.querySelectorAll('[data-ptab]').forEach(b => b.addEventListener('click', () => { const K = PREP_TABS.map(t => t[0]); go(b.dataset.ptab, K.indexOf(b.dataset.ptab) - K.indexOf(tab)); }));
+  uiSwipe(UI.querySelector('.layer'), PREP_TABS.map(t => t[0]), tab, go);
+  uiSlide('.pgb', dir);
+  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); sfx('ui'); keepScroll(() => showPrep(back, tab)); }));
   UI.querySelectorAll('[data-cond]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.cond, i = META.conds.indexOf(k);
     if (i >= 0) META.conds.splice(i, 1); else { META.conds.push(k); const ex = CONDS[k].ex; if (ex) META.conds = META.conds.filter(x => x !== ex); }
-    saveMeta(); keepScroll(() => showPrep(back));
+    saveMeta(); sfx('ui');
+    UI.querySelectorAll('[data-cond]').forEach(x => { const v = META.conds.includes(x.dataset.cond); x.classList.toggle('on', v); x.setAttribute('aria-checked', v); });   // 0.37 제자리 전환
+    const m = document.getElementById('pr_mul'); if (m) m.textContent = `점수 배율 ×${optMul({ tier: META.tier, conds: META.conds }).toFixed(2)} · 보상은 성능에 영향 없음`;
   }));
-  on('pr_go', startRun);
+  on('pr_go', e => { uiSpark(e.currentTarget); startRun(); });
   on('pr_back', back);
 }
 /* ============================================================
@@ -3175,9 +3256,13 @@ function renderSelect0() {
   s.armed = null;
   UI.querySelectorAll('.card[data-i]').forEach(b => b.addEventListener('click', () => { sfx('pick');
     const i = +b.dataset.i;
-    if (SETTINGS.confirm2 && !s.banish && s.armed !== i) {          // 두 번 눌러 확정 (0.14)
-      s.armed = i; UI.querySelectorAll('.card.armed').forEach(x => x.classList.remove('armed')); b.classList.add('armed'); return;
+    const two = SETTINGS.confirm2 || kind === 'job' || kind === 'job2';   // 두 번 눌러 확정 (0.14) · 0.37 전직은 항상 2회
+    if (two && !s.banish && s.armed !== i) {
+      s.armed = i; UI.querySelectorAll('.card.armed').forEach(x => x.classList.remove('armed')); b.classList.remove('armed'); void b.offsetWidth; b.classList.add('armed');
+      const sb = UI.querySelector('.sel-head .sub'); if (sb) { sb.textContent = '한 번 더 누르면 ' + (kind === 'job' || kind === 'job2' ? '전직' : '선택') + ' 확정'; sb.classList.add('armtip'); }
+      vibe(12); return;
     }
+    uiSpark(b, b.style.borderColor || '#ffe08a');
     pickCard(i);
   }));
   UI.querySelectorAll('.card[data-w]').forEach(b => b.addEventListener('click', () => offerWeapon(b.dataset.w)));
@@ -4776,7 +4861,7 @@ Object.assign(WEAPONS, {
   beam: { name: '빛줄기', cat: 'magic', ic: '광', desc: '가까운 적 방향으로 0.6초간 꿰뚫는 광선',
     base: { dmg: 7, cd: 2.0, len: 250, wid: 9, dur: 0.6, tick: 0.1 },
     ups: [{ dmg: 0.3 }, { area: 0.15 }, { cd: 0.15 }, { dmg: 0.3 }, { dmg: 0.2, area: 0.1 }] },
-  vortex: { name: '회오리', cat: 'magic', ic: '풍', desc: '천천히 나아가는 회오리, 주변 적을 끌어당기며 지속 피해',
+  vortex: { name: '회오리', cat: 'magic', ic: '풍', desc: '전방 적 무리 한가운데 회오리 생성, 주변 적을 끌어당기며 지속 피해',
     base: { dmg: 5, cd: 3.2, n: 1, R: 46, dur: 3, sp: 60, tick: 0.3, pull: 70 },
     ups: [{ dmg: 0.3 }, { area: 0.15 }, { n: 1 }, { cd: 0.15 }, { dmg: 0.3 }] },
 });
@@ -4854,13 +4939,22 @@ Object.assign(WEAPON_FIRE, {
     if (!nearestEnemy(p.x, p.y, L)) return false;
     w.bm = { t: 0, tk: 0, a: aimAng(L), dur: D.dur + (w.br === 'track' ? 0.3 : 0), S, L, wd: D.wid * S.area, far: null };
   },
-  /* 회오리: 진행 방향 무작위 (가까운 적 쪽 편향) */
+  /* 회오리 (0.37): 전방 적 무리 지점(플레이어와 140 이상)에 생성, 바깥쪽으로 천천히 이동 */
   vortex(w, S) {
     const D = WEAPONS.vortex.base, p = G.p; if (!G.vortex) G.vortex = [];
+    const fa = Math.atan2(p.face.y, p.face.x), far = enemiesInRange(p.x, p.y, 440).filter(e => dist2(e.x, e.y, p.x, p.y) >= 140 * 140);
+    if (!far.length && !nearestEnemy(p.x, p.y, 440)) return false;
+    const front = far.filter(e => Math.cos(Math.atan2(e.y - p.y, e.x - p.x) - fa) > 0), pool = shuffle(front.length ? front : far).slice(0, 12);
+    const scored = pool.map(e => { let n = 0; gridQuery(e.x, e.y, 70, () => { n++; }); return [n, e]; }).sort((a, b) => b[0] - a[0]);
     for (let i = 0; i < S.n; i++) {
       if (G.vortex.length >= 8) G.vortex.shift();
-      const a = aimAng(300) + rand(-0.9, 0.9) + i * 2.1;
-      G.vortex.push({ x: p.x + Math.cos(a) * 30, y: p.y + Math.sin(a) * 30, vx: Math.cos(a) * D.sp, vy: Math.sin(a) * D.sp, t: 0, tk: 0, dur: D.dur + (w.br === 'storm' ? 1.5 : 0), R: D.R * S.area * (w.br === 'storm' ? 1.2 : 1), dmg: S.dmg, burst: w.br === 'burst', spin: rand(7) });
+      let x, y;
+      if (scored.length) { const e = (scored[i] || scored[0])[1], j = i && !scored[i] ? 40 : 0; x = e.x + rand(-j, j); y = e.y + rand(-j, j); }
+      else { const a = fa + i * 2.1; x = p.x + Math.cos(a) * 180; y = p.y + Math.sin(a) * 180; }
+      const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < 140) { x = p.x + dx / d * 140; y = p.y + dy / d * 140; }
+      const a = Math.atan2(y - p.y, x - p.x) + rand(-0.5, 0.5), sp = D.sp * 0.5;
+      G.vortex.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, tk: 0, dur: D.dur + (w.br === 'storm' ? 1.5 : 0), R: D.R * S.area * (w.br === 'storm' ? 1.2 : 1), dmg: S.dmg, burst: w.br === 'burst', spin: rand(7) });
     }
   },
 });
@@ -4910,7 +5004,7 @@ function updateArsenal(dt) {
     const D = WEAPONS.vortex.base;
     for (const v of G.vortex) {
       v.t += dt; v.tk -= dt; v.spin += dt * 9; v.x += v.vx * dt; v.y += v.vy * dt;
-      gridQuery(v.x, v.y, v.R * 1.6, e => { if (e.cmd || e.boss || e.gk) return; const dx = v.x - e.x, dy = v.y - e.y, d = Math.hypot(dx, dy) || 1; if (d > 8) { e.x += dx / d * D.pull * dt; e.y += dy / d * D.pull * dt; } });
+      gridQuery(v.x, v.y, v.R * 1.6, e => { if (e.cmd || e.boss || e.gk) return; if (dist2(e.x, e.y, G.p.x, G.p.y) < 90 * 90) return; const dx = v.x - e.x, dy = v.y - e.y, d = Math.hypot(dx, dy) || 1; if (d > 8) { e.x += dx / d * D.pull * dt; e.y += dy / d * D.pull * dt; } });
       if (v.tk <= 0) { v.tk = D.tick; gridQuery(v.x, v.y, v.R, e => damageEnemy(e, v.dmg, { src: 'vortex' })); }
       if (hasRelic('eyestorm')) for (const g of G.gems) if (!g.mag && dist2(g.x, g.y, v.x, v.y) < v.R * v.R * 2.2) g.mag = true;
       if (v.t >= v.dur) { v.dead = true; if (v.burst) explode(v.x, v.y, v.R * 1.3, v.dmg * 5, 'vortex_x', jobTint('magic') || '#c8f0ff'); }
@@ -5970,7 +6064,7 @@ function drawGuide(c) {
    — 게임 중 열람: 일시정지 화면 '도감' 버튼, 진행 중인 판의 획득분도 즉시 반영
    — 기록: 저장 데이터 seenW·seenE·seenJ(기존) + seenP(보조 효과)·seenR(유물) 추가
    ============================================================ */
-const CODEX_TABS = [['w', '무기'], ['p', '보조 효과'], ['r', '유물'], ['j', '직업'], ['e', '적'], ['f', '기록 조각'], ['u', '해금 현황']];
+const CODEX_TABS = [['w', '무기'], ['p', '보조'], ['r', '유물'], ['j', '직업'], ['e', '적'], ['f', '조각'], ['u', '해금']];   // 0.37 한 줄 탭 (짧은 이름)
 
 /* 기본 수치 표기 순서·명칭 (밀쳐내기·투사체 속도 등 체감 어려운 항목 제외) */
 const CX_STAT = [['dmg', '피해', v => Math.round(v)], ['cd', '재사용', v => v + '초'], ['n', '개수', v => v], ['pierce', '관통', v => v], ['range', '사거리', v => v], ['len', '길이', v => v], ['R', '범위', v => v],
@@ -6001,7 +6095,7 @@ function cxSeen() {
 /* 카드: dim = 미획득 흐림(내용 공개), lock = 잠금(내용 비공개) */
 function cxCard(o) {
   const st = o.lock ? 'lock' : o.dim ? 'dim' : '';
-  const L = o.lock ? [esc(o.hint || '')] : (o.lines || []).filter(Boolean), wrap = l => l.startsWith('<div') ? l : `<p>${l}</p>`;
+  const L = o.lock ? [esc(o.hint || '')] : (o.lines || []).filter(Boolean), wrap = l => l.startsWith('<div') || l.startsWith('<details') ? l : `<p>${l}</p>`;
   const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : icBox(o.col, o.ic, o.id);
   return `<div class="cx ${st}"><div class="cxt">${ic}<div class="cxb"><div class="cxh"><b>${esc(o.lock ? '???' : o.nm)}</b>${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}${o.dim ? '<span class="tag nw">미획득</span>' : ''}</div>${L.length ? wrap(L[0]) : ''}</div></div>${L.slice(1).map(wrap).join('')}</div>`;
 }
@@ -6009,7 +6103,7 @@ const cxL = (k, v) => `<i>${esc(k)}</i> ${esc(v)}`;
 /* 0.36 압축 표기: 수치 칩(1레벨→6레벨) · 분기 2칸 상자 */
 const cxChips = a => `<div class="cxs">${a.filter(Boolean).map(([k, v]) => `<span><i>${esc(k)}</i>${v}</span>`).join('')}</div>`;
 const cxArrow = (a, b, u = '') => a === b ? `${a}${u}` : `${a}<em>→${b}${u}</em>`;
-const cxBr = (list, head) => list && list.length ? `<div class="cxg">${list.map(o => `<div><b>${esc(o.nm)}</b><span>${esc(o.ds).replace(' · 궁극기: ', '</span><span class="u">궁극기 · ')}</span></div>`).join('')}</div>` : '';
+const cxBr = (list, head) => list && list.length ? `<details class="acc"><summary>${esc(head || '분기')} ${list.length}종</summary><div class="cxg">${list.map(o => `<div><b>${esc(o.nm)}</b><span>${esc(o.ds).replace(' · 궁극기: ', '</span><span class="u">궁극기 · ')}</span></div>`).join('')}</div></details>` : '';
 const cxRound = v => Math.round(v * 100) / 100;
 
 function cxWeapon(id, seen) {
@@ -6025,7 +6119,7 @@ function cxWeapon(id, seen) {
     B.dur ? ['지속', B.dur + '초'] : null,
     ...Object.keys(etc).map(k => { const t = upText(id, { [k]: etc[k] }); const m = t.match(/^(.*?) ([+-].*)$/); return m ? [m[1], `<em>${esc(m[2])}</em>`] : null; }),
   ];
-  return cxCard({ dim: !seen, id, col: CFG.colors[D.cat], ic: D.ic, nm: D.name, tag: CAT_NAME[D.cat], lines: [esc(D.desc), cxChips(chips), cxBr(BRANCHES[id])] });
+  return cxCard({ dim: !seen, id, col: CFG.colors[D.cat], ic: D.ic, nm: D.name, tag: CAT_NAME[D.cat], lines: [esc(D.desc), cxChips(chips), cxBr(BRANCHES[id], '3렙 분기')] });
 }
 /* 보조 효과: 1단계·5단계 문구의 수치만 화살표로 병합 */
 function cxRange(a, b) {
@@ -6035,7 +6129,7 @@ function cxRange(a, b) {
 }
 function cxPassive(id, seen) {
   const D = PASSIVES[id];
-  return cxCard({ dim: !seen, id, col: CFG.colors.passive, ic: D.ic, nm: D.name, tag: '1→5단계', lines: [cxRange(D.desc(1), D.desc(5)), cxBr(BRANCHES[id])] });
+  return cxCard({ dim: !seen, id, col: CFG.colors.passive, ic: D.ic, nm: D.name, tag: '1→5단계', lines: [cxRange(D.desc(1), D.desc(5)), cxBr(BRANCHES[id], '3단계 분기')] });
 }
 const cxMat = id => `<span class="cxm">${icBox(WEAPONS[id] ? CFG.colors[WEAPONS[id].cat] : CFG.colors.passive, (WEAPONS[id] || PASSIVES[id]).ic, id, 'sm')}${esc(itemName(id))}</span>`;
 function cxRelic(id, seen) {
@@ -6045,7 +6139,7 @@ function cxRelic(id, seen) {
 function cxJob(id, seen) {
   const J = JOBS[id], U = ULT_TXT[id], X = JOB_WX[id], E1 = EXW1[id], E2 = EXW[id];
   const cats = jobCats(id).map(c => CAT_NAME[c]).join('·');
-  return cxCard({ dim: !seen, col: JOB_COL[id], ic: J.ic, nm: J.name, tag: cats + ' 계열', lines: [esc(J.rule), cxL('궁극기 ' + U[0], U[1]), cxL('계열 변환', `'${X.pre}' · ${X.ds} · 피해 +10%`), cxL('전용 무기', `${E1.name} → ${E2.name}`), cxBr(JOB2[id])] });
+  return cxCard({ dim: !seen, col: JOB_COL[id], ic: J.ic, nm: J.name, tag: cats + ' 계열', lines: [esc(J.rule), cxL('궁극기 ' + U[0], U[1]), cxL('계열 변환', `'${X.pre}' · ${X.ds} · 피해 +10%`), cxL('전용 무기', `${E1.name} → ${E2.name}`), cxBr(JOB2[id], '2차 전직')] });
 }
 function cxEnemies(S) {
   const mob = ENEMY_ORDER.map(k => { const E = ENEMIES[k], v = S.seenE.has(k); return cxCard({ lock: !v, hint: '조우 시 기록', col: E.color, ic: E.name.slice(0, 1), nm: E.name, tag: '잡몹', lines: [cxL('능력치', `체력 ${E.hp} · 이동 ${E.speed} · 접촉 피해 ${E.dmg} · 경험치 ${E.xp}`), cxL('등장', `${E.from}분 이후`) + (E.mb ? ' · ' + esc(CX_MB[E.mb] || '') : '')] }); });
@@ -6059,7 +6153,7 @@ function cxUnlock(S) {
   const s = S.s, n = a => (s[a] || []).length, titles = s.titles || [], ce = ENEMY_ORDER.length + GK_ORDER.length + 1;
   const eSeen = ENEMY_ORDER.filter(k => S.seenE.has(k)).length + GK_ORDER.filter(k => (s.metGk || []).includes(k) || (s.gates || []).includes(k)).length + (s.metDemon || s.demonTries ? 1 : 0);
   return `<div class="stats">
-    <span>플레이</span><span>${s.runs || 0}판</span><span>돌파</span><span>${s.clears || 0}회</span><span>열린 문</span><span>${n('gates')}/4</span>
+    <span>플레이</span><span>${s.runs || 0}판</span><span>돌파</span><span>${s.clears || 0}회</span><span>최고 생존</span><span>${s.bestTime ? fmtTime(s.bestTime) : '-'}</span><span>열린 문</span><span>${n('gates')}/4</span>
     <span>마왕 처치</span><span>${s.demonKills || 0}회</span><span>기록 조각</span><span>${n('frags')}/${FRAG_N}</span>
     <span>무기</span><span>${WEAPON_ORDER.filter(id => S.seenW.has(id)).length}/${WEAPON_ORDER.length}</span><span>보조 효과</span><span>${PASSIVE_ORDER.filter(id => S.seenP.has(id)).length}/${PASSIVE_ORDER.length}</span>
     <span>유물</span><span>${RELIC_ORDER.filter(id => S.seenR.has(id)).length}/${RELIC_ORDER.length}</span><span>직업</span><span>${JOB_ORDER.filter(id => S.seenJ.has(id)).length}/${JOB_ORDER.length}</span>
@@ -6069,23 +6163,193 @@ function cxUnlock(S) {
     <h3>주인공 색상</h3><div class="chips">${COLORS.map(C => { const v = colorOpen(s, C); return `<button class="chipb ${(s.color || 'base') === C.id ? 'pri' : ''}" data-c="${C.id}" ${v ? '' : 'disabled'}><i style="background:${C.c}"></i>${v ? C.nm : '잠김'}</button>`; }).join('')}</div>`;
 }
 
-function showCodex(tab, back) {
+function showCodex(tab, back, dir) {
   const S = cxSeen(); let body = '';
-  if (tab === 'w') body = '<p class="hint">수치: 1레벨 → 6레벨 (보조 효과 미포함) · 아래 2칸: 3렙 분기</p>' + WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
-  if (tab === 'p') body = '<p class="hint">수치: 1단계 → 5단계 · 아래 2칸: 3단계 분기</p>' + PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
+  if (tab === 'w') body = '<p class="hint">수치: 1레벨 → 6레벨 (보조 효과 미포함) · 분기는 눌러서 펼침</p>' + WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
+  if (tab === 'p') body = '<p class="hint">수치: 1단계 → 5단계 · 분기는 눌러서 펼침</p>' + PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
   if (tab === 'r') body = RELIC_ORDER.map(id => cxRelic(id, S.seenR.has(id))).join('');
-  if (tab === 'j') body = `<p class="hint">아래 2칸: 2차 전직 · 공통 선택지 ${esc(JOB2_STAT.nm)}(${esc(JOB2_STAT.ds)})</p>` + JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
+  if (tab === 'j') body = `<p class="hint">2차 전직은 눌러서 펼침 · 공통 선택지 ${esc(JOB2_STAT.nm)}(${esc(JOB2_STAT.ds)})</p>` + JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
   if (tab === 'e') body = cxEnemies(S);
   if (tab === 'f') body = FRAGS.map((f, i) => { const v = (S.s.frags || []).includes(f.id); return cxCard({ lock: !v, hint: '해금 조건 · ' + f.cond, col: '#e8d8ff', ic: String(i + 1), nm: f.nm, lines: [esc(f.tx)] }); }).join('');
   if (tab === 'u') body = cxUnlock(S);
-  UI.innerHTML = `<div class="layer scroll"><h2>도감</h2>
-    <div class="tabs cxt">${CODEX_TABS.map(([k, nm]) => `<button class="${tab === k ? 'pri' : ''}" data-tab="${k}">${nm}</button>`).join('')}</div>
-    <div class="cxl">${body}</div><div class="menu"><button id="cx_back">돌아가기</button></div></div>`;
-  UI.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { showCodex(b.dataset.tab, back); const L = UI.querySelector('.layer'); if (L) L.scrollTop = 0; }));
-  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; keepScroll(() => showCodex('u', back)); };
+  UI.innerHTML = `<div class="layer scroll pg">${pgHead('도감', 'cx_back', CODEX_TABS, tab)}
+    <div class="cxl">${body}</div></div>`;
+  const go = (k, dir) => { showCodex(k, back, dir); const L = UI.querySelector('.layer'); if (L) L.scrollTop = 0; };
+  UI.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { const K = CODEX_TABS.map(t => t[0]); go(b.dataset.tab, K.indexOf(b.dataset.tab) - K.indexOf(tab)); }));
+  uiSwipe(UI.querySelector('.layer'), CODEX_TABS.map(t => t[0]), tab, go);
+  uiSlide('.cxl', dir);
+  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; if (k === 'color') heroReset(); keepScroll(() => showCodex('u', back)); };
   UI.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => setS('title', b.dataset.t || null)));
   UI.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => setS('color', b.dataset.c)));
   on('cx_back', back);
+}
+/* ============================================================
+   0.37 화면 다듬기 — 첫 화면 히어로형 도트 일러스트, 아이콘 버튼, 고정 헤더·밀기 탭,
+   화면 진입 0.2초 전환, 선택 카드 순차 등장·확정 반짝임
+   ============================================================ */
+
+/* ---------- 첫 화면 도트 일러스트 (144×256 텍셀, 화면 크기에 맞춰 정수 느낌 확대) ---------- */
+const HERO_W = 144, HERO_H = 256;
+const HERO = { cv: null, base: null, t: 0, timer: 0, flies: [], clouds: [] };
+function heroRng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+function heroBase() {
+  const cv = document.createElement('canvas'); cv.width = HERO_W; cv.height = HERO_H;
+  const c = cv.getContext('2d'), R = heroRng(37), px = (x, y, col) => { c.fillStyle = col; c.fillRect(x | 0, y | 0, 1, 1); };
+  /* 하늘: 남색 → 보라 → 노을 주황, 4×4 순서 디더 */
+  const SKY = ['#15122e', '#211a44', '#33235a', '#4c2f6c', '#6e3c72', '#9a4c6c', '#c8645e', '#ec8c5a', '#f7b46a'];
+  const skyH = 160;
+  for (let y = 0; y < skyH; y++) {
+    const f = Math.pow(y / skyH, 1.25) * (SKY.length - 1), i = Math.floor(f), k = f - i;
+    for (let x = 0; x < HERO_W; x++) px(x, y, k * 16 > BAYER4[(y & 3) * 4 + (x & 3)] ? SKY[Math.min(SKY.length - 1, i + 1)] : SKY[i]);
+  }
+  /* 별 */
+  for (let i = 0; i < 46; i++) { const x = R() * HERO_W, y = R() * 78; px(x, y, R() < 0.25 ? '#fff3b0' : '#cfc8ff'); }
+  /* 달: 노을 위 큰 달 + 빛무리 */
+  const mx = 100, my = 22, mr = 10;
+  for (let y = -mr - 5; y <= mr + 5; y++) for (let x = -mr - 5; x <= mr + 5; x++) {
+    const d = Math.hypot(x, y);
+    if (d <= mr) px(mx + x, my + y, (x - 4) * (x - 4) + (y + 3) * (y + 3) < 20 || (x + 5) * (x + 5) + (y - 4) * (y - 4) < 9 ? '#e6dcc0' : d > mr - 1.2 ? '#f0e6cc' : '#fff8e0');
+    else if (d <= mr + 5 && BAYER4[((y + 20) & 3) * 4 + ((x + 20) & 3)] < (mr + 5 - d) * 2.4) px(mx + x, my + y, '#5a4288');
+  }
+  /* 먼 산맥 2겹 */
+  const ridge = (base, amp, f1, f2, ph, col, top) => {
+    const H = [];
+    for (let x = 0; x < HERO_W; x++) {
+      const h = base - amp * (0.55 * Math.sin(x * f1 + ph) + 0.3 * Math.sin(x * f2 + ph * 2.3) + 0.15 * Math.sin(x * 0.31 + ph));
+      H.push(Math.floor(h)); for (let y = Math.floor(h); y < HERO_H; y++) px(x, y, y === Math.floor(h) && top ? top : col);
+    }
+    return H;
+  };
+  ridge(132, 16, 0.045, 0.11, 1.2, '#3a2a5e', '#56407e');
+  /* 마왕성: 왼쪽 먼 봉우리 위 실루엣 + 창 불빛 */
+  const cx0 = 26, cy0 = 112;
+  c.fillStyle = '#231a3c';
+  c.fillRect(cx0, cy0 - 14, 22, 30); c.fillRect(cx0 - 4, cy0 - 22, 7, 26); c.fillRect(cx0 + 19, cy0 - 25, 7, 29); c.fillRect(cx0 + 8, cy0 - 30, 6, 20);
+  for (const [x, y, h] of [[cx0 - 4, cy0 - 22, 5], [cx0 + 19, cy0 - 25, 6], [cx0 + 8, cy0 - 30, 7]]) for (let i = 0; i < h; i++) c.fillRect(x + 3 - Math.floor(i / 2), y - i, 1 + Math.floor(i / 2) * 2 - (i % 2 ? 0 : 0), 1);
+  for (let i = 0; i < 4; i++) c.fillRect(cx0 + i * 6, cy0 - 16, 3, 2);
+  c.fillStyle = '#ffb04a';
+  for (const [x, y] of [[cx0 + 4, cy0 - 8], [cx0 + 10, cy0 - 8], [cx0 + 16, cy0 - 8], [cx0 - 2, cy0 - 16], [cx0 + 21, cy0 - 18], [cx0 + 10, cy0 - 22]]) c.fillRect(x, y, 1, 2);
+  for (let y = cy0 - 40; y < cy0 + 4; y++) for (let x = cx0 - 10; x < cx0 + 34; x++) { const d = Math.hypot(x - cx0 - 11, (y - cy0 + 14) * 1.3); if (d > 18 && d < 23 && BAYER4[(y & 3) * 4 + (x & 3)] < 3) px(x, y, '#8a5ac8'); }
+  for (let x = cx0 - 30; x < cx0 + 52; x++) { const t = cy0 + 4 + Math.pow(Math.abs(x - cx0 - 11) / 40, 1.5) * 34; for (let y = Math.floor(t); y < 160; y++) px(x, y, y === Math.floor(t) ? '#56407e' : '#3a2a5e'); }   // 마왕성 봉우리
+  ridge(150, 10, 0.07, 0.17, 3.1, '#2a4a52', '#3e6a64');
+  /* 가까운 언덕 */
+  const hill = ridge(170, 8, 0.05, 0.13, 0.4, '#2f6a44', '#4b923e');
+  /* 들판: 위는 어둡게, 아래로 밝게 */
+  const FIELD = ['#3a7a3e', '#4b923e', '#59a545', '#62b04c'];
+  for (let x = 0; x < HERO_W; x++) for (let y = Math.max(172, hill[x] + 5); y < HERO_H; y++) {
+    const f = Math.min(1, (y - 172) / 60) * (FIELD.length - 1), i = Math.floor(f), k = f - i;
+    px(x, y, k * 16 > BAYER4[(y & 3) * 4 + (x & 3)] ? FIELD[Math.min(FIELD.length - 1, i + 1)] : FIELD[i]);
+  }
+  /* 오솔길: 화면 아래 중앙에서 마왕성 쪽으로 가늘어짐 */
+  for (let y = 176; y < HERO_H; y++) {
+    const k = (y - 176) / (HERO_H - 176), w = 2 + k * 20, cx = 40 + (1 - (1 - k) * (1 - k)) * 72 + Math.sin(y * 0.08) * 3 * k;
+    for (let x = Math.floor(cx - w / 2); x <= cx + w / 2; x++) px(x, y, (x === Math.floor(cx - w / 2) || x >= Math.floor(cx + w / 2)) ? '#a8844e' : BAYER4[(y & 3) * 4 + (x & 3)] < 3 ? '#d8b878' : '#c8a46a');
+  }
+  /* 풀 무더기·꽃 */
+  for (let i = 0; i < 150; i++) {
+    const y = 176 + Math.pow(R(), 0.8) * 80, x = R() * HERO_W, k = (y - 176) / 80, pc = 40 + (1 - (1 - k) * (1 - k)) * 72;
+    if (Math.abs(x - pc) < 4 + k * 12) continue;
+    if (R() < 0.18) { px(x, y, R() < 0.5 ? '#fff3b0' : '#f39ab0'); px(x, y + 1, '#3a8c40'); }
+    else { const col = k > 0.5 ? '#79c65a' : '#59a545'; px(x, y, col); px(x - 1, y + 1, col); px(x + 1, y + 1, col); }
+  }
+  /* 주인공: 오솔길 위, 2배 크기, 발밑 그림자 */
+  try {
+    const g = bakeGrid(SPR.hero.frames[0], Object.assign({}, DOT_PAL, { P: playerColor(), p: shadeHex(playerColor(), 0.68) }), 1, false, 'n', null);
+    const hx = Math.round(82 - g.cv.width / 2), fy = 199, hy = fy - g.cv.height + 1;
+    c.fillStyle = 'rgba(20,40,20,0.45)'; c.fillRect(hx + 3, fy, g.cv.width - 6, 2);
+    c.drawImage(g.cv, hx, hy);
+    const sl = bakeGrid(SPR.slime.frames[0], DOT_PAL, 1, false, 'n', null);
+    c.drawImage(sl.cv, 12, 196); c.drawImage(sl.cv, 30, 184); c.drawImage(sl.cv, 124, 214);
+  } catch (e) { }
+  return cv;
+}
+function heroFrame() {
+  const cv = HERO.cv; if (!cv || !cv.isConnected) { clearInterval(HERO.timer); HERO.timer = 0; return; }
+  const c = cv.getContext('2d'); HERO.t += 1;
+  c.drawImage(HERO.base, 0, 0);
+  /* 구름 띠 (천천히 흐름) */
+  for (const cl of HERO.clouds) {
+    const x = ((cl.x + HERO.t * cl.v) % (HERO_W + 60)) - 30;
+    c.fillStyle = cl.c; c.fillRect(Math.round(x), cl.y, cl.w, 2); c.fillRect(Math.round(x) + 3, cl.y - 1, cl.w - 8, 1); c.fillRect(Math.round(x) + 6, cl.y + 2, cl.w - 10, 1);
+  }
+  /* 반짝이는 별 몇 개 */
+  const R = heroRng(HERO.t >> 3);
+  for (let i = 0; i < 5; i++) { const x = Math.floor(R() * HERO_W), y = Math.floor(R() * 70); c.fillStyle = '#ffffff'; c.fillRect(x, y, 1, 1); c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - 1, y, 3, 1); c.fillRect(x, y - 1, 1, 3); }
+  /* 반딧불 */
+  for (const f of HERO.flies) {
+    const x = f.x + Math.sin(HERO.t * 0.05 + f.p) * 6, y = f.y + Math.cos(HERO.t * 0.037 + f.p) * 4, a = 0.5 + 0.5 * Math.sin(HERO.t * 0.15 + f.p);
+    c.fillStyle = `rgba(255,240,140,${0.25 * a})`; c.fillRect(Math.round(x) - 1, Math.round(y), 3, 1); c.fillRect(Math.round(x), Math.round(y) - 1, 1, 3);
+    c.fillStyle = `rgba(255,250,200,${a})`; c.fillRect(Math.round(x), Math.round(y), 1, 1);
+  }
+}
+function heroMount(cv) {
+  if (!HERO.base) {
+    HERO.base = heroBase(); const R = heroRng(5);
+    HERO.flies = Array.from({ length: 9 }, () => ({ x: R() * HERO_W, y: 165 + R() * 50, p: R() * 7 }));
+    HERO.clouds = Array.from({ length: 4 }, (_, i) => ({ x: R() * 200, y: 60 + i * 17 + Math.floor(R() * 6), w: 18 + Math.floor(R() * 22), v: 0.05 + R() * 0.08, c: i < 2 ? 'rgba(120,90,160,0.55)' : 'rgba(240,150,120,0.45)' }));
+  }
+  cv.width = HERO_W; cv.height = HERO_H; HERO.cv = cv; heroFrame();
+  if (!HERO.timer) HERO.timer = setInterval(heroFrame, 90);
+}
+function heroReset() { HERO.base = null; }   // 주인공 색상 변경 시 재생성
+
+/* ---------- 도트 아이콘 버튼 (도감·설정·돌아가기) ---------- */
+const UI_ICON = {
+  book: ['.kkkkkkkkk..', 'kuuuuuuuuuk.', 'kuUyyyyyUuke', 'kuUyuuuyUuke', 'kuUyuyuyUuke', 'kuUyuuuyUuke', 'kuUyyyyyUuke', 'kuUUUUUUUuke', 'kuuuuuuuuuke', 'kUUUUUUUUUke', 'keeeeeeeeeek', '.kkkkkkkkkk.'],
+  gear: ['....kkkk....', '.kk.kMMk.kk.', '.kMkkMMkkMk.', '..kMMMMMMk..', 'kkkMmkkmMkkk', 'kMMMk..kMMMk', 'kMMMk..kMMMk', 'kkkMmkkmMkkk', '..kMMMMMMk..', '.kMkkMMkkMk.', '.kk.kMMk.kk.', '....kkkk....'],
+  back: ['............', '.....kk.....', '....keek....', '...keeek....', '..keeeekkkk.', '.keeeeeeeeek', '.keeeeeeeeek', '..keeeekkkk.', '...keeek....', '....keek....', '.....kk.....', '............'],
+};
+const UI_ICON_URL = {};
+function uiIcon(k) { if (!UI_ICON_URL[k]) UI_ICON_URL[k] = bakeGrid(UI_ICON[k], DOT_PAL, 4, false, 'n', null).cv.toDataURL(); return UI_ICON_URL[k]; }
+const icBtn = (id, k, label, cls = '') => `<button class="icb ${cls}" id="${id}" aria-label="${label}"><img src="${uiIcon(k)}" alt=""></button>`;
+
+/* ---------- 고정 헤더 + 밀기 탭 ---------- */
+/* tabs: [[키, 이름]], cur: 현재 키 → 헤더 HTML (탭 밑줄 표시기 포함) */
+function pgHead(title, backId, tabs, cur, attr = 'data-tab', extra = '') {
+  const i = tabs ? Math.max(0, tabs.findIndex(t => t[0] === cur)) : 0;
+  return `<div class="pgh"><div class="pgt">${icBtn(backId, 'back', '돌아가기')}<h2>${title}</h2><span class="pgs"></span></div>${extra}
+    ${tabs ? `<div class="ptabs" style="--n:${tabs.length};--i:${i}">${tabs.map(([k, nm]) => `<button class="${k === cur ? 'on' : ''}" ${attr}="${k}">${nm}</button>`).join('')}<i class="bar"></i></div>` : ''}</div>`;
+}
+/* 좌우 밀기: 수평 이동 60 이상·수직의 1.5배 이상일 때 탭 전환 */
+function uiSwipe(el, keys, cur, go) {
+  if (!el) return; let x0 = 0, y0 = 0, on = false;
+  el.addEventListener('touchstart', e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; on = e.touches.length === 1; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    if (!on) return; on = false; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const i = keys.indexOf(cur), j = i + (dx < 0 ? 1 : -1);
+    if (j >= 0 && j < keys.length) go(keys[j], j - i);
+  }, { passive: true });
+}
+/* 탭 전환 후 내용 미끄러짐 (dir: 1 = 오른쪽 탭으로) */
+function uiSlide(sel, dir) {
+  if (!dir) return;
+  const b = UI.querySelector(sel); if (b) b.classList.add(dir > 0 ? 'sl-l' : 'sl-r');
+  const P = UI.querySelector('.ptabs'); if (!P) return;                       // 밑줄 표시기: 이전 탭 위치에서 이동
+  const i = +P.style.getPropertyValue('--i'); P.style.setProperty('--i', i - dir); void P.offsetWidth;
+  P.style.setProperty('--i', i);                                             // 강제 배치 후 값 변경 → 전환 발생 (rAF 미사용)
+}
+
+/* ---------- 화면 진입 전환·선택 카드 순차 등장 ---------- */
+const UIX = { sig: '', n: 0 };
+function uiEnterCheck() {
+  const L = document.querySelector('#ui>.layer'); if (!L) { UIX.sig = ''; return; }
+  const sel = STATE.mode === 'select' && G && G.sel; if (sel && !sel._uid) sel._uid = ++UIX.n;
+  const h = L.querySelector('h1,h2'), sig = L.className.replace(/\s*enter\b/, '') + '|' + (h ? h.textContent : '') + '|' + (sel ? sel._uid : '');
+  if (sig === UIX.sig) return;
+  UIX.sig = sig; L.classList.add('enter');
+  L.querySelectorAll('.cards>.card').forEach((c, i) => c.style.setProperty('--i', i));
+}
+new MutationObserver(uiEnterCheck).observe(document.getElementById('ui'), { childList: true });
+
+/* 확정 반짝임: 누른 요소 위치에 작은 별빛 */
+function uiSpark(el, col = '#ffe08a') {
+  if (!el || !el.getBoundingClientRect) return;
+  const q = el.getBoundingClientRect(), d = document.createElement('div');
+  d.className = 'spark'; d.style.left = (q.left + q.width / 2) + 'px'; d.style.top = (q.top + q.height / 2) + 'px'; d.style.setProperty('--c', col);
+  d.innerHTML = '<i></i><i></i><i></i><i></i><i></i><i></i>';
+  document.body.appendChild(d); setTimeout(() => d.remove(), 520);
 }
 /* ============================================================
    그리기 — 0.19 도트 적용 시작(주인공·잡몹 4종·바르간·지형), 나머지 도형은 0.20 교체
@@ -6641,23 +6905,21 @@ function buildSummary() {
 /* 설정·도감·도전 준비 화면은 meta.js (0.14·0.15) */
 const on = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
 
-/* 시작 화면 — 배경은 새 판 들판(정지 상태), 기록 요약 표시 */
+/* 시작 화면 (0.37 히어로형): 도트 일러스트 배경, 하단 글씨 메뉴, 좌상단 도감·우상단 설정 아이콘, 기록류는 도감 해금 현황으로 이관 */
 function showTitle() {
   newRun(); STATE.mode = 'title';
   const s = loadSave(), ro = runOpt();
-  UI.innerHTML = `<div class="layer title">
-    <div class="ttl"><h1>회귀의 들판</h1><p class="sub">${s.trueEnd ? '고리가 끊긴 들판, 기억 속의 그림자와 겨루기' : '들판의 페이즈를 돌파하고 사문의 수문장을 쓰러뜨려 문을 열어라'}</p>${s.title && TITLES[s.title] ? `<p class="best">${TITLES[s.title]}</p>` : ''}</div>
-    <button class="pri big" id="start">시작</button>
-    ${s.trueEnd ? `<p class="hint">${optText(ro) || '기본 난이도'} · 점수 배율 ×${optMul(ro).toFixed(2)}</p>` : ''}
-    <div class="menu row2">${s.trueEnd ? '<button id="prep">도전 준비</button>' : ''}<button id="codex">도감</button><button id="settings">설정</button></div>
-    <div class="stats"><span>플레이</span><span>${s.runs || 0}판</span><span>돌파</span><span>${s.clears || 0}회</span><span>최고 생존</span><span>${s.bestTime ? fmtTime(s.bestTime) : '-'}</span><span>열린 문</span><span>${(s.gates || []).length}/4</span><span>기록 조각</span><span>${(s.frags || []).length}/${FRAG_N}</span>${s.bestScore ? `<span>최고 점수</span><span>${s.bestScore}</span>` : ''}</div>
-    ${(s.gates || []).length ? `<p class="hint">${GK_ORDER.map(k => (s.gates.includes(k) ? '■ ' : '□ ') + GATEKEEPERS[k].gate).join(' · ')}</p>` : ''}
-    ${(s.gates || []).length >= 4 ? `<p class="best">마왕성 출현 · 도전 ${s.demonTries || 0}회 · 처치 ${s.demonKills || 0}회</p>` : ''}
-    <p class="hint">화면을 누른 채 끌어 이동 · 공격은 자동</p>
+  UI.innerHTML = `<div class="layer title hero">
+    <canvas class="herobg" id="herocv" aria-hidden="true"></canvas><div class="heroshade"></div>
+    ${icBtn('codex', 'book', '도감', 'tl')}${icBtn('settings', 'gear', '설정', 'tr')}
+    <div class="hlogo"><h1>회귀의 들판</h1>${s.title && TITLES[s.title] ? `<p class="best">${TITLES[s.title]}</p>` : ''}</div>
+    <div class="hmenu"><button class="txb main" id="start">시작</button>
+    ${s.trueEnd ? `<button class="txb" id="prep">도전 준비</button><p class="hint">${optText(ro) || '기본 난이도'} · 점수 배율 ×${optMul(ro).toFixed(2)}</p>` : ''}</div>
     <p class="ver">v${CFG.VERSION}</p></div>`;
-  on('start', startRun);
+  heroMount(document.getElementById('herocv'));
+  on('start', e => { uiSpark(e.currentTarget); startRun(); });
   on('settings', () => showSettings(showTitle));
-  on('codex', () => showCodex('f', showTitle));
+  on('codex', () => showCodex('w', showTitle));
   on('prep', () => showPrep(showTitle));
 }
 /* 0.25 휴대폰 뒤로가기: 플레이 중 일시정지, 일시정지·하위 화면은 이전 화면, 처음 화면은 2초 내 두 번 눌러 종료 */
