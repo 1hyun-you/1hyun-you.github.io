@@ -154,8 +154,9 @@ button:not(:disabled):active,.acc summary:active{transform:scale(.95);filter:bri
 .card:not(:disabled):active,.row.pick:not(:disabled):active{transform:scale(.98);filter:brightness(1.15)}
 @media (hover:hover){button:not(:disabled):hover,.acc summary:hover{filter:brightness(1.1)}}
 /* 화면 진입: 0.2초 흐림·이동 */
-#ui>.layer.enter{animation:lyIn .2s ease-out}
-@keyframes lyIn{from{opacity:0;filter:blur(3px);transform:translateY(8px)}}
+/* 0.40: 화면 자체는 불투명도 유지(뒤 게임 화면 비침 방지), 내용만 0.2초 떠오름 */
+#ui>.layer.enter>*:not(.pgh):not(.herobg):not(.heroshade){animation:lyIn .2s ease-out}
+@keyframes lyIn{from{opacity:0;transform:translateY(6px)}}
 /* 선택 카드 순차 올라옴 · 등급 칩 튀어오름 */
 .layer.enter .cards>.card{animation:cdUp .26s ease-out both;animation-delay:calc(var(--i,0) * 55ms + 60ms)}
 .layer.enter .cards>.card .tag{animation:chipPop .3s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0) * 55ms + 220ms)}
@@ -203,6 +204,13 @@ button.txb:active::before{width:.6em;margin-right:.2em;content:'▸'}
 .pgb{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px;align-items:stretch}
 .pgf{position:sticky;bottom:0;width:100%;max-width:420px;margin-top:auto;padding:12px 0 4px;background:linear-gradient(180deg,rgba(14,12,22,0),rgba(14,12,22,.96) 35%)}
 .pgf button{width:100%}
+/* 0.40 좌우 끌기 탭 */
+#ui>.layer.pager{overflow:hidden;justify-content:flex-start;padding-bottom:0;background:rgba(14,12,22,.97)}
+.pager .pgv{flex:1 1 auto;min-height:0;align-self:stretch;margin:0 -16px;overflow:hidden;touch-action:pan-y}
+.pgtr{display:flex;height:100%;transform:translateX(calc(var(--i,0) * -100% + var(--x,0px)));transition:transform .26s cubic-bezier(.2,.7,.3,1);will-change:transform}
+.pgtr.drag,.ptabs.drag .bar{transition:none}
+.pgp{flex:0 0 100%;min-width:0;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:2px 16px calc(var(--sab) + 16px);box-sizing:border-box;display:flex;flex-direction:column;align-items:center}
+.pager .pgf{position:static;margin-top:0;padding:8px 0 calc(var(--sab) + 10px);background:none}
 button.row.pick{width:100%;text-align:left;border-radius:10px;font-size:15px}
 button.row.pick.on{border-color:var(--accent);background:#2e2858}
 /* 설정 스위치: 손잡이 이동 */
@@ -232,7 +240,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.39',
+  VERSION: '0.40',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -361,7 +369,8 @@ function nearestEnemy(x, y, maxR = 600) {
 }
 
 /* 0.31 같은 화면 다시 그릴 때 스크롤 위치 유지 (설정·도전 준비·도감·선택 화면 토글 시 맨 위로 튀는 문제) */
-function keepScroll(fn) { const a = UI && UI.querySelector('.layer'), y = a ? a.scrollTop : 0; fn(); const b = UI && UI.querySelector('.layer'); if (b && y) b.scrollTop = y; }
+const scrEl = () => UI && (UI.querySelector('.pgp.on') || UI.querySelector('.layer'));   // 0.40 탭 화면은 탭별 스크롤
+function keepScroll(fn) { const a = scrEl(), y = a ? a.scrollTop : 0; fn(); const b = scrEl(); if (b && y) b.scrollTop = y; }
 /* ============================================================
    화면 크기 · 입력 (유동형 조이스틱: 중심은 첫 터치 위치 고정)
    ============================================================ */
@@ -2184,20 +2193,16 @@ function showSettings(back) {
 
 /* ---------- 도전 준비 (진엔딩 후) ---------- */
 const PREP_TABS = [['t', '난이도'], ['c', '도전 조건']];
-function showPrep(back, tab = 't', dir) {
+function showPrep(back, tab = 't') {
   const s = loadSave(), mx = Math.min(3, s.tierMax || 1);
   if (META.tier > mx) META.tier = mx;
   const o = { tier: META.tier, conds: META.conds };
-  const body = tab === 't'
-    ? `<div class="rows">${TIERS.map((T, i) => `<button class="row pick ${META.tier === i ? 'on' : ''}" data-tier="${i}" ${i > mx ? 'disabled' : ''}><span class="rt"><b>${i > mx ? '잠김' : T.nm}</b><span>${i ? `적 체력·피해 +${Math.round(T.k * 100)}% · 배율 ×${T.mul}` : '기본 난이도 · 배율 ×1'}</span></span></button>`).join('')}</div><p class="hint">단계별 마왕 처치 시 다음 단계 개방</p>`
-    : `<div class="rows">${COND_ORDER.map(k => { const C = CONDS[k], v = META.conds.includes(k); return `<div class="row"><div class="rt"><b>${C.nm}</b><span>${C.ds} · ×${C.mul}${(s.titles || []).includes('c_' + k) ? ' · 돌파' : ''}</span></div><button class="tg sw ${v ? 'on' : ''}" data-cond="${k}" role="switch" aria-checked="${v}" aria-label="${C.nm}"><i></i></button></div>`; }).join('')}</div>`;
-  UI.innerHTML = `<div class="layer scroll pg">${pgHead('도전 준비', 'pr_back', PREP_TABS, tab, 'data-ptab', `<p class="sub" id="pr_mul">점수 배율 ×${optMul(o).toFixed(2)} · 보상은 성능에 영향 없음</p>`)}
-    <div class="pgb">${body}</div><div class="pgf"><button class="pri" id="pr_go">이대로 시작</button></div></div>`;
-  const go = (k, d) => showPrep(back, k, d);
-  UI.querySelectorAll('[data-ptab]').forEach(b => b.addEventListener('click', () => { const K = PREP_TABS.map(t => t[0]); go(b.dataset.ptab, K.indexOf(b.dataset.ptab) - K.indexOf(tab)); }));
-  uiSwipe(UI.querySelector('.layer'), PREP_TABS.map(t => t[0]), tab, go);
-  uiSlide('.pgb', dir);
-  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); sfx('ui'); keepScroll(() => showPrep(back, tab)); }));
+  const bT = `<div class="rows">${TIERS.map((T, i) => `<button class="row pick ${META.tier === i ? 'on' : ''}" data-tier="${i}" ${i > mx ? 'disabled' : ''}><span class="rt"><b>${i > mx ? '잠김' : T.nm}</b><span>${i ? `적 체력·피해 +${Math.round(T.k * 100)}% · 배율 ×${T.mul}` : '기본 난이도 · 배율 ×1'}</span></span></button>`).join('')}</div><p class="hint">단계별 마왕 처치 시 다음 단계 개방</p>`;
+  const bC = `<div class="rows">${COND_ORDER.map(k => { const C = CONDS[k], v = META.conds.includes(k); return `<div class="row"><div class="rt"><b>${C.nm}</b><span>${C.ds} · ×${C.mul}${(s.titles || []).includes('c_' + k) ? ' · 돌파' : ''}</span></div><button class="tg sw ${v ? 'on' : ''}" data-cond="${k}" role="switch" aria-checked="${v}" aria-label="${C.nm}"><i></i></button></div>`; }).join('')}</div>`;
+  UI.innerHTML = `<div class="layer pg pager">${pgHead('도전 준비', 'pr_back', PREP_TABS, tab, 'data-ptab', `<p class="sub" id="pr_mul">점수 배율 ×${optMul(o).toFixed(2)} · 보상은 성능에 영향 없음</p>`)}
+    ${pgPanes([['t', bT], ['c', bC]], tab, 'pgb')}<div class="pgf"><button class="pri" id="pr_go">이대로 시작</button></div></div>`;
+  let cur = tab; uiPager(UI.querySelector('.layer'), PREP_TABS.map(t => t[0]), tab, k => { cur = k; });
+  UI.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => { META.tier = +b.dataset.tier; saveMeta(); sfx('ui'); keepScroll(() => showPrep(back, cur)); }));
   UI.querySelectorAll('[data-cond]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.cond, i = META.conds.indexOf(k);
     if (i >= 0) META.conds.splice(i, 1); else { META.conds.push(k); const ex = CONDS[k].ex; if (ex) META.conds = META.conds.filter(x => x !== ex); }
@@ -6164,22 +6169,21 @@ function cxUnlock(S) {
     <h3>주인공 색상</h3><div class="chips">${COLORS.map(C => { const v = colorOpen(s, C); return `<button class="chipb ${(s.color || 'base') === C.id ? 'pri' : ''}" data-c="${C.id}" ${v ? '' : 'disabled'}><i style="background:${C.c}"></i>${v ? C.nm : '잠김'}</button>`; }).join('')}</div>`;
 }
 
-function showCodex(tab, back, dir) {
-  const S = cxSeen(); let body = '';
-  if (tab === 'w') body = '<p class="hint">수치: 1레벨 → 6레벨 (보조 효과 미포함) · 분기는 눌러서 펼침</p>' + WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
-  if (tab === 'p') body = '<p class="hint">수치: 1단계 → 5단계 · 분기는 눌러서 펼침</p>' + PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
-  if (tab === 'r') body = RELIC_ORDER.map(id => cxRelic(id, S.seenR.has(id))).join('');
-  if (tab === 'j') body = `<p class="hint">2차 전직은 눌러서 펼침 · 공통 선택지 ${esc(JOB2_STAT.nm)}(${esc(JOB2_STAT.ds)})</p>` + JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
-  if (tab === 'e') body = cxEnemies(S);
-  if (tab === 'f') body = FRAGS.map((f, i) => { const v = (S.s.frags || []).includes(f.id); return cxCard({ lock: !v, hint: '해금 조건 · ' + f.cond, col: '#e8d8ff', ic: String(i + 1), nm: f.nm, lines: [esc(f.tx)] }); }).join('');
-  if (tab === 'u') body = cxUnlock(S);
-  UI.innerHTML = `<div class="layer scroll pg">${pgHead('도감', 'cx_back', CODEX_TABS, tab)}
-    <div class="cxl">${body}</div></div>`;
-  const go = (k, dir) => { showCodex(k, back, dir); const L = UI.querySelector('.layer'); if (L) L.scrollTop = 0; };
-  UI.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { const K = CODEX_TABS.map(t => t[0]); go(b.dataset.tab, K.indexOf(b.dataset.tab) - K.indexOf(tab)); }));
-  uiSwipe(UI.querySelector('.layer'), CODEX_TABS.map(t => t[0]), tab, go);
-  uiSlide('.cxl', dir);
-  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; if (k === 'color') heroReset(); keepScroll(() => showCodex('u', back)); };
+function showCodex(tab, back) {
+  const S = cxSeen(), K = CODEX_TABS.map(t => t[0]);
+  const bodyOf = t => {
+    if (t === 'w') return '<p class="hint">수치: 1레벨 → 6레벨 (보조 효과 미포함) · 분기는 눌러서 펼침</p>' + WEAPON_ORDER.map(id => cxWeapon(id, S.seenW.has(id))).join('');
+    if (t === 'p') return '<p class="hint">수치: 1단계 → 5단계 · 분기는 눌러서 펼침</p>' + PASSIVE_ORDER.map(id => cxPassive(id, S.seenP.has(id))).join('') + '<h3>숙련 특성</h3><p class="hint">무기·보조 효과 전부 최대 후 등장, 종류별 1회</p>' + TRAIT_ORDER.map(k => cxCard({ col: '#c8c0ff', ic: TRAITS[k].ic, nm: TRAITS[k].nm, lines: [esc(TRAITS[k].ds)] })).join('');
+    if (t === 'r') return RELIC_ORDER.map(id => cxRelic(id, S.seenR.has(id))).join('');
+    if (t === 'j') return `<p class="hint">2차 전직은 눌러서 펼침 · 공통 선택지 ${esc(JOB2_STAT.nm)}(${esc(JOB2_STAT.ds)})</p>` + JOB_ORDER.map(id => cxJob(id, S.seenJ.has(id))).join('');
+    if (t === 'e') return cxEnemies(S);
+    if (t === 'f') return FRAGS.map((f, i) => { const v = (S.s.frags || []).includes(f.id); return cxCard({ lock: !v, hint: '해금 조건 · ' + f.cond, col: '#e8d8ff', ic: String(i + 1), nm: f.nm, lines: [esc(f.tx)] }); }).join('');
+    if (t === 'u') return cxUnlock(S);
+    return '';
+  };
+  UI.innerHTML = `<div class="layer pg pager">${pgHead('도감', 'cx_back', CODEX_TABS, tab)}${pgPanes(K.map(k => [k, bodyOf(k)]), tab, 'cxl')}</div>`;
+  let cur = tab; uiPager(UI.querySelector('.layer'), K, tab, k => { cur = k; });
+  const setS = (k, v) => { const x = loadSave(); x[k] = v; try { localStorage.setItem(CFG.SAVE_KEY, JSON.stringify(x)); } catch (e) { } saveCache = null; if (k === 'color') heroReset(); keepScroll(() => showCodex(cur, back)); };
   UI.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => setS('title', b.dataset.t || null)));
   UI.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => setS('color', b.dataset.c)));
   on('cx_back', back);
@@ -6312,17 +6316,44 @@ function pgHead(title, backId, tabs, cur, attr = 'data-tab', extra = '') {
   return `<div class="pgh"><div class="pgt">${icBtn(backId, 'back', '돌아가기')}<h2>${title}</h2><span class="pgs"></span></div>${extra}
     ${tabs ? `<div class="ptabs" style="--n:${tabs.length};--i:${i}">${tabs.map(([k, nm]) => `<button class="${k === cur ? 'on' : ''}" ${attr}="${k}">${nm}</button>`).join('')}<i class="bar"></i></div>` : ''}</div>`;
 }
-/* 좌우 밀기: 수평 이동 60 이상·수직의 1.5배 이상일 때 탭 전환 */
-function uiSwipe(el, keys, cur, go) {
-  if (!el) return; let x0 = 0, y0 = 0, on = false;
-  el.addEventListener('touchstart', e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; on = e.touches.length === 1; }, { passive: true });
-  el.addEventListener('touchend', e => {
-    if (!on) return; on = false; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    const i = keys.indexOf(cur), j = i + (dx < 0 ? 1 : -1);
-    if (j >= 0 && j < keys.length) go(keys[j], j - i);
+/* 좌우 밀기 (0.37, 0.40부터 미사용·호환용) */
+function uiSwipe() { }
+/* 0.40 좌우 끌기 탭: 탭 화면을 가로로 이어 붙이고 손가락을 따라 이동, 놓으면 가까운 탭에 맞춰 정지
+   구조: .layer.pager > .pgh(.ptabs) + .pgv > .pgtr > .pgp[data-pk] (탭마다 개별 세로 스크롤) */
+function uiPager(L, keys, cur, onCh) {
+  const V = L && L.querySelector('.pgv'), T = V && V.querySelector('.pgtr'), P = L && L.querySelector('.ptabs'), n = keys.length;
+  if (!T) return { go() { } };
+  let i = Math.max(0, keys.indexOf(cur));
+  const drag = on => { T.classList.toggle('drag', on); if (P) P.classList.toggle('drag', on); };
+  const set = j => {
+    j = Math.max(0, Math.min(n - 1, j)); const ch = j !== i; i = j; drag(false);
+    T.style.setProperty('--x', '0px'); T.style.setProperty('--i', i);
+    if (P) { P.style.setProperty('--i', i); P.querySelectorAll('button').forEach((b, k) => b.classList.toggle('on', k === i)); }
+    T.querySelectorAll('.pgp').forEach((d, k) => d.classList.toggle('on', k === i));
+    if (ch) { if (typeof sfx === 'function') sfx('ui'); onCh && onCh(keys[i], i); }
+  };
+  let x0 = 0, y0 = 0, t0 = 0, mode = 0, dx = 0;
+  V.addEventListener('touchstart', e => { if (e.touches.length !== 1) { mode = 3; return; } const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = performance.now(); mode = 0; dx = 0; }, { passive: true });
+  V.addEventListener('touchmove', e => {
+    if (mode >= 2) return; const t = e.touches[0]; dx = t.clientX - x0; const dy = t.clientY - y0;
+    if (!mode) { if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.2) { mode = 1; drag(true); } else if (Math.abs(dy) > 8) { mode = 2; return; } else return; }
+    if (e.cancelable) e.preventDefault();
+    const d = (i === 0 && dx > 0) || (i === n - 1 && dx < 0) ? dx / 3 : dx;     // 양 끝 저항
+    T.style.setProperty('--x', d + 'px'); if (P) P.style.setProperty('--i', i - d / (V.clientWidth || 360));
+  }, { passive: false });
+  V.addEventListener('touchend', e => {
+    const t = e.changedTouches[0], ddx = t.clientX - x0, ddy = t.clientY - y0, W = V.clientWidth || 360, dt = Math.max(1, performance.now() - t0);
+    const h = mode === 1 || (mode === 0 && Math.abs(ddx) >= 60 && Math.abs(ddx) > Math.abs(ddy) * 1.5);
+    if (mode === 1) { const kill = ev => { ev.stopPropagation(); ev.preventDefault(); }; V.addEventListener('click', kill, { capture: true, once: true }); setTimeout(() => V.removeEventListener('click', kill, { capture: true }), 60); }
+    mode = 3; if (!h) return;
+    if (Math.abs(ddx) > W * 0.22 || (Math.abs(ddx) > 30 && Math.abs(ddx) / dt > 0.45)) set(i + (ddx < 0 ? 1 : -1)); else set(i);
   }, { passive: true });
+  V.addEventListener('touchcancel', () => { if (mode === 1) set(i); mode = 3; }, { passive: true });
+  if (P) P.querySelectorAll('button').forEach((b, k) => b.addEventListener('click', () => set(k)));
+  return { go: k => set(keys.indexOf(k)), get cur() { return keys[i]; } };
 }
+/* 탭 화면 HTML: panes = [[키, 내용 HTML]] */
+const pgPanes = (panes, cur, wrap) => { const i = Math.max(0, panes.findIndex(p => p[0] === cur)); return `<div class="pgv"><div class="pgtr" style="--i:${i}">${panes.map(([k, h]) => `<div class="pgp${k === cur ? ' on' : ''}" data-pk="${k}"><div class="${wrap}">${h}</div></div>`).join('')}</div></div>`; };
 /* 탭 전환 후 내용 미끄러짐 (dir: 1 = 오른쪽 탭으로) */
 function uiSlide(sel, dir) {
   if (!dir) return;
@@ -6527,8 +6558,8 @@ function awPost(id, w, S, aw, nw, la, v0) {
     case 'shuriken:ret': for (const pr of nw) if (pr.kind === 'star') pr.awRet = true; break;
     case 'shuriken:big': for (const pr of nw) if (pr.kind === 'star') { pr.r *= 2; pr.bounce = false; pr.pierce = 99; pr.scat = false; } break;
     case 'fireball:meteor': w.mc = (w.mc || 0) + 1; if (w.mc % 4 === 0) { const e = densest(p.x, p.y, 400); if (e) { const x = e.x, y = e.y, R = 90 * S.area; fx({ kind: 'ring', x, y, r0: R, r1: R * 0.2, dur: 0.6, color: '#ff6a3a' }); G.later.push({ t: 0.6, f: () => { explode(x, y, R, S.dmg * 2.5, 'fireball_aw', '#ff7a3a'); shake(2.5, 0.2); } }); } } break;
-    case 'icering:zero': { const R = WEAPONS.icering.base.R * S.area; gridQuery(p.x, p.y, R, e => { if (awOk(e) && !e.elite && Math.random() < (w.br === 'freeze' ? 0.14 : 0.2)) e.frz = Math.max(e.frz || 0, 1); }); break; }
-    case 'icering:armor': { const R = WEAPONS.icering.base.R * S.area; gridQuery(p.x, p.y, R, e => { e.chill = G.time + 0.7; }); break; }
+    case 'icering:zero': { const R = WEAPONS.icering.base.R * S.area; gridQuery(p.x, p.y, R, e => { if (awOk(e) && !e.elite && Math.random() < (w.br === 'freeze' ? 0.3 : 0.4)) e.frz = Math.max(e.frz || 0, 1); }); break; }
+    case 'icering:armor': { const R = WEAPONS.icering.base.R * S.area; gridQuery(p.x, p.y, R, e => { e.chill = G.time + 1.3; }); break; }
     case 'orb:sat': nw.forEach((pr, i) => { if (pr.kind === 'orb') { pr.sat = { a: i * Math.PI * 2 / Math.max(1, nw.length), t: 0 }; pr.home = false; pr.life += 0.8; pr.vx = pr.vy = 0; } }); break;
     case 'vortex:merge': {
       const nv = (G.vortex || []).filter(v => !v0.has(v)); if (!nv.length) break;
@@ -6774,6 +6805,60 @@ WEAPONS.shuriken.desc = '명중할 때마다 다음 적에게 튕기는 수리�
 
 /* 방패 이중 충격 분기 재설계: 0.4초 뒤 범위 140% 2차 충격 (피해 50% → 90%) */
 (function () { const o = BRANCHES.shield.find(x => x.k === 'twin'); if (o) o.ds = '0.4초 뒤 범위 140% 2차 충격 (피해 90%)'; })();
+/* ===== 0.40 화면·소형 =====
+   — 얼음 고리: 지속 고리 → 주기적 냉기 파동, 최대 확장 지점 적 파쇄 (bal39 냉기 4회 누적 폐지)
+   — 공격 범위 보조 효과: 미적용 무기의 기존 판정만 확대 (화살·투척 단검·마력 구체·수리검 탄 크기, 번개 탐색 사거리)
+     신규 능력 부여 없음 · 소환사 망령·기술자 포탑은 추후 재논의 */
+const V40 = { ice: { cd: 1.2, reach: 1.3, steps: 5, dur: 0.5, hit: 2.6, slow: 1.4, frz: 0.12, shR: 30, shMul: 1.5, outer: 0.7 } };
+
+WEAPONS.icering.base.cd = V40.ice.cd;
+BAL.chill.need = 1e9;                                   // 0.39 냉기 누적 파쇄 폐지 (파동 파쇄로 대체)
+WEAPONS.icering.desc = '주기적으로 퍼지는 냉기 파동, 둔화·피해, 최대 확장 지점 적 파쇄';
+
+AW_BASE.icering = function (w, S) {                   // 각성 감싸기(awaken.js) 안쪽 기본 동작 교체
+  const C = V40.ice, Rm = WEAPONS.icering.base.R * C.reach * S.area, frz = w.br === 'freeze', hit = new Set(), dmg = S.dmg * C.hit;
+  w.R = Rm;
+  fx({ kind: 'ring', x: G.p.x, y: G.p.y, r0: 8, r1: Rm, dur: C.dur, color: '#bfe8ff' });
+  for (let k = 1; k <= C.steps; k++) {
+    G.later.push({
+      t: C.dur * k / C.steps, f: () => {
+        const p = G.p, r1 = Rm * k / C.steps, last = k === C.steps, sh = [];
+        gridQuery(p.x, p.y, r1, e => {
+          if (hit.has(e) || e.dead) return; hit.add(e);
+          e.slowT = Math.max(e.slowT || 0, C.slow);
+          if (frz && !e.cmd && !e.boss && Math.random() < C.frz) e.frz = 1;
+          damageEnemy(e, dmg, { src: 'icering' });
+          if (!e.dead && (last || Math.hypot(e.x - p.x, e.y - p.y) >= Rm * C.outer)) sh.push(e);
+        });
+        if (last) {                                                            // 최대 확장: 외곽 적 파쇄
+          for (const e of sh.slice(0, 14)) {
+            const x = e.x, y = e.y, d = S.dmg * C.shMul;
+            fx({ kind: 'ring', x, y, r0: 4, r1: C.shR, dur: 0.2, color: '#e6f6ff', fill: true });
+            gridQuery(x, y, C.shR, t => damageEnemy(t, d, { src: 'icering_x' }));
+          }
+        }
+      }
+    });
+  }
+};
+
+/* 공격 범위: 투사체 무기 탄 크기(판정) 확대 */
+for (const id of ['arrow', 'knife', 'orb', 'shuriken']) {
+  const f = WEAPON_FIRE[id]; if (!f) continue;
+  WEAPON_FIRE[id] = function (w, S) {
+    const n0 = G.proj.length, r = f.call(this, w, S);
+    if (S.area > 1) for (let i = n0; i < G.proj.length; i++) G.proj[i].r *= S.area;
+    return r;
+  };
+}
+/* 공격 범위: 번개 낙뢰 탐색 사거리 확대 */
+{
+  const f = WEAPON_FIRE.lightning;
+  WEAPON_FIRE.lightning = function (w, S) {
+    const B = WEAPONS.lightning.base, r0 = B.range; B.range = r0 * S.area;
+    try { return f.call(this, w, S); } finally { B.range = r0; }
+  };
+}
 /* ============================================================
    그리기 — 0.19 도트 적용 시작(주인공·잡몹 4종·바르간·지형), 나머지 도형은 0.20 교체
    ============================================================ */
@@ -6919,7 +7004,7 @@ function drawGrowthGround(c, inView) {
   if (G.banner) { const b = G.banner; c.fillStyle = 'rgba(255,210,74,0.08)'; c.beginPath(); c.arc(b.x, b.y, b.r * ultBannerR(), 0, 7); c.fill(); c.strokeStyle = 'rgba(255,210,74,0.5)'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#8a6a2a'; c.fillRect(b.x - 1.5, b.y - 26, 3, 26); c.fillStyle = '#ffd24a'; c.fillRect(b.x + 1.5, b.y - 26, 14, 9); }
   if (G.sanct) { const S = G.sanct; c.fillStyle = 'rgba(255,242,168,0.12)'; c.beginPath(); c.arc(S.x, S.y, S.r, 0, 7); c.fill(); c.strokeStyle = 'rgba(255,242,168,0.6)'; c.lineWidth = 2; c.stroke(); }
   const ice = p.weapons.find(w => w.id === 'icering');
-  if (ice && ice.R) { c.fillStyle = 'rgba(170,220,255,0.10)'; c.beginPath(); c.arc(p.x, p.y, ice.R, 0, 7); c.fill(); c.strokeStyle = 'rgba(190,230,255,0.45)'; c.lineWidth = 2; c.stroke(); }
+  if (ice && ice.R) { c.fillStyle = 'rgba(170,220,255,0.04)'; c.beginPath(); c.arc(p.x, p.y, ice.R, 0, 7); c.fill(); c.strokeStyle = 'rgba(190,230,255,0.45)'; c.lineWidth = 2; c.stroke(); }
   for (const t of G.traps) { if (!inView(t.x, t.y, 14)) continue; c.fillStyle = t.arm > 0 ? '#6a5a3a' : '#c8a050'; c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, r = i % 2 ? t.r * 0.5 : t.r; c.lineTo(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r); } c.closePath(); c.fill(); c.strokeStyle = '#3a2a10'; c.lineWidth = 1.5; c.stroke(); }
   for (const m of G.mines) { c.fillStyle = m.arm > 0 ? '#8a7040' : '#ffcf70'; c.beginPath(); c.arc(m.x, m.y, 5, 0, 7); c.fill(); }
   for (const ch of G.chests) {
