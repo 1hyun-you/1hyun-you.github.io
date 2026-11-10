@@ -240,7 +240,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.40-choice1',
+  VERSION: '0.40-choice2',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -3286,6 +3286,7 @@ function renderSelect0() {
   on('leave', leaveAltar);
   on('abtn', toggleAbil);
   on('cbtn', () => showCodex('w', () => { if (G && G.sel) { STATE.mode = 'select'; renderSelect(); } }));   // 0.35 선택 화면 도감
+  fitChoices();
 }
 function reroll() {
   if (!G.rerolls || !G.sel) return;
@@ -8073,7 +8074,7 @@ drawHeroReact = function(c,fr,flip,tint) {
   drawSprite(c,'hero',pose.frame,p.x,by,{flip:pose.flip,tint,mode:p.flash>.12?'white':'n'});
   c.restore();
 };
-/* 0.40-choice1 — equipment-card presentation, using existing embedded artwork.
+/* 0.40-choice2 — equipment-card presentation, using existing embedded artwork.
    No candidate generation, ordering, effects, RNG or confirmation rules here. */
 const CHOICE_SCENE = {
   start:'들판으로 향하는 길',level:'한 걸음 더 강하게',chest:'들판에서 얻은 보물',
@@ -8083,6 +8084,49 @@ const CHOICE_SCENE = {
 function choiceHeading(kind) {
   return `<div class="choice-kicker" aria-hidden="true"><span></span>${esc(CHOICE_SCENE[kind]||'여정의 갈림길')}<span></span></div>`;
 }
+// The options themselves fit the available screen. Decorative space never
+// takes priority over seeing all candidates and the action buttons together.
+const choiceStyle=document.createElement('style');choiceStyle.textContent=`
+#ui>.layer.sel{padding:calc(var(--sat) + 12px) 14px calc(var(--sab) + 12px);gap:10px;overflow:hidden;background:linear-gradient(155deg,#1c2a2d,#181e2b);justify-content:center}
+#ui>.layer.sel.choice-overflow{overflow-y:auto;justify-content:flex-start}.sel.choice-overflow .cards,.sel.choice-overflow .card{flex-shrink:0}
+.sel .sel-head,.sel .cards,.sel .sel-actions,.sel .abil{width:100%;max-width:620px}
+.sel .sel-head{margin:0;flex-shrink:0}.choice-kicker,.choice-number,.choice-type,.choice-foot{display:none}
+.sel .sel-head h2{font:700 23px/1.2 var(--f-body);margin:0 0 5px;color:#efdfbb;letter-spacing:-.5px}
+.sel .sel-head .sub{font-size:13px;line-height:1.35;margin:0;min-height:18px;color:#bfcbd0}.sel .sel-head .sub.armtip{color:#f7dfa4;animation:none}
+.sel .sel-tools{gap:8px;margin-top:7px}.sel .sel-tools button{padding:7px 14px;min-height:36px;font-size:12px;border:1px solid #6a756f;background:#28343d;color:#e0d9c4}
+.sel .cards{display:flex;flex-direction:column;gap:8px;flex:0 1 auto;min-height:0;max-height:100%}
+.sel .card{display:grid;grid-template-columns:50px minmax(0,1fr);gap:10px;padding:11px 12px;min-height:0;flex:0 1 auto;width:100%;border:1px solid #65736b;border-left:3px solid var(--choice-color,#c3ad7e);border-radius:10px;background:linear-gradient(120deg,#303c46,#242e3d);box-shadow:inset 0 1px #ffffff0b;animation:none!important;transform:none}
+.choice-art{display:flex;align-items:center;justify-content:center;min-height:0;align-self:center}
+.sel .card .ic{width:48px;min-width:48px;height:48px;flex-basis:48px;border:0!important;background:transparent!important;box-shadow:none;filter:none}
+.sel .card .ic.px img,.sel .card .choice-symbol img{width:46px;height:46px;max-width:100%;object-fit:contain;image-rendering:auto}
+.sel .card .tx,.choice-copy-head{display:flex;flex-direction:column;min-width:0;gap:3px}
+.sel .card .nm{display:block;font-size:17px;line-height:1.25;color:#f2e9d5;overflow-wrap:anywhere;letter-spacing:-.3px}
+.sel .card .tag{font-size:11px;line-height:1.3;align-self:flex-start;max-width:100%;padding:0;border:0;background:transparent;color:#c5c7bd;white-space:normal;overflow-wrap:anywhere;animation:none!important}
+.sel .card .ds{font-size:var(--choice-body,14px);line-height:1.4;white-space:pre-line;overflow-wrap:anywhere;color:#d0d8dc;margin:1px 0 0}
+.sel .card.choice-detailed .tx{display:contents}.sel .card.choice-detailed .choice-art{grid-column:1;grid-row:1}.sel .card.choice-detailed .choice-copy-head{grid-column:2;grid-row:1;align-self:center}.sel .card.choice-detailed .ds{grid-column:1/-1}.sel .card.choice-detailed{row-gap:6px}
+.sel .card.armed{outline:2px solid #ecd69a;outline-offset:1px;border-color:#d2bb82;background:linear-gradient(120deg,#44483f,#2d3540);animation:none}
+.sel .card.banish{border-style:dashed;background:#372e3b}.sel .card:disabled{opacity:.42}.sel .card:focus-visible{outline:2px solid #f4df9e;outline-offset:2px}
+.sel .sel-actions{display:flex;flex-shrink:0;gap:8px;padding:0}.sel .sel-actions button{min-height:40px;padding:8px;font-size:13px;background:#2c3740;border:1px solid #767765}.sel .sel-actions button.on{background:#68424a;border-color:#c7958e}
+.sel .abil{min-height:0;max-height:none;flex:1;overflow-y:auto}.sel .abil .ab{background:#28313e}
+@media(min-width:600px){#ui>.layer.sel{gap:12px;padding-left:24px;padding-right:24px}.sel .card{grid-template-columns:54px minmax(0,1fr);padding:12px 14px;gap:11px}.sel .card .nm{font-size:18px}.sel .card .ds{font-size:var(--choice-body,14px)}.sel .card.choice-detailed{row-gap:6px}.sel .sel-head h2{font-size:25px}}
+@media(max-height:650px){#ui>.layer.sel{gap:7px;padding-top:calc(var(--sat) + 8px);padding-bottom:calc(var(--sab) + 8px)}.sel .card{padding:8px 10px;gap:7px}.sel .cards{gap:6px}.sel .card .ic{width:40px;min-width:40px;height:40px}.sel .card .ic.px img,.sel .card .choice-symbol img{width:38px;height:38px}.sel .sel-head h2{font-size:20px}.sel .card .nm{font-size:16px}.sel .sel-tools{margin-top:5px}.sel .sel-tools button{min-height:32px;padding:5px 12px}}
+@media(prefers-reduced-motion:reduce){.sel *{animation:none!important;transition:none!important}}
+`;document.head.appendChild(choiceStyle);
+function fitChoices(){
+ const layer=UI.querySelector('.sel'),cards=layer?.querySelector('.cards');if(!cards)return;
+ const scroll=layer.scrollTop;layer.classList.remove('choice-overflow');layer.style.removeProperty('--choice-body');let fits=false;
+ // Prefer spacing and usable text over oversized illustrations. Only the
+ // densest short-screen cases need a small text adjustment (14 -> 12px).
+ for(let size=14;size>=12;size-=.5){
+  layer.style.setProperty('--choice-body',size+'px');
+  const content=[...layer.children].reduce((sum,e)=>sum+e.getBoundingClientRect().height,0),style=getComputedStyle(layer),gap=parseFloat(style.rowGap)||0,available=layer.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+  if(content+gap*(layer.children.length-1)<=available+1&&[...cards.children].every(c=>c.scrollHeight<=c.clientHeight+1)){fits=true;break;}
+ }
+ layer.classList.toggle('choice-overflow',!fits);
+ layer.scrollTop=scroll;
+}
+new MutationObserver(()=>requestAnimationFrame(fitChoices)).observe(document.getElementById('ui'),{childList:true});
+window.addEventListener('resize',()=>requestAnimationFrame(fitChoices));
 function choiceType(c,f) {
   if(c.t==='branch')return c.aw?'무기 각성':'성장 분기';
   if(c.t==='bond')return '동료 유대';
@@ -8105,44 +8149,6 @@ function choiceCard(c,f,i,{off=false,banish=false,offer=false}={}) {
     <span class="tx"><span class="choice-copy-head"><span class="choice-type">${choiceType(c,f)}</span><span class="nm">${esc(f.nm)}</span><span class="tag">${esc(f.tag)}</span></span><span class="ds">${esc(f.ds)}</span><span class="choice-foot" aria-hidden="true"><span class="choice-cta" data-action="${action}"></span><span class="choice-arrow">↗</span></span></span>
   </button>`;
 }
-const choiceStyle=document.createElement('style');choiceStyle.textContent=`
-#ui>.layer.sel{background:radial-gradient(ellipse at 50% 0%,#3c4249a6,transparent 62%),linear-gradient(160deg,#172a2a,#161c2b 65%,#211e2d);padding:calc(var(--sat) + 24px) 18px calc(var(--sab) + 26px);gap:20px;scrollbar-gutter:stable;scroll-padding-block:20px}
-.sel .sel-head,.sel .cards,.sel .sel-actions,.sel .abil{width:100%;max-width:560px;flex-shrink:0}
-.sel .sel-head{margin-top:clamp(4px,3vh,26px)}
-.choice-kicker{display:flex;align-items:center;justify-content:center;gap:12px;color:#c2ad7e;font-size:12px;letter-spacing:1.4px;margin-bottom:12px}
-.choice-kicker>span{height:1px;width:30px;background:linear-gradient(90deg,transparent,#b49c64)}.choice-kicker>span:last-child{transform:rotate(180deg)}
-.sel .sel-head h2{font-family:Georgia,'Noto Serif KR','Batang',Galmuri11,serif;font-size:29px;line-height:1.3;letter-spacing:-.8px;color:#f3e3bd;margin:0 0 8px}
-.sel .sel-head .sub{font-size:14px;line-height:1.6;color:#b9c4c5;margin:0;min-height:23px;overflow-wrap:anywhere}.sel .sel-head .sub.armtip{color:#ffe2a3}
-.sel .sel-tools{gap:8px;margin-top:14px}.sel .sel-tools button{background:#26343bbf;border:1px solid #75807777;color:#d9d8c8;padding:9px 16px;font-size:13px;min-height:44px}.sel .sel-tools button.on{background:#786841;color:#fff3ca;border-color:#d0b474}
-.sel .cards{gap:13px}
-.sel .card{position:relative;display:grid;grid-template-columns:98px minmax(0,1fr);align-items:stretch;gap:16px;padding:16px;border:1px solid #77857c66;border-left:3px solid var(--choice-color,#c4a874);border-radius:15px;background:linear-gradient(120deg,#344049f2,#222d3bf5 76%);box-shadow:inset 0 1px #f5e4b51a,0 7px 20px #080e162e;isolation:isolate;overflow:visible;flex-shrink:0}
-.sel .card::before{content:'';position:absolute;left:13px;right:13px;top:0;height:1px;background:linear-gradient(90deg,transparent,#e5dab63d,transparent);pointer-events:none}
-.choice-art{position:relative;display:flex;align-items:center;justify-content:center;align-self:center;min-height:106px;border-radius:50%;background:radial-gradient(ellipse,#b7a66b25,transparent 69%)}
-.choice-art::after{content:'';position:absolute;width:78px;height:78px;border:1px solid #dfd2a51c;border-radius:50%;transform:rotate(-12deg) scaleY(.9);pointer-events:none}
-.choice-number{position:absolute;left:0;top:-2px;color:#b2b9af8c;font:11px ui-monospace,monospace;letter-spacing:1px}
-.sel .card .ic{position:relative;z-index:1;width:92px;min-width:92px;height:92px;flex-basis:92px;background:transparent!important;border:0!important;border-radius:0;box-shadow:none;filter:drop-shadow(0 6px 4px #080e1655)}
-.sel .card .ic.px img,.sel .card .choice-symbol img{width:82px;height:82px;max-width:100%;image-rendering:auto;object-fit:contain}.sel .card .choice-symbol img{width:66px;height:66px}
-.sel .card .tx{min-width:0;gap:5px;align-self:center}
-.choice-copy-head{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
-.sel .card.choice-detailed .tx{display:contents}.sel .card.choice-detailed .choice-art{grid-column:1;grid-row:1}.sel .card.choice-detailed .choice-copy-head{grid-column:2;grid-row:1;align-self:center}.sel .card.choice-detailed .ds,.sel .card.choice-detailed .choice-foot{grid-column:1/-1;margin-top:0}.sel .card.choice-detailed{row-gap:11px}
-.choice-type{font-size:11px;font-weight:650;letter-spacing:.5px;color:#e4dcc4;color:color-mix(in srgb,var(--choice-color,#d2bc85) 65%,#fff2dc);line-height:1.5}
-.sel .card .nm{display:block;color:#f4ecd8;font-size:20px;font-weight:750;line-height:1.32;letter-spacing:-.5px;overflow-wrap:anywhere}
-.sel .card .tag{align-self:flex-start;max-width:100%;font-size:11px;line-height:1.5;font-weight:550;border:0;border-radius:4px;padding:2px 6px;background:#0f192c70;color:#d2d4c5;overflow-wrap:anywhere}
-.sel .card .ds{font-size:15px;line-height:1.6;color:#cbd3d6;white-space:pre-line;overflow-wrap:anywhere;margin-top:3px}
-.choice-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #d3c5971c;margin-top:6px;padding-top:8px;font-size:11px;color:#b7bba9;line-height:1.5}
-.choice-cta::after{content:attr(data-action)}.choice-arrow{font-size:18px;color:#d5c391}
-.sel .card.armed{outline:2px solid #f3dfaa;outline-offset:3px;border-color:#e2c685;background:linear-gradient(120deg,#495047,#2c3540);box-shadow:0 0 0 5px #c7ab6522,0 8px 24px #080e1644;animation:none}
-.sel .card.armed .choice-cta::after{content:'한 번 더 눌러 확정';color:#ffe6ab}.sel .card.armed .choice-arrow{color:#ffe6ab}
-.sel .card.banish{border-style:dashed;background:linear-gradient(120deg,#44333f,#292d3d)}.sel .card.banish .choice-cta::after{color:#efb5b4}
-.sel .card:disabled{opacity:.42}.sel .card:focus-visible{outline:3px solid #e9d49b;outline-offset:3px}
-.sel .sel-actions{display:flex;gap:10px;padding-top:3px}.sel .sel-actions button{min-height:46px;border:1px solid #9c9a7c77;background:#2a353b;color:#ded9c2;font-size:14px;border-radius:9px}.sel .sel-actions button.on{background:#653f47;border-color:#cf9e94;color:#ffe1d5}
-.sel .abil{max-height:none;overflow:visible}.sel .abil .ab{background:#273440cc;border:1px solid #70776a66}
-@media(max-width:359px){#ui>.layer.sel{padding-left:12px;padding-right:12px;gap:16px}.sel .card{grid-template-columns:74px minmax(0,1fr);gap:11px;padding:13px 12px}.choice-art{min-height:86px}.choice-art::after{width:64px;height:64px}.sel .card .ic{width:74px;min-width:74px;height:74px;flex-basis:74px}.sel .card .ic.px img{width:68px;height:68px}.sel .card .choice-symbol img{width:54px;height:54px}.sel .card .nm{font-size:18px}.sel .card .ds{font-size:15px}.sel .sel-head h2{font-size:26px}.choice-kicker{font-size:11px;letter-spacing:.7px;gap:8px}}
-@media(min-width:600px){#ui>.layer.sel{gap:23px}.sel .sel-head,.sel .cards,.sel .sel-actions,.sel .abil{max-width:640px}.sel .card{grid-template-columns:132px minmax(0,1fr);padding:21px;gap:24px}.choice-art{min-height:126px}.choice-art::after{width:108px;height:108px}.sel .card .ic{width:120px;min-width:120px;height:120px;flex-basis:120px}.sel .card .ic.px img{width:104px;height:104px}.sel .card .choice-symbol img{width:84px;height:84px}.sel .card .nm{font-size:23px}.sel .card .ds{font-size:16px}.choice-type,.sel .card .tag,.choice-foot{font-size:12px}.sel .sel-head h2{font-size:34px}}
-@media(max-height:650px){#ui>.layer.sel{padding-top:calc(var(--sat) + 15px);gap:15px}.sel .sel-head{margin-top:0}.choice-kicker{margin-bottom:8px}.sel .card{padding-top:12px;padding-bottom:12px}}
-@media(hover:hover){.sel .card:not(:disabled):hover{border-color:#d3bf88;filter:brightness(1.05)}}
-@media(prefers-reduced-motion:reduce){.sel .card,.sel .card *,.sel .sub{animation:none!important;transition:none!important}}
-`;document.head.appendChild(choiceStyle);
 /* ============================================================
    화면 겹침 UI — 시작·일시정지·결과 화면, 대사창 틀 (0.4)
    ============================================================ */
