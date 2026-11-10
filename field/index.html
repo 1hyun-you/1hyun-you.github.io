@@ -237,7 +237,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.42-art3',
+  VERSION: '0.42-art4',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -3188,7 +3188,7 @@ function openStart() {
 }
 /* 0.25 보유 능력 목록 (선택 화면·일시정지 화면) */
 function abilityHTML() {
-  const p = G.p, row = (col, ic, nm, lv, ds, cls = '', id = '', trial = '') => `<div class="ab ${cls}">${trial ? uiTrialCrest(trial) : icBox(col, ic, id)}<span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
+  const p = G.p, row = (col, ic, nm, lv, ds, cls = '', id = '', trial = '', fuse = '') => `<div class="ab ${cls}">${fuse ? uiFuseCrest(fuse) : trial ? uiTrialCrest(trial) : icBox(col, ic, id)}<span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
   const brNm = (id, k) => { const o = k && BRANCHES[id] && BRANCHES[id].find(x => x.k === k); return o ? `\n분기 · ${o.nm}: ${o.ds}` : ''; };
   let h = '';
   if (p.job) { const J = JOBS[p.job], J2 = p.job2 && JOB2[p.job].concat(JOB2_STAT).find(o => o.k === p.job2);
@@ -3197,7 +3197,7 @@ function abilityHTML() {
     if (p.job === 'druid' && G.pets.length) h += '<h3>야수 동료</h3>' + ['wolf', 'bear'].map(k => { const n = G.pets.filter(m => m.kind === k).length; if (!n) return ''; const S = petStat(k), D = PET[k]; const B = bondOf(k); return row('#7fd07a', D.ic, D.name + (n > 1 ? ' ×' + n : '') + ` · 유대 Lv ${B.lv}`, B.lv < BOND_CFG.maxLv ? `다음 ${B.xp}/${bondNeed(B.lv)}` : '최대', `${B.perks.length ? '전용 능력: ' + B.perks.map(x => bondPerk(x).nm).join(', ') + '\n' : ''}피해 ${Math.round(S.dmg)} · 공격 간격 ${S.atk.toFixed(2)}초 · 이동 속도 ${Math.round(S.sp)}\n${k === 'wolf' ? '울부짖음' : '강타'} ${S.sk.toFixed(1)}초마다 · 범위 ${Math.round(S.skR)}`); }).join(''); }
   if (p.weapons.length) h += '<h3>무기</h3>' + p.weapons.map(w => { const d = WEAPONS[w.id]; const wx = wxOn(d.cat) ? `\n${JOBS[p.job].name} 변환 · ${JOB_WX[p.job].ds}` : ''; const ak = w.aw && AWAKEN[w.id].find(x => x.k === w.aw); return row(CFG.colors[d.cat], d.ic, wName(w.id), 'Lv ' + w.lvl, d.desc + wx + brNm(w.id, w.br) + (ak ? `\n각성 · ${ak.nm}: ${ak.ds}` : ''), '', w.id); }).join('');
   if (p.passives.length) h += '<h3>보조 효과</h3>' + p.passives.map(x => { const d = PASSIVES[x.id]; return row(CFG.colors.passive, d.ic, d.name, 'Lv ' + x.lvl, d.desc(x.lvl) + brNm(x.id, x.br), '', x.id); }).join('');
-  if (p.job && FZ_TRIAL[p.job]) { const T = FZ_TRIAL[p.job], f = F42(), fz = p.weapons.filter(w => w.fx); h += '<h3>연성</h3>' + row(JOB_COL[p.job], '시', T.nm, `${f.done}/2`, f.done >= 2 ? '시련 모두 완수' : `${T.ds} · 진행 ${Math.min(Math.round(fzProg() * (T.k === 'hurt' ? 100 : 1)) , Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1)))}/${Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1))}${T.k === 'hurt' ? '%' : ''}`, '', '', p.job) + fz.map(w => row(JOB_COL[p.job], '연', WEAPONS[w.id].name + ' + ' + WEAPONS[w.fx.f].name, w.fx.nm, FZ_JOB[p.job])).join(''); }
+  if (p.job && FZ_TRIAL[p.job]) { const T = FZ_TRIAL[p.job], f = F42(), fz = p.weapons.filter(w => w.fx); h += '<h3>연성</h3>' + row(JOB_COL[p.job], '시', T.nm, `${f.done}/2`, f.done >= 2 ? '시련 모두 완수' : `${T.ds} · 진행 ${Math.min(Math.round(fzProg() * (T.k === 'hurt' ? 100 : 1)) , Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1)))}/${Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1))}${T.k === 'hurt' ? '%' : ''}`, '', '', p.job) + fz.map(w => row(JOB_COL[p.job], '연', WEAPONS[w.id].name + ' + ' + WEAPONS[w.fx.f].name, w.fx.nm, FZ_JOB[p.job], '', '', '', w.fx.type)).join(''); }
   const tk = Object.keys(p.tr || {}); if (tk.length) h += '<h3>숙련 특성</h3>' + tk.map(k => row('#c8b0ff', TRAITS[k].ic, TRAITS[k].nm, '', TRAITS[k].ds)).join('');
   if (p.curses && p.curses.length) h += '<h3>저주</h3>' + p.curses.map(k => row('#8a6aa0', '저', CURSES[k].name, '', CURSES[k].ds)).join('');
   return `<div class="abil">${h || '<p class="sub">보유 능력 없음</p>'}</div>`;
@@ -6202,7 +6202,7 @@ function cxSeen() {
 function cxCard(o) {
   const st = o.lock ? 'lock' : o.dim ? 'dim' : '';
   const L = o.lock ? [esc(o.hint || '')] : (o.lines || []).filter(Boolean), wrap = l => l.startsWith('<div') || l.startsWith('<details') ? l : `<p>${l}</p>`;
-  const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : o.trial ? uiTrialCrest(o.trial) : o.job ? uiJobCrest(o.job) : icBox(o.col, o.ic, o.id);
+  const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : o.fuse ? uiFuseCrest(o.fuse) : o.trial ? uiTrialCrest(o.trial) : o.job ? uiJobCrest(o.job) : icBox(o.col, o.ic, o.id);
   return `<div class="cx ${st}"><div class="cxt">${ic}<div class="cxb"><div class="cxh"><b>${esc(o.lock ? '???' : o.nm)}</b>${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}${o.dim ? '<span class="tag nw">미획득</span>' : ''}</div>${L.length ? wrap(L[0]) : ''}</div></div>${L.slice(1).map(wrap).join('')}</div>`;
 }
 const cxL = (k, v) => `<i>${esc(k)}</i> ${esc(v)}`;
@@ -6251,7 +6251,7 @@ function cxJob(id, seen) {
     `<details class="acc"><summary>상세</summary><div class="cxg"><div><b>핵심 규칙</b><span>${esc(J.rule)}</span></div><div><b>궁극기 ${esc(U[0])}</b><span>${esc(U[1])}</span></div><div><b>연성 · ${esc(X.pre)}</b><span>${esc(X.ds)}</span></div></div></details>`, cxJob2(id)] });
 }
 function cxFuse() {
-  const types = Object.entries(FZ_TYPES).map(([k, T]) => cxCard({ col: '#ffd27a', ic: T[0].slice(0, 1), nm: T[0], tag: k, lines: [`<b>${esc(T[2])}</b>`] })).join('');
+  const types = Object.entries(FZ_TYPES).map(([k, T]) => cxCard({ fuse: T[1], col: '#ffd27a', ic: T[0].slice(0, 1), nm: T[0], tag: k, lines: [`<b>${esc(T[2])}</b>`] })).join('');
   const jobs = JOB_ORDER.map(id => { const T = FZ_TRIAL[id], W = WEAPONS[FZ_SYMBOL[id]];
     return cxCard({ trial: id, col: JOB_COL[id], ic: JOBS[id].ic, nm: JOBS[id].name, tag: T.nm, lines: [`<b>${esc(T.ds)}</b>`, cxChips([['상징 무기', esc(W.name)], ['연성', esc(FZ_JOB[id])]]), `<details class="acc"><summary>상징 무기 효과</summary><div class="cxg"><div><b>${esc(W.name)}</b><span>${esc(FZ_SYM_TX[id])}</span></div></div></details>`] }); }).join('');
   return '<p class="hint">직업 시련 완수 시 Lv 6 무기 2종을 합침 · 판당 최대 2회 · 부품 무기는 슬롯을 차지하지 않음</p>' + types + '<h3>직업별 시련·연성</h3>' + jobs;
@@ -8321,6 +8321,18 @@ for (const [id, art] of Object.entries(UI_TRIAL_CREST)) UI_PATH['trial_'+id] = a
 function uiTrialCrest(id, cls = '') {
   if (!UI_TRIAL_CREST[id]) return icBox('#8a86a0', '시', '', cls);
   return `<span class="ic px trial-crest ${cls}" style="position:relative;background:${shadeHex(JOB_COL[id],.42)};border-color:${JOB_COL[id]}" aria-hidden="true"><i hidden style="font-style:normal">시</i><img src="${uiIcon('trial_'+id)}" alt="" data-trial-crest="${id}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto" onerror="this.hidden=true;this.style.display='none';this.previousElementSibling.hidden=false"></span>`;
+}
+// 0.42-art4: three static combination emblems, shared by codex and abilities.
+const UI_FUSE_CREST = {
+  trans: '<path d="m9 6 12 6-8 15-8-4Z" fill="url(#steel)"/><path d="m6 29 9 5m-5-3-5 10" stroke="url(#bronze)" stroke-width="4"/><path d="M22 18h11l-4-5m4 5-4 5" fill="none" stroke="url(#page)" stroke-width="3"/><path d="m34 25 3 6 8-2-4 7 4 7-8-2-5 5-1-8-7-3 8-3Z" fill="url(#bronze)"/>',
+  stack: '<path d="m5 17 16-10 17 10-17 10Z" fill="url(#steel)"/><path d="m10 25 16-10 17 10-17 10Z" fill="url(#bronze)"/><path d="m10 34 16-10 17 10-17 10Z" fill="url(#page)"/><path d="m19 34 7-4 7 4-7 4Z" fill="#897049"/>',
+  merge: '<path d="M5 7h10l9 12 9-12h10L29 27v13H19V27Z" fill="url(#steel)"/><path d="m5 7 10 0 9 12v10L19 27Z" fill="url(#bronze)"/><path d="M24 21v19" stroke="url(#page)" stroke-width="3"/><path d="m17 39 7 7 7-7" fill="url(#bronze)"/>',
+};
+for (const [id, art] of Object.entries(UI_FUSE_CREST)) UI_PATH['fuse_'+id] = art;
+function uiFuseCrest(type, cls = '') {
+  if (!UI_FUSE_CREST[type]) return icBox('#ffd27a', '연', '', cls);
+  const T = Object.values(FZ_TYPES).find(t => t[1] === type);
+  return `<span class="ic px fuse-crest ${cls}" style="position:relative;background:${shadeHex('#ffd27a',.42)};border-color:#ffd27a" aria-hidden="true"><i hidden style="font-style:normal">${esc(T[0].slice(0,1))}</i><img src="${uiIcon('fuse_'+type)}" alt="" data-fuse-crest="${type}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto" onerror="this.hidden=true;this.style.display='none';this.previousElementSibling.hidden=false"></span>`;
 }
 // Observe the existing completion banner. Reuse its timing/opacity; never create one.
 function uiTrialBanner(c, b, alpha) {
