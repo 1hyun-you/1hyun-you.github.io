@@ -237,7 +237,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.42-art2',
+  VERSION: '0.42-art3',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -3188,7 +3188,7 @@ function openStart() {
 }
 /* 0.25 보유 능력 목록 (선택 화면·일시정지 화면) */
 function abilityHTML() {
-  const p = G.p, row = (col, ic, nm, lv, ds, cls = '', id = '') => `<div class="ab ${cls}">${icBox(col, ic, id)}<span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
+  const p = G.p, row = (col, ic, nm, lv, ds, cls = '', id = '', trial = '') => `<div class="ab ${cls}">${trial ? uiTrialCrest(trial) : icBox(col, ic, id)}<span><b>${esc(nm)}</b><span class="lv">${esc(lv)}</span><p>${esc(ds)}</p></span></div>`;
   const brNm = (id, k) => { const o = k && BRANCHES[id] && BRANCHES[id].find(x => x.k === k); return o ? `\n분기 · ${o.nm}: ${o.ds}` : ''; };
   let h = '';
   if (p.job) { const J = JOBS[p.job], J2 = p.job2 && JOB2[p.job].concat(JOB2_STAT).find(o => o.k === p.job2);
@@ -3197,7 +3197,7 @@ function abilityHTML() {
     if (p.job === 'druid' && G.pets.length) h += '<h3>야수 동료</h3>' + ['wolf', 'bear'].map(k => { const n = G.pets.filter(m => m.kind === k).length; if (!n) return ''; const S = petStat(k), D = PET[k]; const B = bondOf(k); return row('#7fd07a', D.ic, D.name + (n > 1 ? ' ×' + n : '') + ` · 유대 Lv ${B.lv}`, B.lv < BOND_CFG.maxLv ? `다음 ${B.xp}/${bondNeed(B.lv)}` : '최대', `${B.perks.length ? '전용 능력: ' + B.perks.map(x => bondPerk(x).nm).join(', ') + '\n' : ''}피해 ${Math.round(S.dmg)} · 공격 간격 ${S.atk.toFixed(2)}초 · 이동 속도 ${Math.round(S.sp)}\n${k === 'wolf' ? '울부짖음' : '강타'} ${S.sk.toFixed(1)}초마다 · 범위 ${Math.round(S.skR)}`); }).join(''); }
   if (p.weapons.length) h += '<h3>무기</h3>' + p.weapons.map(w => { const d = WEAPONS[w.id]; const wx = wxOn(d.cat) ? `\n${JOBS[p.job].name} 변환 · ${JOB_WX[p.job].ds}` : ''; const ak = w.aw && AWAKEN[w.id].find(x => x.k === w.aw); return row(CFG.colors[d.cat], d.ic, wName(w.id), 'Lv ' + w.lvl, d.desc + wx + brNm(w.id, w.br) + (ak ? `\n각성 · ${ak.nm}: ${ak.ds}` : ''), '', w.id); }).join('');
   if (p.passives.length) h += '<h3>보조 효과</h3>' + p.passives.map(x => { const d = PASSIVES[x.id]; return row(CFG.colors.passive, d.ic, d.name, 'Lv ' + x.lvl, d.desc(x.lvl) + brNm(x.id, x.br), '', x.id); }).join('');
-  if (p.job && FZ_TRIAL[p.job]) { const T = FZ_TRIAL[p.job], f = F42(), fz = p.weapons.filter(w => w.fx); h += '<h3>연성</h3>' + row(JOB_COL[p.job], '시', T.nm, `${f.done}/2`, f.done >= 2 ? '시련 모두 완수' : `${T.ds} · 진행 ${Math.min(Math.round(fzProg() * (T.k === 'hurt' ? 100 : 1)) , Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1)))}/${Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1))}${T.k === 'hurt' ? '%' : ''}`) + fz.map(w => row(JOB_COL[p.job], '연', WEAPONS[w.id].name + ' + ' + WEAPONS[w.fx.f].name, w.fx.nm, FZ_JOB[p.job])).join(''); }
+  if (p.job && FZ_TRIAL[p.job]) { const T = FZ_TRIAL[p.job], f = F42(), fz = p.weapons.filter(w => w.fx); h += '<h3>연성</h3>' + row(JOB_COL[p.job], '시', T.nm, `${f.done}/2`, f.done >= 2 ? '시련 모두 완수' : `${T.ds} · 진행 ${Math.min(Math.round(fzProg() * (T.k === 'hurt' ? 100 : 1)) , Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1)))}/${Math.round(fzTarget() * (T.k === 'hurt' ? 100 : 1))}${T.k === 'hurt' ? '%' : ''}`, '', '', p.job) + fz.map(w => row(JOB_COL[p.job], '연', WEAPONS[w.id].name + ' + ' + WEAPONS[w.fx.f].name, w.fx.nm, FZ_JOB[p.job])).join(''); }
   const tk = Object.keys(p.tr || {}); if (tk.length) h += '<h3>숙련 특성</h3>' + tk.map(k => row('#c8b0ff', TRAITS[k].ic, TRAITS[k].nm, '', TRAITS[k].ds)).join('');
   if (p.curses && p.curses.length) h += '<h3>저주</h3>' + p.curses.map(k => row('#8a6aa0', '저', CURSES[k].name, '', CURSES[k].ds)).join('');
   return `<div class="abil">${h || '<p class="sub">보유 능력 없음</p>'}</div>`;
@@ -5912,6 +5912,7 @@ function drawBanner(c) {
   c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,0.7)';
   c.font = 'bold 22px system-ui, Galmuri11, sans-serif'; c.strokeText(b.text, W / 2, y - 6); c.fillStyle = b.color; c.fillText(b.text, W / 2, y - 6);
   if (b.sub) { c.font = 'bold 13px system-ui, Galmuri11, sans-serif'; c.strokeText(b.sub, W / 2, y + 17); c.fillStyle = '#fff'; c.fillText(b.sub, W / 2, y + 17); }
+  if (typeof uiTrialBanner === 'function') uiTrialBanner(c, b, a);
   c.globalAlpha = 1;
 }
 /* ============================================================
@@ -6201,7 +6202,7 @@ function cxSeen() {
 function cxCard(o) {
   const st = o.lock ? 'lock' : o.dim ? 'dim' : '';
   const L = o.lock ? [esc(o.hint || '')] : (o.lines || []).filter(Boolean), wrap = l => l.startsWith('<div') || l.startsWith('<details') ? l : `<p>${l}</p>`;
-  const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : o.job ? uiJobCrest(o.job) : icBox(o.col, o.ic, o.id);
+  const ic = o.lock ? '<span class="ic" style="background:var(--panel2)">?</span>' : o.trial ? uiTrialCrest(o.trial) : o.job ? uiJobCrest(o.job) : icBox(o.col, o.ic, o.id);
   return `<div class="cx ${st}"><div class="cxt">${ic}<div class="cxb"><div class="cxh"><b>${esc(o.lock ? '???' : o.nm)}</b>${o.tag ? `<span class="tag">${esc(o.tag)}</span>` : ''}${o.dim ? '<span class="tag nw">미획득</span>' : ''}</div>${L.length ? wrap(L[0]) : ''}</div></div>${L.slice(1).map(wrap).join('')}</div>`;
 }
 const cxL = (k, v) => `<i>${esc(k)}</i> ${esc(v)}`;
@@ -6252,7 +6253,7 @@ function cxJob(id, seen) {
 function cxFuse() {
   const types = Object.entries(FZ_TYPES).map(([k, T]) => cxCard({ col: '#ffd27a', ic: T[0].slice(0, 1), nm: T[0], tag: k, lines: [`<b>${esc(T[2])}</b>`] })).join('');
   const jobs = JOB_ORDER.map(id => { const T = FZ_TRIAL[id], W = WEAPONS[FZ_SYMBOL[id]];
-    return cxCard({ col: JOB_COL[id], ic: JOBS[id].ic, nm: JOBS[id].name, tag: T.nm, lines: [`<b>${esc(T.ds)}</b>`, cxChips([['상징 무기', esc(W.name)], ['연성', esc(FZ_JOB[id])]]), `<details class="acc"><summary>상징 무기 효과</summary><div class="cxg"><div><b>${esc(W.name)}</b><span>${esc(FZ_SYM_TX[id])}</span></div></div></details>`] }); }).join('');
+    return cxCard({ trial: id, col: JOB_COL[id], ic: JOBS[id].ic, nm: JOBS[id].name, tag: T.nm, lines: [`<b>${esc(T.ds)}</b>`, cxChips([['상징 무기', esc(W.name)], ['연성', esc(FZ_JOB[id])]]), `<details class="acc"><summary>상징 무기 효과</summary><div class="cxg"><div><b>${esc(W.name)}</b><span>${esc(FZ_SYM_TX[id])}</span></div></div></details>`] }); }).join('');
   return '<p class="hint">직업 시련 완수 시 Lv 6 무기 2종을 합침 · 판당 최대 2회 · 부품 무기는 슬롯을 차지하지 않음</p>' + types + '<h3>직업별 시련·연성</h3>' + jobs;
 }
 function cxEnemies(S) {
@@ -8302,6 +8303,32 @@ const UI_JOB2_CREST = {
 };
 for (const [k, v] of Object.entries(UI_JOB2_CREST)) {
   UI_PATH['crest_'+k] = ('<g transform="translate(0 7) scale(.72)">'+UI_JOB_CREST[v.job]+'</g>'+v.art).replace(/@/g, JOB_COL[v.job]);
+}
+// 0.42-art3: ten trial symbols; no changes to trial conditions or progress.
+const UI_TRIAL_CREST = {
+  warrior: '<path d="M12 10 24 5l12 5v17q-3 10-12 16-9-6-12-16Z" fill="@"/><path d="m24 11-5 12 7 2-5 12" stroke="#fff0d5" stroke-width="3" fill="none"/><path d="m3 19 7 5-7 5m42-10-7 5 7 5" stroke="url(#steel)" stroke-width="3" fill="none"/>',
+  rogue: '<ellipse cx="18" cy="13" rx="5" ry="8" transform="rotate(25 18 13)" fill="@"/><path d="m11 23 8 3-2 7-8-3Z" fill="@"/><ellipse cx="33" cy="27" rx="5" ry="8" transform="rotate(25 33 27)" fill="@"/><path d="m26 37 8 3-2 5-8-3Z" fill="@"/><path d="M4 9h7M3 16h7m8 20h6m-9 6h6" stroke="url(#steel)" stroke-width="3"/>',
+  sovereign: '<path d="m9 8 8 6 7-9 7 9 8-6-3 16H12Z" fill="@"/><path d="m9 29 27 14m3-14L12 43" stroke="url(#steel)" stroke-width="4"/><path d="m8 36 6-6m20 0 6 6" stroke="@" stroke-width="3"/><path d="M16 20h15" stroke="#fff2bf" stroke-width="2"/>',
+  archer: '<path d="M8 6Q38 23 8 41l8-18Z" fill="@"/><path d="m9 10 7 13-7 14" fill="none" stroke="url(#page)" stroke-width="2"/><path d="M20 24q12-14 24 0-12 14-24 0Z" fill="#30424a" stroke="@" stroke-width="3"/><circle cx="32" cy="24" r="4" fill="@"/><path d="M25 5v7m7-9v7m7-5v7" stroke="@" stroke-width="2"/>',
+  engineer: '<path d="M6 5h26l9 9v29H6Z" fill="#35434c" stroke="@" stroke-width="3"/><path d="M32 5v10h9M11 12h10M11 18h7M11 35h10" stroke="url(#steel)" stroke-width="2" fill="none"/><path d="m24 19 6-1 2 4 5 1v6l-5 1-2 5-6-1-1-5-4-2 1-6Z" fill="@"/><circle cx="28" cy="26" r="4" fill="#35434c"/>',
+  chrono: '<path d="M14 7h20M14 41h20" stroke="@" stroke-width="5"/><path d="M17 11q0 8 7 13-7 5-7 13h14q0-8-7-13 7-5 7-13Z" fill="url(#steel)"/><path d="m20 14 4 6 4-6m-4 15-5 6h10Z" fill="@"/><path d="M5 17v14m38-14v14" stroke="@" stroke-width="3"/><circle cx="5" cy="10" r="2" fill="@"/><circle cx="43" cy="38" r="2" fill="@"/>',
+  mage: '<path d="m24 3 5 11 12-7-5 13 10 4-11 5 6 13-13-7-4 11-5-11-13 7 6-13-10-5 11-4-7-13 13 7Z" fill="@"/><circle cx="24" cy="24" r="10" fill="#864e8c"/><path d="m24 15 4 9-4 9-4-9Z" fill="url(#page)"/>',
+  summoner: '<path d="M3 32V21q0-8 7-8t7 8v13l-5-3-4 5Z" fill="@"/><path d="M31 32V21q0-8 7-8t7 8v13l-5-3-4 5Z" fill="@"/><path d="M14 39V16q0-11 10-11t10 11v26l-6-4-4 6-4-6Z" fill="@"/><path d="m7 22 5 1m23 0 5-1m-22-4 4 2m5 0 4-2" stroke="#352c46" stroke-width="3"/>',
+  priest: '<path d="M7 11 24 5l17 6v15q-4 12-17 18Q11 38 7 26Z" fill="@"/><path d="M24 33 14 23q-5-10 4-10 4 0 6 5 2-5 6-5 9 0 4 10Z" fill="#504957"/><path d="M24 17v11m-5-6h10" stroke="#fffdf0" stroke-width="3"/>',
+  druid: '<path d="M13 29C1 27 3 13 7 5q14 3 10 18M35 29c12-2 10-16 6-24-14 3-10 18Z" fill="@"/><path d="M13 17v25m22-25v25" stroke="@" stroke-width="3"/><path d="M24 7q10 10 0 20-10-10 0-20Z" fill="@"/><path d="M24 27q-12 5 0 9t0 9" stroke="url(#page)" stroke-width="4" fill="none"/>',
+};
+for (const [id, art] of Object.entries(UI_TRIAL_CREST)) UI_PATH['trial_'+id] = art.replace(/@/g, JOB_COL[id]);
+function uiTrialCrest(id, cls = '') {
+  if (!UI_TRIAL_CREST[id]) return icBox('#8a86a0', '시', '', cls);
+  return `<span class="ic px trial-crest ${cls}" style="position:relative;background:${shadeHex(JOB_COL[id],.42)};border-color:${JOB_COL[id]}" aria-hidden="true"><i hidden style="font-style:normal">시</i><img src="${uiIcon('trial_'+id)}" alt="" data-trial-crest="${id}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto" onerror="this.hidden=true;this.style.display='none';this.previousElementSibling.hidden=false"></span>`;
+}
+// Observe the existing completion banner. Reuse its timing/opacity; never create one.
+function uiTrialBanner(c, b, alpha) {
+  const id = G.p.job, T = FZ_TRIAL[id];
+  if (!T || b.text !== T.nm || !b.sub || !b.sub.startsWith('연성 기회 ')) return false;
+  const im = UI_ART.images['crest_'+id]; if (!im) return false;
+  c.save(); c.globalAlpha = alpha; c.drawImage(im, VIEW.cw/2-18, VIEW.ch*.4-72, 36, 36); c.restore();
+  return true;
 }
 function uiJob2Crest(id, k, cls = '') {
   const v = UI_JOB2_CREST[k];
