@@ -240,7 +240,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.40-field1',
+  VERSION: '0.40-field1a',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -7525,6 +7525,7 @@ function groundPattern(c,tid) {
     g.fillStyle=ART2_PALETTE[tid]||ART2_PALETTE.field;g.fillRect(0,0,size,size);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(meadow){g.fillStyle='rgba(32,47,22,.12)';g.fillRect(0,0,size,size);}
     if(tid==='demon'||tid==='gate'){g.fillStyle=tid==='demon'?'rgba(18,10,35,.3)':'rgba(48,18,12,.12)';g.fillRect(0,0,size,size);}
+    if(meadow)fieldSeamlessTile(cv);
     pat=c.createPattern(cv,'repeat');if(pat&&pat.setTransform)pat.setTransform(new DOMMatrix([1/ratio,0,0,1/ratio,0,0]));
     ART2.groundCache.set(key,pat);if(ART2.groundCache.size>16)ART2.groundCache.delete(ART2.groundCache.keys().next().value);
   }
@@ -7909,6 +7910,14 @@ const FIELD_DATA={"images":{"meadow":"data:image/webp;base64,UklGRoIfAABXRUJQVlA
 /* 0.40-field1: static world decoration and contact shadows, no gameplay state/RNG. */
 const FIELD_ENV={ground:null,props:null,loaded:0,patches:new Map(),stats:{patches:0,props:0},shadow:null};
 for(const key of ['meadow','props']){const im=new Image();im.onload=()=>{FIELD_ENV[key==='meadow'?'ground':'props']=im;FIELD_ENV.loaded++;if(key==='meadow')ART2.groundCache.clear();};im.onerror=()=>console.warn('Field art unavailable; prior ground retained:',key);im.src=FIELD_DATA.images[key];}
+// Blend opposing edge pixels once per cached terrain tile, never per frame.
+function fieldSeamlessTile(cv){
+ const c=cv.getContext('2d'),im=c.getImageData(0,0,cv.width,cv.height),p=im.data,n=cv.width,m=cv.height,band=16;
+ const blend=(a,b,k)=>{for(let ch=0;ch<3;ch++){const x=p[a+ch],y=p[b+ch];p[a+ch]=Math.round(x+(y-x)*k);p[b+ch]=Math.round(y+(x-y)*k);}};
+ for(let y=0;y<m;y++)for(let d=0;d<band;d++)blend((y*n+d)*4,(y*n+n-1-d)*4,(1-d/band)*.5);
+ for(let x=0;x<n;x++)for(let d=0;d<band;d++)blend((d*n+x)*4,((m-1-d)*n+x)*4,(1-d/band)*.5);
+ c.putImageData(im,0,0);
+}
 function fieldHash(x,y,s=0){return hash2(x+s*71,y-s*43);}
 function fieldPatch(kind,dark){
  const key=kind+'|'+dark;if(FIELD_ENV.patches.has(key))return FIELD_ENV.patches.get(key);
