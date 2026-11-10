@@ -1,0 +1,40 @@
+name: Build field from game sources
+on:
+  push:
+    branches: [main]
+    paths: ['field/source-ref.json', '.github/workflows/build-field.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-field-main
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read the exact game source revision
+        id: source
+        run: |
+          node -e "const fs=require('fs'),r=JSON.parse(fs.readFileSync('field/source-ref.json','utf8'));if(!/^[0-9a-f]{40}$/.test(r.commit))throw Error('Invalid source revision');fs.appendFileSync(process.env.GITHUB_OUTPUT,'commit='+r.commit+'\n');"
+      - uses: actions/checkout@v4
+        with:
+          repository: 1hyun-you/loop-game
+          ref: ${{ steps.source.outputs.commit }}
+          path: game-source
+          persist-credentials: false
+      - name: Build the field game
+        run: |
+          node game-source/dev/build.cjs
+          node game-source/dev/check-build.cjs
+          cp game-source/index.html field/index.html
+      - name: Save the built field page
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add field/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build field page from the selected game revision'
+            git push origin HEAD:main
+          fi
