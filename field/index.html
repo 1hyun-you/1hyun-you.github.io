@@ -240,7 +240,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.40-fx2',
+  VERSION: '0.40-scale1',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -376,7 +376,9 @@ function keepScroll(fn) { const a = scrEl(), y = a ? a.scrollTop : 0; fn(); cons
    ============================================================ */
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d', { alpha: false });
-const VIEW = { w: 400, h: 800, dpr: 1, zoom: 1, sat: 0, sab: 0, cw: 400, ch: 800 };
+const VIEW = { w: 400, h: 800, dpr: 1, zoom: 1, cameraW: 400, cameraH: 800, sat: 0, sab: 0, cw: 400, ch: 800 };
+// Display scale is independent of the legacy simulation viewport (spawns/ultimates).
+function battleZoom(width, height) { return clamp(Math.min(width, height) / 390 * 1.4, 1.15, 2.05); }
 /* 0.26a 화면 고정: 캔버스·UI를 픽셀 고정 크기로 두어 창 크기가 순간 변해도 늘어남·재생성·재배치 없음
    (가장자리·상단 끌기 때 시스템 표시줄이 잠깐 나타나며 창 높이가 흔들리던 현상 대응)
    폭 변경(회전)·높이 확대는 즉시 반영, 높이 축소는 1.2초 이상 유지될 때만 반영 */
@@ -387,8 +389,10 @@ function resize() {
   cv.width = Math.round(VIEW.cw * VIEW.dpr); cv.height = Math.round(VIEW.ch * VIEW.dpr);
   cv.style.width = VIEW.cw + 'px'; cv.style.height = VIEW.ch + 'px';
   if (uiEl) { uiEl.style.width = VIEW.cw + 'px'; uiEl.style.height = VIEW.ch + 'px'; }
-  VIEW.zoom = clamp(VIEW.cw / CFG.viewWidth, 0.8, 1.6);
-  VIEW.w = VIEW.cw / VIEW.zoom; VIEW.h = VIEW.ch / VIEW.zoom;
+  const simulationZoom = clamp(VIEW.cw / CFG.viewWidth, 0.8, 1.6);
+  VIEW.w = VIEW.cw / simulationZoom; VIEW.h = VIEW.ch / simulationZoom;
+  VIEW.zoom = battleZoom(VIEW.cw, VIEW.ch);
+  VIEW.cameraW = VIEW.cw / VIEW.zoom; VIEW.cameraH = VIEW.ch / VIEW.zoom;
   VIEW.sat = document.getElementById('sa').getBoundingClientRect().height || 0;
   VIEW.sab = document.getElementById('sb').getBoundingClientRect().height || 0;
   /* 0.27 화면 고정 보강: 안전 영역 값을 확정 시점에만 고정 반영, 상단 끌기 때 시스템 표시줄이 잠깐 나타나며
@@ -1136,7 +1140,8 @@ function drawPhasePointer(c, camX, camY) {
   const ph = G.ph, rit = ph.rits && ph.rits.filter(e => !e.dead).sort((a, b) => dist2(a.x, a.y, G.p.x, G.p.y) - dist2(b.x, b.y, G.p.x, G.p.y))[0];
   const t = ph.zone || (ph.spring && !ph.spring.used ? ph.spring : null) || (ph.cmd && !ph.cmd.dead ? ph.cmd : null) || (G.gkMob && !G.gkMob.dead && isBossPhase() ? G.gkMob : null) || ph.cart || rit || (ph.camp && !ph.camp.used ? ph.camp : null) || eventPointer() || G.altar || G.chests[0];
   if (!t) return;
-  const Z = VIEW.zoom, sx = (t.x - camX) * Z, sy = (t.y - camY) * Z, m = 34, top = VIEW.sat + 90;
+  const L = hudLayout(), hasBoss = G.gkMob && !G.gkMob.dead && isBossPhase();
+  const Z = VIEW.zoom, sx = (t.x - camX) * Z, sy = (t.y - camY) * Z, m = 34, top = Math.min(VIEW.ch / 2 - m, L.y + L.h + (hasBoss ? 54 : 8));
   if (sx > m && sx < VIEW.cw - m && sy > top && sy < VIEW.ch - m) return;
   const cx = VIEW.cw / 2, cy = VIEW.ch / 2, ang = Math.atan2(sy - cy, sx - cx);
   const kx = (VIEW.cw / 2 - m) / Math.abs(Math.cos(ang) || 1e-6), ky = (Math.sin(ang) < 0 ? cy - top : VIEW.ch / 2 - m) / Math.abs(Math.sin(ang) || 1e-6);
@@ -5876,7 +5881,7 @@ function drawJuice(c) {
   c.save(); c.imageSmoothingEnabled = true; c.lineCap = 'round';
   const lite = vfxLite(); let pi = 0;
   for (const q of j.pt) {
-    if (Math.abs(q.x - G.p.x) > VIEW.w / 2 + 40 || Math.abs(q.y - G.p.y) > VIEW.h / 2 + 40) continue;
+    if (Math.abs(q.x - G.p.x) > VIEW.cameraW / 2 + 40 || Math.abs(q.y - G.p.y) > VIEW.cameraH / 2 + 40) continue;
     const k = clamp(q.t / q.dur, 0, 1), a = (1 - k) ** 2, s = q.s * (1 - k * 0.45);
     if (!lite && pi++ % 4 === 0) vfxGlow(c, q.x, q.y, s * 2.6, q.c, a * 0.32);
     const sp = Math.hypot(q.vx, q.vy) || 1, len = Math.min(5, sp * 0.018);
@@ -6972,10 +6977,10 @@ function render() {
   const tn = G.time; updateTerrain(Math.max(0, Math.min(0.1, tn - terLast))); terLast = tn;
   c.fillStyle = TERRAIN[TER.cur].a; c.fillRect(0, 0, VIEW.cw, VIEW.ch);
   const sh = SETTINGS.shake && !VFX.reduced.matches ? Math.max(p.flash > 0 ? 3 : 0, shakeAmt()) : 0;   // 화면 흔들림 설정 (0.14), 연출 흔들림 (0.22)
-  const camX = p.x - VIEW.w / 2 + rand(-sh, sh), camY = p.y - VIEW.h / 2 + rand(-sh, sh);
+  const camX = p.x - VIEW.cameraW / 2 + rand(-sh, sh), camY = p.y - VIEW.cameraH / 2 + rand(-sh, sh);
   c.setTransform(dpr * Z, 0, 0, dpr * Z, Math.round(-camX * dpr * Z), Math.round(-camY * dpr * Z));   // 화면 픽셀 정렬 (0.19)
   c.imageSmoothingEnabled = false;
-  const vx0 = camX - 40, vy0 = camY - 40, vx1 = camX + VIEW.w + 40, vy1 = camY + VIEW.h + 40;
+  const vx0 = camX - 40, vy0 = camY - 40, vx1 = camX + VIEW.cameraW + 40, vy1 = camY + VIEW.cameraH + 40;
   const inView = (x, y, r) => x + r > vx0 && x - r < vx1 && y + r > vy0 && y - r < vy1;
   EFFECT_ART.count=0;
   drawGround(c, camX, camY);
@@ -7021,7 +7026,7 @@ function pixelGroundPattern(c, tid) {
   return P.pat;
 }
 function drawGround(c, camX, camY) {
-  const x = camX - 64, y = camY - 64, w = VIEW.w + 128, h = VIEW.h + 128;
+  const x = camX - 64, y = camY - 64, w = VIEW.cameraW + 128, h = VIEW.cameraH + 128;
   if (TER.k < 1 && TER.prev) { c.fillStyle = groundPattern(c, TER.prev); c.fillRect(x, y, w, h); c.globalAlpha = TER.k; }
   c.fillStyle = groundPattern(c, TER.cur); c.fillRect(x, y, w, h); c.globalAlpha = 1;
 }
@@ -7645,7 +7650,7 @@ function drawFx(c) {
   for (const f of G.fx) {
     const k = clamp(f.t / f.dur, 0, 1), fade = (1 - k) * (1 - k), x = f.follow ? G.p.x : f.x, y = f.follow ? G.p.y : f.y;
     if (k >= 1) continue;
-    if (Number.isFinite(x) && Number.isFinite(y) && (Math.abs(x - G.p.x) > VIEW.w / 2 + (f.r1 || f.r || 0) + 200 || Math.abs(y - G.p.y) > VIEW.h / 2 + (f.r1 || f.r || 0) + 200)) continue;
+    if (Number.isFinite(x) && Number.isFinite(y) && (Math.abs(x - G.p.x) > VIEW.cameraW / 2 + (f.r1 || f.r || 0) + 200 || Math.abs(y - G.p.y) > VIEW.cameraH / 2 + (f.r1 || f.r || 0) + 200)) continue;
     if(paintedRing(c,f,k,x,y))continue;
     if (f.kind === 'ring') {
       const r = Math.max(1, lerp(f.r0, f.r1, 1 - (1 - k) ** 2)), col = f.color || '#e8d8af';
@@ -7727,7 +7732,7 @@ function paintedEffect(c,key,x,y,r,alpha=.6,angle=0,sy=1){
  const im=EFFECT_ART.image,i=EFFECT_DATA.names.indexOf(key);
  if(!im||i<0||!Number.isFinite(x+y+r+alpha+angle+sy)||r<=0)return false;
  // Once budget is spent, skip decorative stamps (the caller still draws range outlines).
- if(Math.abs(x-G.p.x)>VIEW.w/2+r+60||Math.abs(y-G.p.y)>VIEW.h/2+r+60)return true;
+ if(Math.abs(x-G.p.x)>VIEW.cameraW/2+r+60||Math.abs(y-G.p.y)>VIEW.cameraH/2+r+60)return true;
  if(EFFECT_ART.count++>=(vfxLite()?48:96))return true;
  c.save();c.imageSmoothingEnabled=true;c.globalAlpha*=clamp(alpha,0,.78);
  c.translate(x,y);c.rotate(VFX.reduced.matches?0:angle);c.scale(1,sy);
@@ -7759,7 +7764,7 @@ function paintedBeam(c,x,y,a,L,w,alpha,key='holy'){
  const sp=getSprite('dbeam',0);if(!sp){c.restore();return false;}
  c.imageSmoothingEnabled=true;c.drawImage(sp.cv,0,-w/2,L,w);c.restore();return true;
 }
-/* 0.40-fx2 — compact parchment/bronze interface; presentation only.
+/* 0.40-scale1 — readable parchment/bronze interface; presentation only.
    Native vector icons keep menu symbols crisp at small sizes. No network assets.
    Canvas text uses the device UI font, with bundled Galmuri as glyph fallback. */
 const UI_ART = { images: {}, urls: {}, loaded: 0, font: 'system-ui, Galmuri11, sans-serif' };
@@ -7796,9 +7801,9 @@ function uiText(c,s,x,y,size=12,color='#efe8d9',align='left',max=Infinity,weight
 }
 function uiImage(c,key,x,y,s=16) { const im=UI_ART.images[key]; if(im)c.drawImage(im,x,y,s,s); }
 function hudLayout(width=VIEW.cw,sat=VIEW.sat) {
-  const w=Math.min(560,width-16),x=(width-w)/2,y=sat+6,S=16,gap=2,contentW=w-52;
-  const tile=(i,row,right=false,n=1)=>({x:right?x+contentW-n*S-(n-1)*gap+i*(S+gap):x+4+i*(S+gap),y:y+34+row*18,w:S,h:S});
-  return {x,y,w,h:68,S,gap,contentW,tile,pause:{x:x+w-44,y,w:44,h:44},kills:{x:x+contentW-64,y:y+4,w:64,h:16}};
+  const w=Math.min(600,width-16),x=(width-w)/2,y=sat+6,S=clamp(Math.floor((width-280)/28)+22,22,30),gap=3,contentW=w-56;
+  const tile=(i,row,right=false,n=1)=>({x:right?x+contentW-n*S-(n-1)*gap+i*(S+gap):x+4+i*(S+gap),y:y+48+row*(S+gap),w:S,h:S});
+  return {x,y,w,h:48+2*S+gap,S,gap,contentW,tile,pause:{x:x+w-48,y,w:48,h:48},kills:{x:x+contentW-76,y:y+4,w:76,h:18}};
 }
 function uiBar(c,x,y,w,h,k,col,bg='#111b27') {
   uiRound(c,x,y,w,h,h/2);c.fillStyle=bg;c.fill();
@@ -7806,8 +7811,8 @@ function uiBar(c,x,y,w,h,k,col,bg='#111b27') {
 }
 function drawXpGauge(c,top) {
  const L=hudLayout(),p=G.p,k=clamp(G.rc?G.rc.xpShow:p.xp/Math.max(1,p.need),0,1);
- uiBar(c,L.x+4,L.y,L.contentW-4,2,k,'#91bfcb');
- uiText(c,'Lv '+p.level,L.x+4,L.y+12,10,'#f0dfb4','left',46,650);
+ uiBar(c,L.x+4,L.y,L.contentW-4,3,k,'#91bfcb');
+ uiText(c,'Lv '+p.level,L.x+4,L.y+14,13,'#f0dfb4','left',58,650);
 }
 function uiTile(c,r,art,color,level,progress,mark) {
   uiPanel(c,r.x,r.y,r.w,r.h,'#182330',art?color:'#414c58',5);
@@ -7817,7 +7822,7 @@ function uiTile(c,r,art,color,level,progress,mark) {
   if(progress!==undefined&&progress<1){
     c.save();uiRound(c,r.x+1,r.y+1,r.w-2,r.h-2,4);c.clip();c.globalAlpha=.58;c.fillStyle='#0e1725';c.beginPath();c.moveTo(r.x+r.w/2,r.y+r.h/2);c.arc(r.x+r.w/2,r.y+r.h/2,r.w,-Math.PI/2+Math.PI*2*clamp(progress,0,1),Math.PI*1.5);c.closePath();c.fill();c.restore();
   }
-  if(level!=null){uiPanel(c,r.x+r.w-8,r.y+r.h-8,9,9,'#1a2330','#7f806d',2);uiText(c,level,r.x+r.w-3.5,r.y+r.h-3.5,7,'#fff4db','center',8,700);}
+  if(level!=null){uiPanel(c,r.x+r.w-11,r.y+r.h-11,12,12,'#1a2330','#7f806d',3);uiText(c,level,r.x+r.w-5,r.y+r.h-5,10,'#fff4db','center',11,700);}
 }
 const UI_EXW_ICON={
   first:{warrior:'boomerang',rogue:'knife',archer:'arrow',engineer:'lightning',mage:'fireball',summoner:'orb',sovereign:'shield',chrono:'hourglass',priest:'regen',druid:'trap'},
@@ -7837,38 +7842,38 @@ function drawSlots(c,unused) {
 function drawBossBar(c,y,unused) {
   const e=G.gkMob;if(!e||e.dead||!G.ph||!isBossPhase())return;
   const L=hudLayout(),D=bossDef(e.gk),bx=L.x+10,bw=L.w-20;
-  uiPanel(c,L.x,y-2,L.w,43,'rgba(31,25,36,.94)','#946d69',8);
+  uiPanel(c,L.x,y-2,L.w,43,'rgba(31,25,36,.88)','#946d69',8);
   const name=e.gk==='demon'?`${D.name} · ${['그림자 군주','암흑 결계','종언'][e.st]} (${e.st+1}/3)`:`${D.name} · ${D.gate}`;
-  uiText(c,name,L.x+L.w/2,y+10,11,'#eed6c4','center',bw-12,600);
-  uiBar(c,bx,y+23,bw,6,e.hp/e.maxHp,e.rage||e.st===2?'#d68c72':'#ba8188');
+  uiText(c,name,L.x+L.w/2,y+10,13,'#eed6c4','center',bw-12,600);
+  uiBar(c,bx,y+23,bw,8,e.hp/e.maxHp,e.rage||e.st===2?'#d68c72':'#ba8188');
   if(e.gk==='demon'){c.fillStyle='#f4debe';for(const k of DM_CFG.stages)c.fillRect(bx+bw*k,y+23,1,6);}
 }
 function drawHUD(c) {
  const L=hudLayout(),p=G.p,ph=G.ph,P=curPhase();c.save();c.imageSmoothingEnabled=true;
  // Text-sized backplates; no full-width opaque panel and no empty inventory tiles.
- uiPanel(c,L.x,L.y+3,L.contentW+2,29,'rgba(22,31,43,.60)','#6b6c6044',5);
+ uiPanel(c,L.x,L.y+3,L.contentW+2,40,'rgba(22,31,43,.60)','#6b6c6044',5);
  drawXpGauge(c,L.y);
- uiText(c,fmtTime(G.time),L.x+L.contentW*.51,L.y+12,12,'#f0e9d9','center',52,650);
+ uiText(c,fmtTime(G.time),L.x+L.contentW*.48,L.y+14,15,'#f0e9d9','center',58,650);
  const kills=G.kills>=10000?(G.kills/10000).toFixed(1)+'만':G.kills;
- uiText(c,'처치 '+kills,L.x+L.contentW-2,L.y+12,10,'#d9cbb3','right',64,600);
- const hp=clamp(p.hp/p.maxHp,0,1);uiBar(c,L.x+4,L.y+23,52,3,hp,hp>.3?'#9fc19d':'#d58c86');
- uiText(c,Math.ceil(p.hp),L.x+60,L.y+24,8,'#d7e1d8','left',24);
+ uiText(c,'처치 '+kills,L.x+L.contentW-2,L.y+14,12,'#d9cbb3','right',76,600);
+ const hp=clamp(p.hp/p.maxHp,0,1);uiBar(c,L.x+4,L.y+31,52,5,hp,hp>.3?'#9fc19d':'#d58c86');
+ uiText(c,Math.ceil(p.hp),L.x+61,L.y+33,12,'#d7e1d8','left',30);
  const status=p.job==='druid'?(G.tm.wrath>0?' 분노':' 동료'+G.pets.length):p.job==='priest'?' 정화'+p.holy:'';
  const phase=P?((ph.i+1)+'/'+ph.order.length+' '+curPhaseName()):G.result==='clear'?'돌파':'이동 중';
- uiText(c,(status?status.trim()+' · ':'')+phase,L.x+L.contentW-2,L.y+25,9,ph.ambush?'#e6a58d':'#dfcb98','right',L.contentW-86,600);
- if(P)uiBar(c,L.x+86,L.y+31,L.contentW-88,1,phaseProgress(),ph.accT>0?'#f1e6bc':'#cdb57c');
- drawSlots(c,L.y+34);drawBossBar(c,L.y+76);
- const hasBoss=!!(G.gkMob&&!G.gkMob.dead&&isBossPhase()),below=L.y+(hasBoss?124:72);
+ uiText(c,(status?status.trim()+' · ':'')+phase,L.x+L.contentW-2,L.y+32,12,ph.ambush?'#e6a58d':'#dfcb98','right',L.contentW-100,600);
+ if(P)uiBar(c,L.x+100,L.y+41,L.contentW-102,2,phaseProgress(),ph.accT>0?'#f1e6bc':'#cdb57c');
+ drawSlots(c,L.y+48);drawBossBar(c,L.y+L.h+6);
+ const hasBoss=!!(G.gkMob&&!G.gkMob.dead&&isBossPhase()),below=L.y+L.h+(hasBoss?54:4);
  if(STATE.dev.fps&&STATE.mode!=='result')uiText(c,Math.round(STATE.fps)+' FPS · 적 '+aliveCount(),L.x+L.w-2,below+10,10,'#d1d8d9','right',L.w-8);
  let ty=Math.max(VIEW.ch*.3,below+30);for(const t of G.toasts){c.globalAlpha=Math.min(1,(t.dur-t.t)*3);uiText(c,t.text,VIEW.cw/2,ty,14,t.color,'center',VIEW.cw-30,600);ty+=24;}c.globalAlpha=1;
  drawGuide(c);c.restore();
 }
 function drawGuide(c) {
   const g=GD.cur;if(!g||STATE.mode!=='play')return;const tx=typeof g.tx==='function'?g.tx():g.tx,W=VIEW.cw,w=Math.min(400,W-32);
-  c.save();c.globalAlpha=clamp(Math.min(GD.t*4,(GD.dur-GD.t)*3),0,1);c.font=`500 12px ${UI_ART.font}`;
+  c.save();c.globalAlpha=clamp(Math.min(GD.t*4,(GD.dur-GD.t)*3),0,1);c.font=`500 14px ${UI_ART.font}`;
   const lines=[];let line='';for(const ch of tx){if(c.measureText(line+ch).width>w-30&&line){lines.push(line);line=ch;}else line+=ch;}if(line)lines.push(line);
-  const h=lines.length*18+18,x=(W-w)/2,y=Math.min(VIEW.ch*.72,VIEW.ch-VIEW.sab-h-20);
-  uiPanel(c,x,y,w,h,'rgba(24,33,45,.95)','#a28b62',9);lines.forEach((s,i)=>uiText(c,s,W/2,y+18+i*18,12,'#eadfc3','center',w-26));c.restore();
+  const h=lines.length*21+18,x=(W-w)/2,y=Math.min(VIEW.ch*.72,VIEW.ch-VIEW.sab-h-20);
+  uiPanel(c,x,y,w,h,'rgba(24,33,45,.95)','#a28b62',9);lines.forEach((s,i)=>uiText(c,s,W/2,y+19+i*21,14,'#eadfc3','center',w-26));c.restore();
 }
 const uiArtStyle=document.createElement('style');uiArtStyle.textContent=`
 .hlogo h1{font-family:Georgia,"Noto Serif KR","Batang",Galmuri11,serif}
@@ -7876,6 +7881,14 @@ const uiArtStyle=document.createElement('style');uiArtStyle.textContent=`
 .icb,.pausebtn{border:1px solid #9b8c6b;border-radius:12px;background:linear-gradient(145deg,rgba(59,67,80,.95),rgba(29,39,54,.96));box-shadow:inset 0 1px 0 #ddd1a322,0 3px 10px #11182255}
 .icb img{image-rendering:auto;width:28px;height:28px}.pgt .icb{border:1px solid #706c5b;background:#293446}
 .pausebtn{width:44px;height:44px;min-height:44px;right:auto}.pausebtn img{width:25px;height:25px;vertical-align:middle}
+.pausebtn img{width:28px;height:28px}
+.cards,.sel-head,.sel-actions{max-width:520px}
+.card{padding:15px;gap:14px;flex-shrink:0}.card .ic{flex-basis:58px;height:58px}.card .ic.px img{width:52px;height:52px}
+.card .nm{font-size:18px}.card .ds{font-size:15px;line-height:1.55;overflow-wrap:anywhere}.card .tag{font-size:12px}
+.dlg{max-width:520px}.dlg .nm{font-size:16px}.dlg .tx{font-size:17px}.dlg .pt{flex-basis:72px;height:72px}
+.ab{grid-template-columns:32px minmax(0,1fr);padding:10px}.ab .ic{width:32px;height:32px}.ab .ic.px img{width:28px;height:28px}.ab b{font-size:16px}.ab p{font-size:14px}
+@media(max-width:359px){.card{padding:12px;gap:10px}.card .ic{flex-basis:50px;height:50px}.card .ic.px img{width:44px;height:44px}.card .nm{font-size:17px}.dlg{gap:10px}.dlg .pt{flex-basis:60px;height:60px}}
+@media(min-width:600px){.cards,.sel-head,.sel-actions{max-width:580px}.card .ic{flex-basis:68px;height:68px}.card .ic.px img{width:60px;height:60px}.card .nm{font-size:20px}.card .ds{font-size:16px}.card .tag{font-size:13px}.dlg .tx{font-size:18px}}
 .pgh{background:linear-gradient(135deg,#202c3e,#1c2534);border-bottom:1px solid #706c5b}.pgt h2{color:#e9d8af}.ptabs button{font-size:12px;min-height:44px}.ptabs button.on{color:#f0dfb4}.ptabs .bar{background:#c6af7c}
 button:focus-visible{outline:2px solid #e4c993;outline-offset:3px}.row,.cx,.ab{box-shadow:inset 0 1px 0 #e8d9b008}.stats{font-variant-numeric:tabular-nums}.ver{font-family:var(--f-body)}
 @media(prefers-reduced-motion:reduce){.icb,.pausebtn{transition:none}}
@@ -8042,7 +8055,7 @@ const PBTN = document.createElement('button');
 PBTN.id = 'pausebtn'; PBTN.className = 'pausebtn'; PBTN.setAttribute('aria-label', '일시정지'); PBTN.innerHTML = `<img src="${uiIcon('pause')}" alt="">`;
 PBTN.addEventListener('click', pauseGame); document.body.appendChild(PBTN);
 let pbShown = null;
-function syncPauseBtn() { const L=hudLayout();PBTN.style.left=L.pause.x+'px';PBTN.style.top=L.pause.y+'px'; const v = STATE.mode === 'play' && G && !G.result; if (v !== pbShown) { pbShown = v; PBTN.style.display = v ? '' : 'none'; } }
+function syncPauseBtn() { const L=hudLayout();PBTN.style.left=L.pause.x+'px';PBTN.style.top=L.pause.y+'px';PBTN.style.width=L.pause.w+'px';PBTN.style.height=L.pause.h+'px'; const v = STATE.mode === 'play' && G && !G.result; if (v !== pbShown) { pbShown = v; PBTN.style.display = v ? '' : 'none'; } }
 /* 화면 전환·앱 이탈 시 자동 일시정지 */
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 window.addEventListener('blur', () => { if (!STATE.dev.auto) pauseGame(); });
