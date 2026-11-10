@@ -240,7 +240,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.40-vfx1',
+  VERSION: '0.40-ui1',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -1106,7 +1106,7 @@ function drawPhaseGround(c) {
     const k = ph.cart;
     c.strokeStyle = 'rgba(255,230,150,0.35)'; c.lineWidth = 2; c.setLineDash([8, 8]); c.beginPath(); c.moveTo(k.x, k.y); c.lineTo(k.tx, k.ty); c.stroke(); c.setLineDash([]);
     drawSprite(c, 'flag', f2(3), k.tx + 8, k.ty, { mul: 2 });                                       // 0.30 목적지 깃발 도트
-    if (k.block) { c.fillStyle = '#ff8a6a'; c.font = 'bold 11px Galmuri11, system-ui'; c.textAlign = 'center'; c.fillText(k.sp > 0 ? '감속' : '정지', k.x, k.y - 26); }
+    if (k.block) { c.fillStyle = '#ff8a6a'; c.font = 'bold 11px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.fillText(k.sp > 0 ? '감속' : '정지', k.x, k.y - 26); }
     drawSpriteC(c, 'cart', 0, k.x, k.y, { mode: k.hit > 0 ? 'white' : 'n' });   // 0.20 도트
     c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(k.x - 18, k.y - 20, 36, 4); c.fillStyle = k.hp <= k.maxHp * PH_CFG.cartWarn ? (Math.floor(G.time * 6) % 2 ? '#ff6a4a' : '#ffd0c0') : '#8ff0b0'; c.fillRect(k.x - 18, k.y - 20, 36 * Math.max(0, k.hp / k.maxHp), 4);   // 0.31 30% 이하 깜빡임
   }
@@ -1663,13 +1663,13 @@ function drawBossTop(c, inView) {
   drawEnemyShots(c, inView);
 }
 /* 상단 수문장 체력 막대 */
-function drawBossBar(c, y, txt) {
+function pixelDrawBossBar(c, y, txt) {
   const e = G.gkMob; if (!e || e.dead || !G.ph || !isBossPhase()) return;
   const D = bossDef(e.gk), W = VIEW.cw, bw = W - 48;
   c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(24, y, bw, 8);
   c.fillStyle = e.rage || e.st === 2 ? '#ff6a4a' : D.color; c.fillRect(24, y, bw * Math.max(0, e.hp / e.maxHp), 8);
   if (e.gk === 'demon') { c.fillStyle = 'rgba(255,255,255,0.8)'; for (const k of DM_CFG.stages) c.fillRect(24 + bw * k - 1, y - 2, 2, 12); }   // 페이즈 전환 눈금
-  c.font = 'bold 12px Galmuri11, system-ui'; c.fillStyle = '#fff'; txt(e.gk === 'demon' ? `${D.name} · ${['그림자 군주', '암흑 결계', '종언'][e.st]} (${e.st + 1}/3)` : `${D.name} · ${D.gate}`, W / 2, y + 18, 'center');
+  c.font = 'bold 12px system-ui, Galmuri11, sans-serif'; c.fillStyle = '#fff'; txt(e.gk === 'demon' ? `${D.name} · ${['그림자 군주', '암흑 결계', '종언'][e.st]} (${e.st + 1}/3)` : `${D.name} · ${D.gate}`, W / 2, y + 18, 'center');
 }
 
 /* 저장: 처치 수문장 누적 (finishRun에서 호출) */
@@ -4546,7 +4546,7 @@ function drawPets(c, inView) {
     if (sc > 1.01) { c.save(); c.translate(m.x, m.y + S.r * 0.8); c.scale(sc, sc); drawSprite(c, m.kind, fr, (m.bite > 0 ? Math.sign(m.vx || 1) * 3 : 0), 0, { flip: (m.vx || 0) < 0 }); c.restore(); }
     else drawSprite(c, m.kind, fr, m.x + (m.bite > 0 ? Math.sign(m.vx || 1) * 3 : 0), m.y + S.r * 0.8, { flip: (m.vx || 0) < 0 });
     if (m.lvT > 0) { c.globalAlpha = Math.min(1, m.lvT); c.strokeStyle = '#d8ffb8'; c.lineWidth = 2; c.beginPath(); c.arc(m.x, m.y, S.r + 6 + (1.2 - m.lvT) * 10, 0, 7); c.stroke(); c.globalAlpha = 1; }
-    c.font = 'bold 9px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 2.5; c.strokeStyle = 'rgba(0,0,0,0.7)'; c.fillStyle = '#c8f0a8';
+    c.font = 'bold 9px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 2.5; c.strokeStyle = 'rgba(0,0,0,0.7)'; c.fillStyle = '#c8f0a8';
     const ly = m.y - S.r * 1.6 - 6; c.strokeText('Lv' + S.lv, m.x, ly); c.fillText('Lv' + S.lv, m.x, ly);
   }
 }
@@ -5882,7 +5882,7 @@ function drawJuice(c) {
   for (const d of j.dn) {
     const k = d.t / d.dur, pop = d.crit && d.t < 0.1 ? 1.35 : 1;
     c.globalAlpha = k > 0.6 ? (1 - k) / 0.4 : 1;
-    c.font = `bold ${Math.round((d.crit ? 13 : 10) * pop)}px Galmuri11, system-ui`;
+    c.font = `bold ${Math.round((d.crit ? 13 : 10) * pop)}px system-ui, Galmuri11, sans-serif`;
     const s = String(Math.max(1, Math.round(d.v)));
     c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.75)'; c.strokeText(s, d.x, d.y);
     c.fillStyle = d.crit ? '#ffd24a' : '#ffffff'; c.fillText(s, d.x, d.y);
@@ -5898,8 +5898,8 @@ function drawBanner(c) {
   c.globalAlpha = a * 0.55; c.fillStyle = '#000'; c.fillRect(0, y - 30, W, b.sub ? 62 : 46);
   c.globalAlpha = a; c.fillStyle = b.color; c.fillRect(0, y - 30, W * sx, 2); c.fillRect(W * (1 - sx), y + (b.sub ? 30 : 14), W * sx, 2);
   c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,0.7)';
-  c.font = 'bold 22px Galmuri11, system-ui'; c.strokeText(b.text, W / 2, y - 6); c.fillStyle = b.color; c.fillText(b.text, W / 2, y - 6);
-  if (b.sub) { c.font = 'bold 13px Galmuri11, system-ui'; c.strokeText(b.sub, W / 2, y + 17); c.fillStyle = '#fff'; c.fillText(b.sub, W / 2, y + 17); }
+  c.font = 'bold 22px system-ui, Galmuri11, sans-serif'; c.strokeText(b.text, W / 2, y - 6); c.fillStyle = b.color; c.fillText(b.text, W / 2, y - 6);
+  if (b.sub) { c.font = 'bold 13px system-ui, Galmuri11, sans-serif'; c.strokeText(b.sub, W / 2, y + 17); c.fillStyle = '#fff'; c.fillText(b.sub, W / 2, y + 17); }
   c.globalAlpha = 1;
 }
 /* ============================================================
@@ -6064,7 +6064,7 @@ function drawReactScreen(c) {
 }
 
 /* 경험치 게이지 — 도트 틀(진보라 외곽·칸 눈금·위 밝은 줄), 보간 차오름, 가득 차기 직전 맥동, 레벨업 빛 흐름, 레벨 배지 */
-function drawXpGauge(c, top) {
+function pixelDrawXpGauge(c, top) {
   const p = G.p, r = RC(), W = VIEW.cw, y0 = top - 6, H = 12, k = clamp(r.xpShow, 0, 1);
   c.fillStyle = '#1b1626'; c.fillRect(0, y0, W, H);
   c.fillStyle = '#2e2444'; c.fillRect(2, y0 + 2, W - 4, H - 4);
@@ -6090,7 +6090,7 @@ function drawXpGauge(c, top) {
   c.fillStyle = r.lvT > 0 ? '#ffd24a' : '#8a6a2a'; c.fillRect(bx + 2 - pop, by + 2 - pop, bw - 4 + pop * 2, bh - 4 + pop * 2);
   c.fillStyle = '#3a2e4a'; c.fillRect(bx + 4 - pop, by + 4 - pop, bw - 8 + pop * 2, bh - 8 + pop * 2);
   c.fillStyle = '#1b1626'; c.fillRect(bx, by, 2, 2); c.fillRect(bx + bw - 2, by, 2, 2); c.fillRect(bx, by + bh - 2, 2, 2); c.fillRect(bx + bw - 2, by + bh - 2, 2, 2);   // 모서리 깎기
-  c.font = 'bold 13px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.6)';
+  c.font = 'bold 13px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.6)';
   const s = 'Lv ' + p.level; c.strokeText(s, bx + bw / 2, by + bh / 2 + 1); c.fillStyle = '#fff'; c.fillText(s, bx + bw / 2, by + bh / 2 + 1);
 }
 
@@ -6138,10 +6138,10 @@ function guideUpdate(dt) {
   const S = guideSeen();
   for (const g of GUIDE) if (!S.has(g.id) && g.when()) { GD.cur = g; GD.t = 0; guideMark(g.id); (G.stats.guide || (G.stats.guide = [])).push(g.id); break; }
 }
-function drawGuide(c) {
+function pixelDrawGuide(c) {
   const g = GD.cur; if (!g || STATE.mode !== 'play') return; const tx = typeof g.tx === 'function' ? g.tx() : g.tx;
   const W = VIEW.cw, a = Math.min(1, GD.t * 4, (GD.dur - GD.t) * 3), y = VIEW.ch * 0.7;
-  c.save(); c.globalAlpha = a; c.font = 'bold 13px Galmuri11, system-ui';
+  c.save(); c.globalAlpha = a; c.font = 'bold 13px system-ui, Galmuri11, sans-serif';
   const tw = Math.min(W - 32, c.measureText(tx).width + 28), h = 34, x = (W - tw) / 2;
   c.fillStyle = 'rgba(20,16,32,0.86)'; c.fillRect(x, y, tw, h);
   c.strokeStyle = '#ffe08a'; c.lineWidth = 2; c.strokeRect(x + 1, y + 1, tw - 2, h - 2);
@@ -6393,7 +6393,7 @@ const UI_ICON = {
   back: ['............', '.....kk.....', '....keek....', '...keeek....', '..keeeekkkk.', '.keeeeeeeeek', '.keeeeeeeeek', '..keeeekkkk.', '...keeek....', '....keek....', '.....kk.....', '............'],
 };
 const UI_ICON_URL = {};
-function uiIcon(k) { if (!UI_ICON_URL[k]) UI_ICON_URL[k] = bakeGrid(UI_ICON[k], DOT_PAL, 4, false, 'n', null).cv.toDataURL(); return UI_ICON_URL[k]; }
+function pixelUiIcon(k) { if (!UI_ICON_URL[k]) UI_ICON_URL[k] = bakeGrid(UI_ICON[k], DOT_PAL, 4, false, 'n', null).cv.toDataURL(); return UI_ICON_URL[k]; }
 const icBtn = (id, k, label, cls = '') => `<button class="icb ${cls}" id="${id}" aria-label="${label}"><img src="${uiIcon(k)}" alt=""></button>`;
 
 /* ---------- 고정 헤더 + 밀기 탭 ---------- */
@@ -7051,7 +7051,7 @@ function drawEnemies(c, inView) {
   // 대장·마법진·거대 몹 체력 막대 (0.10)
   for (const e of G.enemies) {
     if (e.dead || !e.cmd || e.gk || !inView(e.x, e.y, e.r)) continue;
-    const w = e.r * 2.2, y = e.y - e.r - 10; c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(e.x - w / 2, y, w, 5); c.fillStyle = e.rit ? '#c8a0ff' : '#ff8a5a'; c.fillRect(e.x - w / 2, y, w * Math.max(0, e.hp / e.maxHp), 5);
+    const w = e.r * 2.2, y = e.y - e.r - 10; uiBar(c, e.x - w / 2, y, w, 4, e.hp / e.maxHp, e.rit ? '#b9a4ce' : '#ce927c');
   }
   // 엘리트: 금색 테두리(도트는 외곽선 변형) · 보호막 · 돌진 예고 · 체력 막대
   for (const e of G.enemies) {
@@ -7059,7 +7059,7 @@ function drawEnemies(c, inView) {
     if (!spriteFor(e)) { c.strokeStyle = '#ffd24a'; c.lineWidth = 3; c.beginPath(); enemyPath(c, e); c.stroke(); }
     if (e.sh > 0) { c.strokeStyle = 'rgba(140,200,255,0.85)'; c.lineWidth = 3; c.beginPath(); c.arc(e.x, e.y, e.r + 6, 0, 7); c.stroke(); }
     if (e.tele > 0) { c.strokeStyle = 'rgba(255,80,60,0.9)'; c.lineWidth = 2; c.beginPath(); c.moveTo(e.x, e.y); c.lineTo(G.p.x, G.p.y); c.stroke(); }
-    const w = e.r * 2, y = e.y - e.r - 9; c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(e.x - w / 2, y, w, 4); c.fillStyle = '#ffd24a'; c.fillRect(e.x - w / 2, y, w * Math.max(0, e.hp / e.maxHp), 4);
+    const w = e.r * 2, y = e.y - e.r - 9; uiBar(c, e.x - w / 2, y, w, 4, e.hp / e.maxHp, '#cfb476');
   }
   c.strokeStyle = 'rgba(190,235,255,0.9)'; c.lineWidth = 2; c.beginPath();
   for (const e of G.enemies) if (!e.dead && e.frz > 0 && inView(e.x, e.y, e.r)) { c.moveTo(e.x + e.r + 3, e.y); c.arc(e.x, e.y, e.r + 3, 0, 7); }
@@ -7130,8 +7130,7 @@ function drawPlayer(c) {
   if (p.face.x < -0.05) p._fl = true; else if (p.face.x > 0.05) p._fl = false;
   drawHeroReact(c, mv ? Math.floor(G.time * 8) & 1 : 0, !!p._fl, heroTint());   // 0.26 직업 색 옷   // 색상 변형 (0.15)
   const w = 30, h = 4, x = p.x - w / 2, y = p.y - p.r - 12;
-  c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(x - 1, y - 1, w + 2, h + 2);
-  c.fillStyle = p.hp / p.maxHp > 0.3 ? '#5fe07a' : '#ff5a5a'; c.fillRect(x, y, w * Math.max(0, p.hp / p.maxHp), h);
+  uiBar(c, x, y, w, h, p.hp / p.maxHp, p.hp / p.maxHp > 0.3 ? '#a7c79c' : '#d58c86');
   if (p.shield) { c.strokeStyle = 'rgba(140,210,255,0.9)'; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, p.r + 5, 0, 7); c.stroke(); }
   if (G.tm.inv > 0) { c.strokeStyle = 'rgba(255,240,160,0.8)'; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, p.r + 8, 0, 7); c.stroke(); }
   if (p.job) {                                              // 궁극기 게이지 (체력 막대 아래)
@@ -7177,32 +7176,32 @@ function drawJoy(c) {
   c.fillStyle = 'rgba(255,255,255,0.45)'; c.beginPath(); c.arc(INPUT.ox + INPUT.dx * INPUT.mag * R, INPUT.oy + INPUT.dy * INPUT.mag * R, 22, 0, 7); c.fill();
 }
 /* 상단 집중형 정보 배치 */
-function drawHUD(c) {
+function pixelDrawHUD(c) {
   const p = G.p, W = VIEW.cw, top = VIEW.sat + 6;
   drawXpGauge(c, top);                                      // 도트 틀 경험치 게이지·레벨 배지 (0.28)
-  c.font = 'bold 14px Galmuri11, system-ui'; c.textBaseline = 'middle'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.6)'; c.fillStyle = '#fff';
+  c.font = 'bold 14px system-ui, Galmuri11, sans-serif'; c.textBaseline = 'middle'; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.6)'; c.fillStyle = '#fff';
   const txt = (s, x, y, al) => { c.textAlign = al; c.strokeText(s, x, y); c.fillText(s, x, y); };
-  if (p.job) { c.font = 'bold 12px Galmuri11, system-ui'; c.fillStyle = '#d9a8ff'; txt(JOBS[p.job].name + (p.job2 ? ' · ' + JOB2[p.job].concat(JOB2_STAT).find(o => o.k === p.job2).nm : '') + (p.job === 'druid' ? (G.tm.wrath > 0 ? ' · 분노' : ' · 동료 ' + G.pets.length) : p.job === 'priest' ? ' · 정화 ' + p.holy : ''), 12, top + 38, 'left'); c.fillStyle = '#fff'; c.font = 'bold 14px Galmuri11, system-ui'; }
-  c.font = 'bold 18px Galmuri11, system-ui'; txt(fmtTime(G.time), W / 2, top + 20, 'center');
+  if (p.job) { c.font = 'bold 12px system-ui, Galmuri11, sans-serif'; c.fillStyle = '#d9a8ff'; txt(JOBS[p.job].name + (p.job2 ? ' · ' + JOB2[p.job].concat(JOB2_STAT).find(o => o.k === p.job2).nm : '') + (p.job === 'druid' ? (G.tm.wrath > 0 ? ' · 분노' : ' · 동료 ' + G.pets.length) : p.job === 'priest' ? ' · 정화 ' + p.holy : ''), 12, top + 38, 'left'); c.fillStyle = '#fff'; c.font = 'bold 14px system-ui, Galmuri11, sans-serif'; }
+  c.font = 'bold 18px system-ui, Galmuri11, sans-serif'; txt(fmtTime(G.time), W / 2, top + 20, 'center');
   const P = curPhase(), ph = G.ph;                          // 페이즈 이름·진행도 (0.3)
-  c.font = 'bold 12px Galmuri11, system-ui'; c.fillStyle = '#ffe08a';
+  c.font = 'bold 12px system-ui, Galmuri11, sans-serif'; c.fillStyle = '#ffe08a';
   if (ph.ambush) c.fillStyle = '#ff9a7a';
   txt(P ? `${ph.i + 1}/${ph.order.length} ${curPhaseName()}` : (G.result === 'clear' ? '돌파' : '이동 중'), W / 2, top + 38, 'center');
   if (P) { const bw = 120, acc = ph.accT > 0; c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(W / 2 - bw / 2, top + 47, bw, 4); c.fillStyle = acc ? '#ffffff' : '#ffe08a'; c.fillRect(W / 2 - bw / 2, top + 47, bw * clamp(phaseProgress(), 0, 1), 4);
-    if (acc) { c.font = 'bold 10px Galmuri11, system-ui'; c.fillStyle = '#fff6c8'; txt('▶▶', W / 2 + bw / 2 + 12, top + 49, 'center'); } }   // 처치 가속 표시 (0.24)
+    if (acc) { c.font = 'bold 10px system-ui, Galmuri11, sans-serif'; c.fillStyle = '#fff6c8'; txt('▶▶', W / 2 + bw / 2 + 12, top + 49, 'center'); } }   // 처치 가속 표시 (0.24)
   c.fillStyle = '#fff';
-  c.font = 'bold 14px Galmuri11, system-ui'; txt('처치 ' + G.kills, W - 56, top + 20, 'right');
+  c.font = 'bold 14px system-ui, Galmuri11, sans-serif'; txt('처치 ' + G.kills, W - 56, top + 20, 'right');
   if (STATE.dev.fps && STATE.mode !== 'result') { c.font = '12px ui-monospace,monospace'; txt(Math.round(STATE.fps) + ' FPS · 적 ' + aliveCount() + (() => { const P = perfStat(); return P ? ` · 평균 ${P.avg} · 하위1% ${P.low1}` : ''; })(), W - 12, isBossPhase() ? top + 128 : top + 96, 'right'); }
   drawSlots(c, top + 58);
   drawBossBar(c, top + 92, txt);                            // 수문장 체력 (0.11)
   let ty = VIEW.ch * 0.3;
-  for (const t of G.toasts) { c.globalAlpha = Math.min(1, (t.dur - t.t) * 3); c.font = 'bold 16px Galmuri11, system-ui'; c.fillStyle = t.color; txt(t.text, W / 2, ty, 'center'); ty += 26; c.fillStyle = '#fff'; }
+  for (const t of G.toasts) { c.globalAlpha = Math.min(1, (t.dur - t.t) * 3); c.font = 'bold 16px system-ui, Galmuri11, sans-serif'; c.fillStyle = t.color; txt(t.text, W / 2, ty, 'center'); ty += 26; c.fillStyle = '#fff'; }
   c.globalAlpha = 1;
   drawGuide(c);                                             // 첫 판 안내 (0.31)
 }
 
 /* 상단 아래 아이콘 줄: 무기 5칸 · 보조 효과 5칸 */
-function drawSlots(c, y) {
+function pixelDrawSlots(c, y) {
   const p = G.p, S = 24, gap = 4, W = VIEW.cw;
   const row = (list, n, x0, colorOf, icOf) => {
     for (let i = 0; i < n; i++) {
@@ -7212,8 +7211,8 @@ function drawSlots(c, y) {
       c.strokeStyle = it && icv ? colorOf(it) : 'rgba(0,0,0,0.55)'; c.lineWidth = 1.5; c.strokeRect(x + 0.75, y + 0.75, S - 1.5, S - 1.5);
       if (!it) continue;
       if (icv) { const iw = icv.width / VIEW.dpr, ih = icv.height / VIEW.dpr; c.imageSmoothingEnabled = false; c.drawImage(icv, Math.round(x + (S - iw) / 2), Math.round(y + (S - ih) / 2), iw, ih); }
-      else { c.fillStyle = '#14121c'; c.font = 'bold 13px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(icOf(it), x + S / 2, y + S / 2 - 1); }
-      c.font = 'bold 9px Galmuri11, system-ui'; c.textAlign = 'right'; c.textBaseline = 'alphabetic'; c.lineWidth = 2.5; c.strokeStyle = 'rgba(0,0,0,0.8)';
+      else { c.fillStyle = '#14121c'; c.font = 'bold 13px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(icOf(it), x + S / 2, y + S / 2 - 1); }
+      c.font = 'bold 9px system-ui, Galmuri11, sans-serif'; c.textAlign = 'right'; c.textBaseline = 'alphabetic'; c.lineWidth = 2.5; c.strokeStyle = 'rgba(0,0,0,0.8)';
       const lv = String(it.lvl); c.strokeText(lv, x + S - 1, y + S - 1); c.fillStyle = '#fff'; c.fillText(lv, x + S - 1, y + S - 1);
     }
   };
@@ -7231,13 +7230,13 @@ function drawSlots(c, y) {
     const X = TB[st.id], cx = dx0 + S / 2, cy = y + S / 2, h = S / 2 + 1;
     c.fillStyle = fc; c.beginPath(); c.moveTo(cx, cy - h); c.lineTo(cx + h, cy); c.lineTo(cx, cy + h); c.lineTo(cx - h, cy); c.closePath(); c.fill();
     c.strokeStyle = '#7a5a10'; c.lineWidth = 2; c.stroke();
-    c.fillStyle = '#14121c'; c.font = 'bold 11px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(X.ic, cx, cy);
+    c.fillStyle = '#14121c'; c.font = 'bold 11px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(X.ic, cx, cy);
     if (X.cd > 0.6) pie(cx, cy, S / 2 - 5, 1 - Math.max(0, st.t) / X.cd);
     dx0 += S + gap + 2;
   }
   const dials = jobDials();
   dials.forEach((d, i) => { const x = dx0 + i * (S + gap) + S / 2, yy = y + S / 2; if (x + S / 2 > px0 - 4) return;
-    c.fillStyle = d.col; c.beginPath(); c.arc(x, yy, S / 2 - 1, 0, 7); c.fill(); c.fillStyle = '#14121c'; c.font = 'bold 12px Galmuri11, system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.ic, x, yy);
+    c.fillStyle = d.col; c.beginPath(); c.arc(x, yy, S / 2 - 1, 0, 7); c.fill(); c.fillStyle = '#14121c'; c.font = 'bold 12px system-ui, Galmuri11, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(d.ic, x, yy);
     pie(x, yy, S / 2 - 1, d.k); });
 }
 /* 직업 주기 효과 목록 (궁극기 충전·군기·포탑·형태 교대) */
@@ -7700,6 +7699,133 @@ function drawVfxIce(c, x, y, r) {
   }
   c.restore();
 }
+/* 0.40-ui1 — common parchment/bronze interface; presentation only.
+   Native vector icons keep menu symbols crisp at small sizes. No network assets.
+   Canvas text uses the device UI font, with bundled Galmuri as glyph fallback. */
+const UI_ART = { images: {}, urls: {}, loaded: 0, font: 'system-ui, Galmuri11, sans-serif' };
+const UI_PATH = {
+  book: '<path fill="url(#leather)" d="M8 8Q18 5 24 10Q31 5 40 8L39 38Q30 36 24 40Q18 36 8 39Z"/><path fill="url(#page)" d="M11 10Q18 9 23 12V35Q18 32 11 34ZM25 12Q31 8 37 10V34Q31 32 25 35Z"/><path d="M24 12V38M14 16l6 1m-6 5 6 1m8-6 6-1m-6 7 6-1" fill="none" stroke="#84694e" stroke-width="1.4"/><path d="m23 18 3 1-1 9-2-2-2 1Z" fill="#759ca9"/>',
+  gear: '<path fill="url(#bronze)" d="m20 5 8 0 1 5 4 2 5-2 4 7-4 4v5l4 4-4 7-5-2-4 2-1 6h-8l-1-6-4-2-5 2-4-7 4-4v-5l-4-4 4-7 5 2 4-2Z"/><circle cx="24" cy="24" r="12" fill="#574c4b"/><circle cx="24" cy="24" r="8" fill="url(#steel)"/><circle cx="24" cy="24" r="4" fill="#26313d"/><path d="M17 17q6-6 13-1" stroke="#f2dfad" fill="none" stroke-width="1.5"/>',
+  back: '<path d="M24 10 9 24l15 14v-9h14V19H24Z" fill="url(#bronze)"/><path d="m13 24 9-9m3 7h11" stroke="#f7eac8" stroke-width="2" fill="none"/>',
+  pause: '<path fill="url(#bronze)" d="M13 10h8v28h-8ZM28 10h8v28h-8Z"/><path d="M15 13v20m15-20v20" stroke="#f7eac8" stroke-width="1.5"/>',
+  heart: '<path d="M24 39 8 24C-2 9 16 3 24 15 32 3 50 9 40 24Z" fill="url(#rose)"/><path d="M11 19q-2-7 6-6" stroke="#f9d4bd" stroke-width="2" fill="none"/>',
+  hourglass: '<path d="M13 8h22M13 40h22" stroke="url(#bronze)" stroke-width="5"/><path d="M16 11q0 9 8 13-8 4-8 13h16q0-9-8-13 8-4 8-13Z" fill="url(#steel)"/><path d="m19 15 5 7 5-7m-5 12-6 8h12Z" fill="#e3c58a"/>',
+  skull: '<path d="M12 29C0 4 47 2 37 29l-6 4v8H17v-8Z" fill="url(#page)"/><path d="M12 22q6-6 9 1l-1 6h-6Zm16 1q4-7 9-1l-2 7h-6Zm-4 5 3 6h-6Zm-3 10v4m6-4v4" fill="#30303a" stroke="#30303a" stroke-width="1.5"/>',
+  crest: '<path d="M24 5 40 11v14Q37 37 24 43 11 37 8 25V11Z" fill="url(#bronze)"/><path d="m24 10 11 5v10q-3 9-11 13-8-4-11-13V15Z" fill="#40556d"/><path d="m24 15 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill="url(#page)"/>',
+  spark: '<path d="m27 4-16 23h12l-2 17 17-25H25Z" fill="url(#bronze)"/><path d="m26 10-10 15h8" stroke="#fff0bf" fill="none" stroke-width="1.5"/>'
+};
+function uiIcon(k) {
+  if (UI_ART.urls[k]) return UI_ART.urls[k];
+  if (!UI_PATH[k]) return pixelUiIcon(k in UI_ICON ? k : 'book');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><defs><linearGradient id="bronze" x2=".3" y2="1"><stop stop-color="#f1db9e"/><stop offset=".48" stop-color="#c6a970"/><stop offset="1" stop-color="#897049"/></linearGradient><linearGradient id="page" x2=".3" y2="1"><stop stop-color="#f3e5c6"/><stop offset="1" stop-color="#bcac8d"/></linearGradient><linearGradient id="steel" x2=".5" y2="1"><stop stop-color="#c2d5db"/><stop offset="1" stop-color="#64808f"/></linearGradient><linearGradient id="leather" x2=".4" y2="1"><stop stop-color="#6b5b79"/><stop offset="1" stop-color="#3f354d"/></linearGradient><linearGradient id="rose" x2=".3" y2="1"><stop stop-color="#d19c8c"/><stop offset="1" stop-color="#9d5d64"/></linearGradient></defs><g stroke="#332c3c" stroke-width="1.4" stroke-linejoin="round">${UI_PATH[k]}</g></svg>`;
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), im = new Image();
+  im.onload = () => { UI_ART.images[k] = im; UI_ART.loaded++; }; im.src = url;
+  return UI_ART.urls[k] = url;
+}
+for (const k of Object.keys(UI_PATH)) uiIcon(k);
+function uiRound(c, x, y, w, h, r=6) {
+  r=Math.min(r,w/2,h/2); c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function uiPanel(c,x,y,w,h,fill='#202a39',stroke='#7f775f',r=8) {
+  uiRound(c,x,y,w,h,r); c.fillStyle=fill; c.fill(); c.strokeStyle=stroke; c.lineWidth=1; c.stroke();
+}
+function uiText(c,s,x,y,size=12,color='#efe8d9',align='left',max=Infinity,weight=500) {
+  c.font=`${weight} ${size}px ${UI_ART.font}`;c.textBaseline='middle';c.textAlign=align;c.fillStyle=color;
+  s=String(s); if(c.measureText(s).width>max){while(s.length&&c.measureText(s+'…').width>max)s=s.slice(0,-1);s+='…';}
+  c.fillText(s,x,y);
+}
+function uiImage(c,key,x,y,s=16) { const im=UI_ART.images[key]; if(im)c.drawImage(im,x,y,s,s); }
+function hudLayout(width=VIEW.cw,sat=VIEW.sat) {
+  const w=Math.min(560,width-16),x=(width-w)/2,y=sat+6,S=22,gap=4;
+  const tile=(i,row,right=false,n=1)=>({x:right?x+w-10-n*S-(n-1)*gap+i*(S+gap):x+34+i*(S+gap),y:y+90+row*26,w:S,h:S});
+  return {x,y,w,h:142,S,gap,tile};
+}
+function uiBar(c,x,y,w,h,k,col,bg='#111b27') {
+  uiRound(c,x,y,w,h,h/2);c.fillStyle=bg;c.fill();
+  const fill=w*clamp(k,0,1);if(fill>0){c.save();c.clip();c.fillStyle=col;c.fillRect(x,y,fill,h);c.fillStyle='rgba(255,255,255,.22)';c.fillRect(x,y,fill,Math.max(1,h*.25));c.restore();}
+}
+function drawXpGauge(c,top) {
+  const L=hudLayout(),p=G.p,k=clamp(G.rc?G.rc.xpShow:p.xp/Math.max(1,p.need),0,1);
+  uiBar(c,L.x+10,L.y+5,L.w-20,3,k,'#91bfcb');
+  uiPanel(c,L.x+10,L.y+17,57,25,'#354152','#a28b62',7);
+  uiText(c,'Lv '+p.level,L.x+38.5,L.y+30,12,'#f0dfb4','center',50,650);
+}
+function uiTile(c,r,art,color,level,progress,mark) {
+  uiPanel(c,r.x,r.y,r.w,r.h,'#182330',art?color:'#414c58',5);
+  if(art)c.drawImage(art,r.x+1,r.y+1,r.w-2,r.h-2);
+  else {c.strokeStyle='#3a4653';c.lineWidth=1;c.beginPath();c.moveTo(r.x+r.w/2-2,r.y+r.h/2);c.lineTo(r.x+r.w/2+2,r.y+r.h/2);c.stroke();}
+  if(mark){c.strokeStyle=mark;c.lineWidth=2;uiRound(c,r.x+1,r.y+1,r.w-2,r.h-2,4);c.stroke();}
+  if(progress!==undefined&&progress<1){
+    c.save();uiRound(c,r.x+1,r.y+1,r.w-2,r.h-2,4);c.clip();c.globalAlpha=.58;c.fillStyle='#0e1725';c.beginPath();c.moveTo(r.x+r.w/2,r.y+r.h/2);c.arc(r.x+r.w/2,r.y+r.h/2,r.w,-Math.PI/2+Math.PI*2*clamp(progress,0,1),Math.PI*1.5);c.closePath();c.fill();c.restore();
+  }
+  if(level!=null){uiPanel(c,r.x+r.w-11,r.y+r.h-10,12,11,'#1a2330','#7f806d',3);uiText(c,level,r.x+r.w-5,r.y+r.h-4.5,8,'#fff4db','center',11,700);}
+}
+const UI_EXW_ICON={
+  first:{warrior:'boomerang',rogue:'knife',archer:'arrow',engineer:'lightning',mage:'fireball',summoner:'orb',sovereign:'shield',chrono:'hourglass',priest:'regen',druid:'trap'},
+  second:{warrior:'slam',rogue:'knife',archer:'arrow',engineer:'bomb',mage:'icering',summoner:'orb',sovereign:'cleave',chrono:'hourglass',priest:'beam',druid:'trap'}
+};
+function uiAbilityArt(id,first){const key=UI_EXW_ICON[first?'first':'second'][id];return UI_ART.images[key]||iconCanvas(key,2)||UI_ART.images.crest;}
+function drawSlots(c,unused) {
+  const L=hudLayout(),p=G.p,T=G.tm; c.save();c.imageSmoothingEnabled=true;
+  uiText(c,'무기',L.x+10,L.y+101,9,'#adb8c1');uiText(c,'보조',L.x+10,L.y+127,9,'#adb8c1');
+  for(let i=0;i<slotW();i++){const it=p.weapons[i];uiTile(c,L.tile(i,0),it&&iconCanvas(it.id,2),it?CFG.colors[WEAPONS[it.id].cat]:'#414c58',it&&it.lvl,undefined,it&&jobTint(WEAPONS[it.id].cat));}
+  const pcd={magnet:['vacuum',()=>1-(T.vac==null?30:T.vac)/30],vit:['shield',()=>p.shield?1:1-T.shield/12],haste:['charge',()=>1-T.charge/8]};
+  for(let i=0;i<CFG.slots.passive;i++){const it=p.passives[i],q=it&&pcd[it.id];uiTile(c,L.tile(i,1),it&&iconCanvas(it.id,2),CFG.colors.passive,it&&it.lvl,q&&it.br===q[0]?q[1]():undefined);}
+  const specials=[[p.exw1,EXW1],[p.exw,EXW]].filter(([s])=>s);
+  specials.forEach(([st,table],i)=>{const X=table[st.id],r=L.tile(i,0,true,specials.length);uiTile(c,r,uiAbilityArt(st.id,table===EXW1),'#c3a86d',undefined,X.cd>.6?1-Math.max(0,st.t)/X.cd:undefined);uiText(c,table===EXW1?'Ⅰ':'Ⅱ',r.x+3,r.y+5,7,'#fff0bb','left',10,700);});
+  const ds=jobDials();ds.forEach((d,i)=>{const key=d.ic==='궁'?'spark':d.ic==='기'?'crest':d.ic==='탑'?'gear':'crest';uiTile(c,L.tile(i,1,true,ds.length),UI_ART.images[key],d.col,undefined,d.k);});
+  c.restore();
+}
+function drawBossBar(c,y,unused) {
+  const e=G.gkMob;if(!e||e.dead||!G.ph||!isBossPhase())return;
+  const L=hudLayout(),D=bossDef(e.gk),bx=L.x+10,bw=L.w-20;
+  uiPanel(c,L.x,y-2,L.w,43,'rgba(31,25,36,.94)','#946d69',8);
+  const name=e.gk==='demon'?`${D.name} · ${['그림자 군주','암흑 결계','종언'][e.st]} (${e.st+1}/3)`:`${D.name} · ${D.gate}`;
+  uiText(c,name,L.x+L.w/2,y+10,11,'#eed6c4','center',bw-12,600);
+  uiBar(c,bx,y+23,bw,6,e.hp/e.maxHp,e.rage||e.st===2?'#d68c72':'#ba8188');
+  if(e.gk==='demon'){c.fillStyle='#f4debe';for(const k of DM_CFG.stages)c.fillRect(bx+bw*k,y+23,1,6);}
+}
+function drawHUD(c) {
+  const L=hudLayout(),p=G.p,ph=G.ph,P=curPhase();c.save();c.imageSmoothingEnabled=true;
+  uiPanel(c,L.x,L.y,L.w,L.h,'rgba(22,31,43,.88)','#6b6c60',10);
+  drawXpGauge(c,L.y); uiImage(c,'hourglass',L.x+L.w/2-44,L.y+23,13);
+  uiText(c,fmtTime(G.time),L.x+L.w/2+3,L.y+30,19,'#f0e9d9','center',90,650);
+  const hp=clamp(p.hp/p.maxHp,0,1),hpcol=hp>.3?'#9fc19d':'#d58c86';
+  uiImage(c,'heart',L.x+10,L.y+45,12);uiBar(c,L.x+26,L.y+49,67,4,hp,hpcol);
+  uiText(c,Math.ceil(p.hp)+' / '+Math.round(p.maxHp),L.x+26,L.y+62,9,'#c6d0cd','left',75);
+  const kills=G.kills>=10000?(G.kills/10000).toFixed(1)+'만':G.kills;
+  uiText(c,'처치 '+kills,L.x+L.w-10,L.y+57,11,'#d9cbb3','right',78,600);
+  if(p.job){
+    const j2=p.job2&&JOB2[p.job].concat(JOB2_STAT).find(o=>o.k===p.job2),status=p.job==='druid'?(G.tm.wrath>0?' · 분노':' · 동료 '+G.pets.length):p.job==='priest'?' · 정화 '+p.holy:'';
+    let label=JOBS[p.job].name+(j2?' · '+j2.nm:'')+status;c.font=`500 10px ${UI_ART.font}`;
+    if(status&&c.measureText(label).width>L.w-204)label=JOBS[p.job].name+status;
+    uiText(c,label,L.x+L.w/2,L.y+56,10,'#c3bbd6','center',L.w-204);
+  }
+  uiText(c,P?`${ph.i+1}/${ph.order.length} ${curPhaseName()}${ph.accT>0?' · 가속':''}`:G.result==='clear'?'돌파':'이동 중',L.x+L.w/2,L.y+75,11,ph.ambush?'#e6a58d':'#dfcb98','center',L.w-30,600);
+  if(P)uiBar(c,L.x+30,L.y+83,L.w-60,2,phaseProgress(),ph.accT>0?'#f1e6bc':'#cdb57c');
+  drawSlots(c,L.y+90);drawBossBar(c,L.y+148);
+  const hasBoss=!!(G.gkMob&&!G.gkMob.dead&&isBossPhase()),below=L.y+(hasBoss?196:148);
+  if(STATE.dev.fps&&STATE.mode!=='result'){const stat=perfStat();uiText(c,`${Math.round(STATE.fps)} FPS · 적 ${aliveCount()}`+(stat?` · 평균 ${stat.avg} · 하위1% ${stat.low1}`:''),L.x+L.w-2,below+10,10,'#d1d8d9','right',L.w-8);}
+  let ty=Math.max(VIEW.ch*.3,below+38);for(const t of G.toasts){c.globalAlpha=Math.min(1,(t.dur-t.t)*3);uiText(c,t.text,VIEW.cw/2,ty,14,t.color,'center',VIEW.cw-30,600);ty+=24;}c.globalAlpha=1;
+  drawGuide(c);c.restore();
+}
+function drawGuide(c) {
+  const g=GD.cur;if(!g||STATE.mode!=='play')return;const tx=typeof g.tx==='function'?g.tx():g.tx,W=VIEW.cw,w=Math.min(400,W-32);
+  c.save();c.globalAlpha=clamp(Math.min(GD.t*4,(GD.dur-GD.t)*3),0,1);c.font=`500 12px ${UI_ART.font}`;
+  const lines=[];let line='';for(const ch of tx){if(c.measureText(line+ch).width>w-30&&line){lines.push(line);line=ch;}else line+=ch;}if(line)lines.push(line);
+  const h=lines.length*18+18,x=(W-w)/2,y=Math.min(VIEW.ch*.72,VIEW.ch-VIEW.sab-h-20);
+  uiPanel(c,x,y,w,h,'rgba(24,33,45,.95)','#a28b62',9);lines.forEach((s,i)=>uiText(c,s,W/2,y+18+i*18,12,'#eadfc3','center',w-26));c.restore();
+}
+const uiArtStyle=document.createElement('style');uiArtStyle.textContent=`
+.hlogo h1{font-family:Georgia,"Noto Serif KR","Batang",Galmuri11,serif}
+:root{--f-body:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",Galmuri11,sans-serif}
+.icb,.pausebtn{border:1px solid #9b8c6b;border-radius:12px;background:linear-gradient(145deg,rgba(59,67,80,.95),rgba(29,39,54,.96));box-shadow:inset 0 1px 0 #ddd1a322,0 3px 10px #11182255}
+.icb img{image-rendering:auto;width:28px;height:28px}.pgt .icb{border:1px solid #706c5b;background:#293446}
+.pausebtn{top:calc(var(--sat) + 14px);right:max(18px,calc((100vw - 560px)/2 + 10px));width:44px;height:40px;min-height:44px}.pausebtn img{width:25px;height:25px;vertical-align:middle}
+.pgh{background:linear-gradient(135deg,#202c3e,#1c2534);border-bottom:1px solid #706c5b}.pgt h2{color:#e9d8af}.ptabs button{font-size:12px;min-height:44px}.ptabs button.on{color:#f0dfb4}.ptabs .bar{background:#c6af7c}
+button:focus-visible{outline:2px solid #e4c993;outline-offset:3px}.row,.cx,.ab{box-shadow:inset 0 1px 0 #e8d9b008}.stats{font-variant-numeric:tabular-nums}.ver{font-family:var(--f-body)}
+@media(prefers-reduced-motion:reduce){.icb,.pausebtn{transition:none}}
+`;document.head.appendChild(uiArtStyle);
 /* ============================================================
    화면 겹침 UI — 시작·일시정지·결과 화면, 대사창 틀 (0.4)
    ============================================================ */
@@ -7859,7 +7985,7 @@ function dlgTap() {
 
 /* 일시정지 버튼 — 진행 중에만 표시 */
 const PBTN = document.createElement('button');
-PBTN.id = 'pausebtn'; PBTN.className = 'pausebtn'; PBTN.setAttribute('aria-label', '일시정지'); PBTN.textContent = 'Ⅱ';
+PBTN.id = 'pausebtn'; PBTN.className = 'pausebtn'; PBTN.setAttribute('aria-label', '일시정지'); PBTN.innerHTML = `<img src="${uiIcon('pause')}" alt="">`;
 PBTN.addEventListener('click', pauseGame); document.body.appendChild(PBTN);
 let pbShown = null;
 function syncPauseBtn() { const v = STATE.mode === 'play' && G && !G.result; if (v !== pbShown) { pbShown = v; PBTN.style.display = v ? '' : 'none'; } }
