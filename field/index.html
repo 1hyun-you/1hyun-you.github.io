@@ -6918,8 +6918,8 @@ shieldBash = function (x, y, R, dmg, kb, sovereignBase) {
 const _slamWave39 = slamWave;
 slamWave = function (x, y, R, dmg, kb) { _slamWave39(x, y, R, dmg, kb); killSouls(x, y, R); };
 const _slash39 = slash;
-slash = function (a0, arc, range, dmg, kb) {
-  _slash39(a0, arc, range, dmg, kb);
+slash = function (a0, arc, range, dmg, kb, basicWeapon) {
+  _slash39(a0, arc, range, dmg, kb, basicWeapon);
   const p = G.p; if (!G.eb || !G.eb.length) return;
   for (const b of G.eb) { if (b.life <= 0 || b.src !== '마왕 혼령') continue; const dx = b.x - p.x, dy = b.y - p.y; if (dx * dx + dy * dy > (range + b.r) ** 2) continue; let da = Math.atan2(dy, dx) - a0; da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) <= arc / 2 + 0.15) killSouls(b.x, b.y, 1); }
 };
