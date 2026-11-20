@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.57',
+  VERSION: '0.57a',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -14677,7 +14677,7 @@ toast = function () { if (G && G.cu56 && !G.finished) return; return _toast56.ap
 const _cuStart56b = cuStart56;
 cuStart56 = function () { const r = _cuStart56b.apply(this, arguments); if (G) G.toasts = []; return r; };
 /* ============================================================
-   0.57 치트 패널 개편 (회차 68)
+   0.57 치트 패널 개편 (회차 68) · 0.57a 보스전 레벨 맞춤 시 전직·2차 전직 자동 (회차 69)
    - 패널이 치트 버튼을 따라 이동, 화면 안쪽으로 펼침, 묶음별 제목·색 구분, 버튼 확대
    - 진행 / 성장 / 무기 / 구간 이동 / 기타 5묶음
    - 무기 고르기 창: 무기·Lv 1~5·발현·각성 지정, 상단 '연성 완료'
@@ -14807,6 +14807,14 @@ function dev57Resolve() {
   recalc();
 }
 function dev57Fit(lv) { if (STATE.dev.fit && G.p.level < lv) dev57Levels(lv - G.p.level); }
+/* 0.57a 보스전 레벨 맞춤: 전직(인물)·2차 전직(인물 각성)까지 자동 처리 — 인물은 후보 1순위, 각성은 무작위 (완전 자동과 동일) */
+function dev57Promote(lv) {
+  const p = G.p;
+  if (!p.job) applyJob(jobCands()[0].id);
+  dev57Fit(lv);
+  if (!p.job2) { G.pendingJob2 = false; G.job2Ready = false; applyJob2(pick(JOB2[p.job]).k); }
+  p.ult = JOB_CFG.ultNeed;                                         // 전직 시 궁극기 가득 (공통 원칙)
+}
 
 /* ---------- 구간 이동 ---------- */
 function dev57JobPick() {
@@ -14828,10 +14836,10 @@ function dev57Boss(k) {
   if (isBossPhase()) { toast('보스전 진행 중', '#c49aff'); return; }
   const ph = G.ph;
   if (k === 'demon') {
-    dev57Fit(DEV57.lvDemon);
+    if (STATE.dev.fit) dev57Promote(DEV57.lvDemon);
     G.runType = 'retry'; ph.order = ph.order.slice(0, ph.i + 1).concat('demon');
   } else {
-    dev57Fit(DEV57.lvGate);
+    if (STATE.dev.fit) dev57Promote(DEV57.lvGate);
     G.gk = k;
     const gi = ph.order.indexOf('gate'); ph.order = ph.order.slice(0, ph.i + 1).concat('gate', gi >= 0 ? ph.order.slice(gi + 1) : []);
   }
