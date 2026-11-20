@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.57a',
+  VERSION: '0.57b',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -14677,7 +14677,7 @@ toast = function () { if (G && G.cu56 && !G.finished) return; return _toast56.ap
 const _cuStart56b = cuStart56;
 cuStart56 = function () { const r = _cuStart56b.apply(this, arguments); if (G) G.toasts = []; return r; };
 /* ============================================================
-   0.57 치트 패널 개편 (회차 68) · 0.57a 보스전 레벨 맞춤 시 전직·2차 전직 자동 (회차 69)
+   0.57 치트 패널 개편 (회차 68) · 0.57a 보스전 레벨 맞춤 시 전직·2차 전직 자동 · 0.57b 버튼 축소·이름 축약·묶음 제목 삭제·무기를 성장 묶음으로 (회차 69)
    - 패널이 치트 버튼을 따라 이동, 화면 안쪽으로 펼침, 묶음별 제목·색 구분, 버튼 확대
    - 진행 / 성장 / 무기 / 구간 이동 / 기타 5묶음
    - 무기 고르기 창: 무기·Lv 1~5·발현·각성 지정, 상단 '연성 완료'
@@ -14694,11 +14694,11 @@ const DEV57 = { lvJob: 19, lvAwk: 26, lvGate: 53, lvDemon: 43, bossOpen: false, 
 (function () {
   if (typeof document === 'undefined') return;
   const st = document.createElement('style');
-  st.textContent = `.dev{left:auto;bottom:auto;max-width:min(300px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow-y:auto;gap:7px;pointer-events:auto;padding:2px}
-.dev .sec{display:flex;flex-direction:column;gap:5px;padding:6px 7px 7px;border-radius:10px;background:rgba(10,9,16,.72);border:1px solid var(--sc,#888);border-left-width:4px}
+  st.textContent = `.dev{left:auto;bottom:auto;max-width:min(240px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow-y:auto;gap:4px;pointer-events:auto;padding:1px}
+.dev .sec{display:flex;flex-direction:column;gap:4px;padding:4px 5px;border-radius:8px;background:rgba(10,9,16,.72);border:1px solid var(--sc,#888);border-left-width:3px}
 .dev .sec>b{font-size:11px;font-weight:normal;color:var(--sc,#ccc);letter-spacing:.04em}
-.dev .r{gap:6px}
-.dev button{min-height:40px;min-width:44px;padding:5px 11px;font-size:13px}
+.dev .r{gap:4px}
+.dev button{min-height:28px;min-width:32px;padding:3px 7px;font-size:11px}
 .dev button.arm{background:rgba(150,40,40,.9);border-color:#ff8a7a}
 .devwin{position:fixed;inset:0;z-index:20;background:rgba(6,6,10,.82);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 10px 24px}
 .devwin .box{width:100%;max-width:420px;display:flex;flex-direction:column;gap:9px}
@@ -14749,16 +14749,15 @@ DEV.draw = function () {
   if (!this.el) return;
   const d = STATE.dev, mode = d.auto ? (d.semi ? 'semi' : 'full') : 'off';
   const chip = (k, label, on, cls = '') => `<button data-k="${k}" class="${on ? 'on' : ''} ${cls}">${label}</button>`;
-  const sec = (t, col, rows) => `<div class="sec" style="--sc:${col}"><b>${t}</b>${rows.map(x => `<div class="r">${x}</div>`).join('')}</div>`;
+  const sec = (t, col, rows) => `<div class="sec" style="--sc:${col}">${rows.map(x => `<div class="r">${x}</div>`).join('')}</div>`;   // 0.57b 묶음 제목 삭제 (색 테두리로만 구분)
   const bossRow = DEV57.bossOpen ? GK_ORDER.map(k => chip('b_' + k, GATEKEEPERS[k].name)).join('') + chip('b_demon', '마왕') : '';
   const armed = performance.now() < DEV57.restartArm;
   this.el.innerHTML =
     sec('진행', '#7fb0ff', [[1, 2, 4, 8].map(v => chip('sp' + v, v + '배', d.speed === v)).join(''),
-      chip('m_full', '완전 자동', mode === 'full') + chip('m_semi', '반자동', mode === 'semi') + chip('m_off', '수동', mode === 'off')]) +
-    sec('성장', '#6fd08a', [chip('god', '무적', d.god) + chip('lv1', '레벨 +1') + chip('lv10', '레벨 +10') + chip('ult', '궁극기 충전')]) +
-    sec('무기', '#ffb45a', [chip('wpick', '무기 고르기')]) +
-    sec('구간 이동', '#c49aff', [chip('j_pick', '인물 선택 직전') + chip('j_awk', '인물 각성 직전'), chip('boss', '보스전', DEV57.bossOpen) + chip('fit', '레벨 맞춤 ' + (d.fit ? '켬' : '끔'), d.fit)].concat(bossRow ? [bossRow] : [])) +
-    sec('기타', '#a9a9b8', [chip('elite', '정예') + chip('restart', armed ? '한 번 더' : '새 판', false, armed ? 'arm' : '') + chip('fps', 'FPS', d.fps)]);
+      chip('m_full', '자동', mode === 'full') + chip('m_semi', '반자동', mode === 'semi') + chip('m_off', '수동', mode === 'off')]) +
+    sec('성장', '#6fd08a', [chip('god', '무적', d.god) + chip('lv1', '레벨1') + chip('lv10', '레벨10') + chip('ult', '궁극기') + chip('wpick', '무기')]) +
+    sec('구간 이동', '#c49aff', [chip('j_pick', '인물') + chip('j_awk', '각성') + chip('boss', '보스', DEV57.bossOpen) + chip('fit', '맞춤', d.fit)].concat(bossRow ? [bossRow] : [])) +
+    sec('기타', '#a9a9b8', [chip('elite', '정예') + chip('restart', armed ? '확인' : '새판', false, armed ? 'arm' : '') + chip('fps', 'FPS', d.fps)]);
   this.el.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { dev57Act(b.dataset.k); if (this.el) { this.draw(); this.place(); } }));
 };
 const dev57Play = () => G && STATE.mode === 'play' && !G.result;
