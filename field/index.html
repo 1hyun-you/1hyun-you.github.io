@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.57b',
+  VERSION: '0.58',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -954,7 +954,7 @@ function updatePhase(dt) {
   }
   const P = PHASES[ph.id], dk = G.kills - ph.k0; ph.k0 = G.kills;
   if (!eventPaused()) {
-    ph.t += dt;          // 곁가지 사건 진행 중 페이즈 타이머 정지 (3단계 결정 안건 6)
+    ph.t += dt;          // 돌발 사건 진행 중 페이즈 타이머 정지 (3단계 결정 안건 6)
     if (P.goal === 'time' && (ph.ambush || !REST_PH.includes(ph.id)) && dk > 0) {   // 0.24 처치 가속 (휴식형 제외, 습격 변형 포함)
       const b = Math.min(dk * PH_CFG.accPerKill, P.dur * PH_CFG.accMax - ph.acc);
       if (b > 0) { ph.t += b; ph.acc += b; ph.accT = 0.6; }
@@ -1154,7 +1154,7 @@ function drawPhasePointer(c, camX, camY) {
   c.restore();
 }
 /* ============================================================
-   곁가지 사건 (0.10) — 판당 1~2회, 3종 (3단계 결정 안건 6)
+   돌발 사건 (0.10) — 판당 1~2회, 3종 (3단계 결정 안건 6)
    공통: 일반 페이즈(기믹형·야영지 제외) 진행 중 플레이어 주변 생성, 간접 신호로 성격 암시,
          무시 가능(일정 시간 후 소멸), 진입 시 진행 중 페이즈 타이머 정지, 완료 후 복귀
    동굴 입구: 정예 소굴 45초 생존 → 유물 우선 보물 상자
@@ -1198,12 +1198,12 @@ function eventSpawn(pl) {
     e.hp = e.maxHp = e.hp * EV_CFG.giantHp; e.dmg *= EV_CFG.giantDmg; e.r = EV_CFG.giantR; e.color = '#7a5a8a'; e.xp = 40;
     e.cmd = true; e.sleep = true; e.ev = c; c.mob = e;
   }
-  G.ev.cur = c; toast(D.sign, D.color);
+  G.ev.cur = c; toast(`돌발 사건 · ${D.sign}`, D.color);
 }
 function eventEnd(outcome) {
   const c = G.ev.cur; if (!c) return;
   G.ev.log.push([c.type, outcome, Math.round(G.time - c.at)]);
-  if (outcome === 'ok' || outcome === 'refuse') fragUnlock(c.type);   // 곁가지 사건 첫 해결 조각 (0.13), 0.16: 봉인된 문은 열기만 해도 해금
+  if (outcome === 'ok' || outcome === 'refuse') fragUnlock(c.type);   // 돌발 사건 첫 해결 조각 (0.13), 0.16: 봉인된 문은 열기만 해도 해금
   if (c.mob && !c.mob.dead && outcome !== 'ok') c.mob.dead = true;
   G.ev.cur = null;
 }
@@ -1959,7 +1959,7 @@ function dmSave(s) {
    원인: 조력자 소원형 — 마왕 토벌에 실패하고 동료를 잃은 주인공의 "다시 한 번" 소원을 조력자가 들어주어 생긴 고리
    해제: 기록 조각 10개 전부 해금 → 다음 판 시작 대사에서 조력자가 고리를 놓음 → 그 판 마왕 처치 시 진엔딩
    엔딩: 일반 엔딩(첫 마왕 처치, 고리에 의해 마왕 부활) · 진엔딩(수용·작별형)
-   기록 조각: 이정표 7개 + 곁가지 사건 3종 첫 해결 각 1개 (혼합형)
+   기록 조각: 이정표 7개 + 돌발 사건 3종 첫 해결 각 1개 (혼합형)
    인물명(리안·에다·토르반·하린·유르)은 가칭
    ============================================================ */
 const CAST = {
@@ -2094,7 +2094,7 @@ function showEnding(next) {
    보상은 성능 영향 없음(판 점수 배율·칭호·주인공 색상), 배율·강화 수치는 초기값 (5단계 시험으로 확정)
    ============================================================ */
 /* ---------- 설정 (기기 저장) ---------- */
-const SET_DEF = { autoUlt: false, joy: 'float', confirm2: false, sfx: 80, bgm: 60, vibe: true, shake: true, dlgAuto: false, dmgNum: false, fps: 60, hitstop: true, hud: 'm' };   // 0.47 프레임 60/120·타격 멈춤
+const SET_DEF = { autoUlt: false, ultSide: 'L', joy: 'float', confirm2: false, sfx: 80, bgm: 60, vibe: true, shake: true, dlgAuto: false, dmgNum: false, fps: 60, hitstop: true, hud: 'm' };   // 0.47 프레임 60/120·타격 멈춤
 const SETTINGS = (() => { try { return Object.assign({}, SET_DEF, JSON.parse(localStorage.getItem(CFG.SAVE_KEY + '_set') || '{}')); } catch (e) { return Object.assign({}, SET_DEF); } })();
 function saveSettings() { try { localStorage.setItem(CFG.SAVE_KEY + '_set', JSON.stringify(SETTINGS)); } catch (e) { } }
 /* 0.27f 전체 화면 옵션 삭제: 상태 표시줄 표시형 확정 (웹 전체 화면은 뒤로가기 시 해제·재적용 버벅임 발생) */
@@ -2179,7 +2179,8 @@ function showSettings(back) {
   const V = (k, nm) => `<div class="row"><div class="rt"><b>${nm}</b><span>0~100</span></div><input type="range" min="0" max="100" step="10" value="${SETTINGS[k]}" data-v="${k}" aria-label="${nm}"><output>${SETTINGS[k]}</output></div>`;
   UI.innerHTML = `<div class="layer scroll pg">${pgHead('설정', 's_back')}<div class="rows">
     <div class="row"><div class="rt"><b>조이스틱</b><span>${SETTINGS.joy === 'fixed' ? '고정형: 화면 아래 중앙 기준' : '유동형: 처음 누른 위치 기준'}</span></div><button class="tg" id="s_joy">${SETTINGS.joy === 'fixed' ? '고정형' : '유동형'}</button></div>
-    ${T('autoUlt', '궁극기 자동 발동', '꺼짐: 손을 떼고 잠시 멈춰 발동 · 켜짐: 적이 몰리면 자동')}
+    <div class="row"><div class="rt"><b>궁극기 버튼 위치</b><span>조이스틱 ${SETTINGS.ultSide === 'R' ? '오른쪽' : '왼쪽'}에 표시</span></div><button class="tg" id="s_ults">${SETTINGS.ultSide === 'R' ? '오른쪽' : '왼쪽'}</button></div>
+    ${T('autoUlt', '궁극기 자동 발동', '꺼짐: 조이스틱 옆 버튼으로 발동 · 켜짐: 적이 몰리면 자동')}
     ${T('confirm2', '두 번 눌러 확정', '선택 카드를 한 번 더 눌러야 선택')}
     ${T('dlgAuto', '대사 자동 넘김', '대사가 끝나면 잠시 후 다음 줄로')}
     ${T('vibe', '진동', '피격과 고비 순간(전직·각성·연성·궁극기·강적 처치)에 진동')}
@@ -2195,6 +2196,7 @@ function showSettings(back) {
   UI.querySelectorAll('button.tg[data-k]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; SETTINGS[k] = !SETTINGS[k]; saveSettings(); b.classList.toggle('on', SETTINGS[k]); b.setAttribute('aria-checked', SETTINGS[k]); sfx('ui'); }));   // 0.37 제자리 전환 (손잡이 이동)
   UI.querySelectorAll('input[data-v]').forEach(i => i.addEventListener('input', () => { SETTINGS[i.dataset.v] = +i.value; i.nextElementSibling.textContent = i.value; saveSettings(); auVol(); if (i.dataset.v === 'sfx') sfx('ui'); }));
   on('s_joy', () => { SETTINGS.joy = SETTINGS.joy === 'fixed' ? 'float' : 'fixed'; saveSettings(); keepScroll(() => showSettings(back)); });
+  on('s_ults', () => { SETTINGS.ultSide = SETTINGS.ultSide === 'R' ? 'L' : 'R'; saveSettings(); keepScroll(() => showSettings(back)); });
   on('s_fps', () => { SETTINGS.fps = SETTINGS.fps === 120 ? 60 : 120; saveSettings(); keepScroll(() => showSettings(back)); });
   on('s_hud', () => { SETTINGS.hud = { s: 'm', m: 'l', l: 's' }[SETTINGS.hud] || 'l'; saveSettings(); keepScroll(() => showSettings(back)); });
   on('s_back', back);
@@ -2797,7 +2799,7 @@ const JOBS = {
   rogue: { name: '도적', cat: 'melee', ic: '도', rule: '쉬지 않고 이동할수록 치명타 확률 증가, 적 사이 근접 통과 시 짧은 무적', ult: '그림자 난무: 2.5초 무적, 주변 적 연속 타격' },
   archer: { name: '궁수', cat: 'ranged', ic: '궁', rule: '같은 적 원거리 명중 시 표식 누적, 5개 누적 시 표식 폭발', ult: '화살비: 3초간 주변에 화살 낙하' },
   engineer: { name: '엔지니어', cat: 'ranged', ic: '엔', rule: '10초마다 포탑 자동 설치 (최대 2), 포탑이 원거리 공격', ult: '포격 지원: 포탑 4개 즉시 설치, 8초간 발사 속도 2배' },
-  mage: { name: '마법사', cat: 'magic', ic: '마', rule: '서로 다른 속성 마법을 연달아 맞히면 원소 반응 폭발', ult: '운석: 적 밀집 지점에 큰 폭발' },
+  mage: { name: '화염술사', cat: 'magic', ic: '화', rule: '서로 다른 속성 마법을 연달아 맞히면 원소 반응 폭발', ult: '운석: 적 밀집 지점에 큰 폭발' },
   summoner: { name: '소환사', cat: 'magic', ic: '소', rule: '처치한 적 12% 확률로 망령 소환 (최대 6), 망령이 적 추적 공격', ult: '망령 군단: 망령 8체 즉시 소환' },
   /* 3단계 추가 4종 (0.9) — 초안 직업 목록 기준, 드루이드는 혼합 계열(근접+마법) */
   sovereign: { name: '군주', cat: 'melee', ic: '군', rule: '10초마다 발밑에 군기 설치, 군기 반경 안에서 피해 +25%·받는 피해 -15%', ult: '왕의 호령: 5초간 모든 적 둔화 50%, 무기 재사용 2배 속도' },
@@ -3006,7 +3008,7 @@ function purify() {
 function addMinion(x, y) { G.stats.maxMinions = Math.max(G.stats.maxMinions || 0, G.minions.length + 1); G.minions.push({ id: ++G.pid, x, y, r: G.p.job2 === 'lord' ? 9 : 7, life: 20, hitT: 0 }); }
 
 /* ---------- 궁극기 ---------- */
-function ultGain(v, src = 'etc') { const p = G.p; if (tr('focus')) v *= 1.15; if (!p.job || p.ult >= JOB_CFG.ultNeed) return; const U0 = p.ult; p.ult = Math.min(JOB_CFG.ultNeed, p.ult + v); const UB = G.stats.ultBy || (G.stats.ultBy = {}); UB[src] = (UB[src] || 0) + p.ult - U0; if (p.ult >= JOB_CFG.ultNeed) { G.tm.readyAt = G.time; toast('궁극기 준비 · 손 떼고 정지', '#ffe08a'); } }
+function ultGain(v, src = 'etc') { const p = G.p; if (tr('focus')) v *= 1.15; if (!p.job || p.ult >= JOB_CFG.ultNeed) return; const U0 = p.ult; p.ult = Math.min(JOB_CFG.ultNeed, p.ult + v); const UB = G.stats.ultBy || (G.stats.ultBy = {}); UB[src] = (UB[src] || 0) + p.ult - U0; if (p.ult >= JOB_CFG.ultNeed) { G.tm.readyAt = G.time; toast(autoUltSetting() ? '궁극기 준비 · 적이 몰리면 자동' : '궁극기 준비 · 버튼으로 발동', '#ffe08a'); } }
 /* 0.26a 궁극기 충전 혼합 보강: 처치 충전은 초당 상한, 엘리트·수문장·마왕 타격 충전(초당 상한), 시전 중 처치분은 환급(1회 상한) */
 function ultBucket() { const B = G.ultB || (G.ultB = { s: -1, k: 0, b: 0, ref: 0 }); const s = Math.floor(G.time); if (s !== B.s) { B.s = s; B.k = 0; B.b = 0; } return B; }
 function ultKillGain(e) {
@@ -5349,7 +5351,7 @@ function pjSprite(pr) {
   return (pr._s = PJ_SPR[pr.src] || (pr.kind === 'orb' && pr.color === '#c8a8ff' ? 'pj_soul' : null));
 }
 /* ============================================================
-   도트화 2 (0.30) — 수문장·마왕 패턴, 곁가지 사건, 페이즈 기믹 도트 + 상태 표시줄 색 맞춤
+   도트화 2 (0.30) — 수문장·마왕 패턴, 돌발 사건, 페이즈 기믹 도트 + 상태 표시줄 색 맞춤
    — 예고 구역(붉은 원·띠)은 판정 범위 표시라 도형 유지, 중심·가장자리에 도트 표식 추가
    ============================================================ */
 Object.assign(SPR, {
@@ -6113,7 +6115,7 @@ const GUIDE = [
   { id: 'phase', tx: '상단 노란 막대는 페이즈 목표 · 채우면 다음 페이즈', when: () => G.p.level >= 2 },
   { id: 'chest', tx: '보물 상자를 열면 무기 강화 또는 유물', when: () => G.chests.some(c => !c.dead) },
   { id: 'altar', tx: '빛나는 제단 위에 잠시 서면 직업 선택', when: () => !!G.altar },
-  { id: 'ult', tx: () => SETTINGS.autoUlt ? '궁극기 준비 완료 · 적이 몰리면 자동 발동' : '궁극기 준비 완료 · 손을 떼고 멈추면 발동', when: () => typeof ultReady === 'function' && ultReady() },
+  { id: 'ult', tx: () => SETTINGS.autoUlt ? '궁극기 준비 완료 · 적이 몰리면 자동 발동' : '궁극기 준비 완료 · 조이스틱 옆 버튼으로 발동', when: () => typeof ultReady === 'function' && ultReady() },
   { id: 'warn', tx: '붉은 장판과 ! 표식은 공격 예고 · 밖으로 피하기', when: () => G.hz.length > 0 },
   { id: 'hp', tx: '체력 부족 · 고기를 먹으면 회복', when: () => G.p.hp < G.p.maxHp * 0.4 },
 ];
@@ -8424,7 +8426,7 @@ function autoTarget() {
     const c = ph.cart, dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy) || 1; return { x: c.x + dx / d * 40, y: c.y + dy / d * 40, k: 'goal' }; }
   if (G.cr && G.cr.type === 'thief' && !G.cr.mob.dead && p.hp > p.maxHp * 0.4) return { x: G.cr.mob.x, y: G.cr.mob.y, k: 'boss' };   // 보물 몹 추격 (0.24)
   const ev = G.ev && G.ev.cur, ai = aiProfile();
-  if (ev && ev.state === 'idle' && ai.evGo && p.hp > p.maxHp * 0.55) return ev.type === 'giant' ? { x: ev.mob.x, y: ev.mob.y, k: 'boss' } : { x: ev.x, y: ev.y, k: 'goal' };   // 곁가지 사건 진입
+  if (ev && ev.state === 'idle' && ai.evGo && p.hp > p.maxHp * 0.55) return ev.type === 'giant' ? { x: ev.mob.x, y: ev.mob.y, k: 'boss' } : { x: ev.x, y: ev.y, k: 'goal' };   // 돌발 사건 진입
   if (ev && ev.type === 'giant' && ev.state === 'active' && p.hp > p.maxHp * 0.4) return { x: ev.mob.x, y: ev.mob.y, k: 'boss' };
   if (ph.rits && p.hp > p.maxHp * 0.35) { const r = ph.rits.filter(e => !e.dead).sort((a, b) => dist2(a.x, a.y, p.x, p.y) - dist2(b.x, b.y, p.x, p.y))[0]; if (r) return { x: r.x, y: r.y, k: 'boss' }; }   // 마법진 파괴
   if (G.altar && p.hp > p.maxHp * 0.4 && !aiProfile().skipAltar) return { x: G.altar.x, y: G.altar.y, k: 'goal' };     // 전직 제단 (0.6)
@@ -8462,7 +8464,7 @@ function autoVec() {
   if (tg && tg.k === 'gk') { const mel = p.weapons.filter(w => WEAPONS[w.id].cat === 'melee').length >= 2, lo = mel ? 55 : 110, hi = mel ? 95 : 170; pull = td > hi ? 1 : td < lo ? -0.6 : 0.1; }   // 수문장: 근접형은 붙고 원거리형은 거리 유지
   const here = autoDanger(p.x, p.y);
   if (p.job === 'archer' && here < 2.5 && !(tg && (tg.k === 'goal' || tg.k === 'boss' || tg.k === 'gk'))) return (AUTO.out = { x: 0, y: 0, m: 0 });   // 0.41 궁수 집중: 위험 낮을 때 정지 사격 (사람 플레이 재현)
-  if (ultReady() && !autoUltSetting() && (here > 3 || G.time - G.tm.readyAt > 8)) return (AUTO.out = { x: 0, y: 0, m: 0 });   // 궁극기: 손 떼고 정지 (0.6)
+  if (ultReady() && !autoUltSetting() && (here > 3 || G.time - G.tm.readyAt > 8)) ultPress58('ai');   // 0.58 궁극기: 버튼 누름 (정지 불필요)
   let best = AUTO_DIRS[0], bs = -1e9;
   for (const dv of AUTO_DIRS) {
     const dg = autoDanger(p.x + dv.x * 30, p.y + dv.y * 30) + 0.6 * autoDanger(p.x + dv.x * 70, p.y + dv.y * 70);
@@ -13501,7 +13503,7 @@ autoVec = function () {
   if (J === 'archer' && !inHz && here < (typeof V54 !== 'undefined' ? V54.arcStop : 2.5) && !(tg && (tg.k === 'goal' || tg.k === 'boss' || tg.k === 'gk'))) return (AUTO.out = { x: 0, y: 0, m: 0 });   // 궁수 정지 사격
   // 궁극기 정지 발동: 예고 밖에서만 (무적 궁극기 전사·도적은 발동까지 0.9초 넘게 남으면 허용)
   if (ultReady() && !autoUltSetting() && (here > 3 || G.time - G.tm.readyAt > 8)) {
-    if (!inHz || ((J === 'warrior' || J === 'rogue') && hz > 0.9)) { S.ultStop++; return (AUTO.out = { x: 0, y: 0, m: 0 }); }
+    if (!inHz || ((J === 'warrior' || J === 'rogue') && hz > 0.9)) { S.ultStop++; ultPress58('ai'); }   // 0.58 버튼 누름, 정지 없음
   }
   // 군주: 군기 안 유지 (회피·보석·목표 지점 이동 시 제외)
   // 0.51: 안전할 때(예고 없음·주변 위험 낮음·체력 50% 이상) 보석 수집 우선 — 위치 규칙 해제, 보석 끌림 2배, 위험 0.8배
@@ -14934,6 +14936,73 @@ function dev57Fuse(id) {
   applyFuse(id);
   return !!w.fu;
 }
+/* ============================================================
+   0.58 패치 (회차 74, 2026-11-23)
+   - 궁극기 발동 버튼: 게이지 가득 시 조이스틱 옆(가동 범위 바로 바깥)에 버튼 생성, 기본 왼쪽, 설정 좌/우
+     · 손 떼고 정지 발동 폐지 (JOB_CFG.ultStop 무한대), 자동 궁극기 설정은 유지
+     · 버튼 기준점: 조이스틱 사용 중 = 현재 중심 / 손 뗀 뒤 = 마지막 중심 / 첫 터치 전·고정형 = 고정 위치
+     · 화면 가장자리에 걸리면 반대쪽으로 자동 이동
+     · 다른 손가락으로 조이스틱을 잡은 채 누를 수 있음(다중 터치), PC는 Q·Space
+   - 명칭 교체: 곁가지 사건 → 돌발 사건, 마법사 → 화염술사 (표기만, 내부 id 유지)
+   ============================================================ */
+JOB_CFG.ultStop = Infinity;
+if (!('ultSide' in SETTINGS)) SETTINGS.ultSide = 'L';
+const ULT58 = { r: 30, gap: 14, hit: 12, ax: null, ay: null, shownAt: -1, presses: 0, aiPresses: 0 };
+
+const _updateUlt58 = updateUlt;
+updateUlt = function (dt) { const r = _updateUlt58(dt); G.tm.stopT = 0; return r; };   // 정지 누적·정지 표시 제거
+
+function ult58Visible() { return STATE.mode === 'play' && G.p && !G.result && ultReady(); }
+function ult58Anchor() {
+  if (INPUT.active) return { x: INPUT.ox, y: INPUT.oy };
+  if (SETTINGS.joy !== 'fixed' && ULT58.ax != null) return { x: ULT58.ax, y: ULT58.ay };
+  return joyFixed();
+}
+function ult58Pos() {
+  const a = ult58Anchor(), d = CFG.joyR + ULT58.gap + ULT58.r, m = ULT58.r + 8, side = SETTINGS.ultSide === 'R' ? 1 : -1;
+  let x = a.x + side * d;
+  if (x < m || x > VIEW.cw - m) x = a.x - side * d;                 // 가장자리에 걸리면 반대쪽
+  x = clamp(x, m, VIEW.cw - m);
+  const y = clamp(a.y, VIEW.sat + m + 70, VIEW.ch - VIEW.sab - m);
+  return { x, y };
+}
+function ultPress58(src) {
+  if (!ult58Visible()) return false;
+  if (src === 'ai') ULT58.aiPresses++; else ULT58.presses++;
+  useUlt(); return true;
+}
+
+/* 입력: 캔버스 자체 캡처 단계에서 먼저 판정 → 버튼 적중 시 조이스틱 시작 차단 */
+cv.addEventListener('pointerdown', e => {
+  if (!ult58Visible()) return;
+  const b = ult58Pos(), R = ULT58.r + ULT58.hit;
+  if ((e.clientX - b.x) ** 2 + (e.clientY - b.y) ** 2 > R * R) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  ultPress58('touch');
+}, { capture: true, passive: false });
+window.addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ((k === 'q' || k === ' ') && !e.repeat) { if (ultPress58('key')) e.preventDefault(); } });
+
+/* 그리기: 조이스틱 위에 겹쳐 표시 */
+const _drawJoy58 = drawJoy;
+drawJoy = function (c) {
+  _drawJoy58(c);
+  if (INPUT.active) { ULT58.ax = INPUT.ox; ULT58.ay = INPUT.oy; }
+  if (!ult58Visible()) { ULT58.shownAt = -1; return; }
+  if (ULT58.shownAt < 0) ULT58.shownAt = G.time;
+  const b = ult58Pos(), t = G.time - ULT58.shownAt, s = t < 0.22 ? 0.4 + 0.6 * easeOut58(t / 0.22) : 1;
+  const col = (typeof JOB_COL !== 'undefined' && JOB_COL[G.p.job]) || '#ffe08a', r = ULT58.r * s;
+  const pulse = (G.time * 1.6) % 1;
+  c.save();
+  c.globalAlpha = 0.55 * (1 - pulse); c.strokeStyle = col; c.lineWidth = 3;      // 퍼지는 고리 (준비 알림)
+  c.beginPath(); c.arc(b.x, b.y, r + 4 + pulse * 14, 0, 7); c.stroke();
+  c.globalAlpha = 1; c.fillStyle = 'rgba(14,12,20,0.78)'; c.strokeStyle = col; c.lineWidth = 3;
+  c.beginPath(); c.arc(b.x, b.y, r, 0, 7); c.fill(); c.stroke();
+  c.globalAlpha = 0.28; c.fillStyle = col; c.beginPath(); c.arc(b.x, b.y, r - 5, 0, 7); c.fill();
+  c.globalAlpha = 1; c.fillStyle = col; c.font = `bold ${Math.round(17 * s)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('궁', b.x, b.y + 1);
+  c.restore();
+};
+function easeOut58(k) { k = clamp(k, 0, 1); return 1 - (1 - k) * (1 - k); }
 /* ============================================================
    화면 겹침 UI — 시작·일시정지·결과 화면, 대사창 틀 (0.4)
    ============================================================ */
