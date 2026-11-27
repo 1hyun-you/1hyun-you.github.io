@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="회귀의 들판">
-<title>[미리보기 0.68] 회귀의 들판</title>
+<title>[미리보기 0.69] 회귀의 들판</title>
 <meta name="theme-color" content="#16141e">
 <style>
 @font-face{font-family:Galmuri11;src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400;font-display:swap}
@@ -241,15 +241,15 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.68',
+  VERSION: '0.69',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
   viewWidth: 400,                       // 기준 시야 폭(논리 px)
   player: { hp: 100, speed: 150, r: 12, pickup: 70, invuln: 0.5 },
-  xp: { base: 5, linear: 5, pow: 1.75, powMul: 0.9 },
-  spawn: { base: 1.6, perMin: 2.7, max: 460, soft: 300, softSpan: 250, softMin: 0.35, ramp: 1.25, rampBase: 170 },
-  scale: { hpPerMin: 0.45, dmgPerMin: 0.07, speedPerMin: 0.04 },
+  xp: { base: 4, linear: 4, pow: 1.75, powMul: 0.72 },   // 0.69 옛 전환기 경험치 1.25배 편입 (필요 경험치 ÷ 1.25)
+  spawn: { base: 1.12, perMin: 1.89, max: 460, soft: 300, softSpan: 250, softMin: 0.35, ramp: 1.25, rampBase: 170 },
+  scale: { hpPerMin: 0.42, dmgPerMin: 0.07, speedPerMin: 0.04 },
   early: { phases: 2, hp: 0.8, spawn: 0.8, xp: 1.25 },   // 0.16 초반 완화: 첫 2페이즈(예고 구간 포함) 적 체력·출현 밀도 하향, 경험치 획득 증가(레벨업 간격 단축)
   gemMerge: 300,
   joyR: 56,
@@ -379,7 +379,7 @@ const cv = document.getElementById('c');
 const ctx = cv.getContext('2d', { alpha: false });
 const VIEW = { w: 400, h: 800, dpr: 1, zoom: 1, cameraW: 400, cameraH: 800, sat: 0, sab: 0, cw: 400, ch: 800 };
 // Display scale is independent of the legacy simulation viewport (spawns/ultimates).
-function battleZoom(width, height) { return clamp(Math.min(width, height) / 390 * 1.4, 1.15, 2.05); }
+function battleZoom(width, height) { return clamp(Math.min(width, height) / 390 * 1.4 / 1.2, 0.96, 1.71); }   // 0.69 시야 1.2배 (회차 99 결정, S23 기준 보이는 폭 약 280 → 약 335)
 /* 0.26a 화면 고정: 캔버스·UI를 픽셀 고정 크기로 두어 창 크기가 순간 변해도 늘어남·재생성·재배치 없음
    (가장자리·상단 끌기 때 시스템 표시줄이 잠깐 나타나며 창 높이가 흔들리던 현상 대응)
    폭 변경(회전)·높이 확대는 즉시 반영, 높이 축소는 1.2초 이상 유지될 때만 반영 */
@@ -772,7 +772,7 @@ const PHASES = {
     hint: '버텨라' },
   calm: { name: '고요한 언덕', type: '기본형', goal: 'time', dur: 90, spawnMul: 0.45, tint: [150, 210, 140],
     hint: '회복의 샘을 찾아라' },
-  fog: { name: '안개 평원', type: '기본형', goal: 'time', dur: 130, spawnMul: 0.9, bias: { bat: 5, skel: 3, slime: 2 }, tint: [175, 185, 195], fog: 150, spawnR: [210, 270],
+  fog: { name: '안개 평원', type: '기본형', goal: 'time', dur: 130, spawnMul: 0.8, bias: { bat: 5, skel: 3, slime: 2 }, tint: [175, 185, 195], fog: 150, spawnR: [250, 310],   // 0.69 시야 1.2배에 맞춰 출현 거리 210~270 → 250~310, 출현 0.9 → 0.8 (서 있는 인물 사망 집중)
     hint: '시야 축소 · 근접 기습 주의' },
   camp: { name: '떠돌이 야영지', type: '기본형', goal: 'time', dur: 90, spawnMul: 0.4, tint: [230, 170, 90],
     hint: '야영지에서 휴식·보상 1회 선택' },
@@ -1389,7 +1389,7 @@ const GATEKEEPERS = {
 };
 const GK_ORDER = ['bargan', 'igna', 'morden', 'seren'];
 const GK_CFG = {
-  hpMul: 140, dmgMul: 1.3, spawn: [230, 270], rage: 0.5, fail: 360,   // hpMul 80→140: 0.11 1차 10판 바르간 평균 36초·이그나 18~71초·세렌 74초
+  hpMul: 100, dmgMul: 1.3, spawn: [230, 270], rage: 0.5, fail: 360,   // 0.69 hpMul 140→100 (인물 재구성 후 수문장전 100~360초·퇴각 잦음 → 목표 60~150초) / hpMul 80→140: 0.11 1차 10판 바르간 평균 36초·이그나 18~71초·세렌 74초
   bulletR: 6, bulletLife: 5,
   // 바르간
   bgEvery: [2.6, 1.9], bgTele: [0.75, 0.55], bgDashSp: 560, bgDashT: 0.6, bgSlamR: 120, bgSlamWarn: 0.9, bgSlamDmg: 26, bgAfterR: 62, bgAfterDmg: 20,
@@ -2988,6 +2988,7 @@ function pickCard(i) {
   if (s.kind === 'start') { addWeapon(c.id); G.stats.start = c.id; recalc(); return closeSel(); }
   if (s.banish) {
     if (isFill(c) || !G.banishes) return;
+    if (c.t === 'wup' && typeof baseW === 'function' && baseW() && c.id === baseW().id) { toast('전용 무기는 제외할 수 없음', '#ff9a7a'); return; }   // 0.69 전용 무기 제외 금지
     G.banished.add(c.t === 'relic' ? 'r:' + c.id : c.id); G.banishes--; s.banish = false;
     s.cards[i] = drawCards(1, s.cards)[0] || FILL_CARDS[1];
     renderSelect(); return;
@@ -13036,7 +13037,7 @@ function showResult() {
   add('phase', { id: 'elite', tx: '빛나는 큰 적은 정예 · 쓰러뜨리면 보물 상자', when: () => G.enemies.some(e => e.elite && !e.dead && !e.clone) });
   add('chest', { id: 'branch', tx: '무기는 Lv 3에서 분기 선택 · Lv 5에서 각성', when: () => G.p.weapons.some(w => w.lvl >= 2) });
   add('altar', { id: 'job', tx: '인물 선택 완료 · 인물 능력은 오른쪽 위 일시정지 → 내 능력에서 확인', when: () => !!G.p.job });
-  add('ult', { id: 'fuse', tx: '무기 칸 무기와 기본 무기가 모두 Lv 5·각성이면 연성 카드 등장', when: () => !!G.p.job && G.p.weapons.some(w => !w.base && !w.fu && w.lvl >= 4) });
+  add('ult', { id: 'fuse', tx: '일반 무기가 Lv 4가 되면 다음 카드가 연성 카드 (고르면 Lv 5 + 연성)', when: () => !!G.p.job && G.p.weapons.some(w => !w.base && !w.fu && w.lvl >= 4) });
   add('warn', { id: 'gate', tx: '수문장 등장 · 제한 시간 안에 쓰러뜨리면 문 개방', when: () => !!(G.gkMob && !G.gkMob.dead && G.ph && G.ph.id === 'gate') });
 })();
 /* 첫 선택 화면 도움말: 레벨업 선택 화면 처음 2번 */
@@ -13443,30 +13444,34 @@ const heroImpl60 = id => { const H = H60(id); return !!(H && H.impl); };
 const PW60 = ['cleave', 'dagger', 'arrow', 'turret', 'fireball', 'lamp', 'bell', 'thorn'];
 Object.assign(WEAPONS, {
   cleave: { name: '대검', cat: 'melee', ic: '검', desc: '가장 가까운 적 쪽 부채꼴 베기, 밀쳐냄', col: '#ffe0d0',
-    base: { dmg: 19, cd: 1.25, range: 86, arc: 1.92, kb: 180 },
+    base: { dmg: 23, cd: 1.25, range: 86, arc: 1.92, kb: 180 },
     ups: [{ dmg: 0.3 }, { area: 0.15 }, { cd: 0.15 }, { dmg: 0.5, area: 0.1 }] },
   dagger: { name: '단검', cat: 'melee', ic: '단', desc: '가장 가까운 적을 긋기, 적 몸에 상처 선', col: '#e6e8f8', noMotion: true,
-    base: { dmg: 14, cd: 0.9, range: 220, n: 1 },
+    base: { dmg: 19, cd: 0.9, range: 220, n: 1 },
     ups: [{ dmg: 0.3 }, { cd: 0.15 }, { n: 1 }, { dmg: 0.4 }] },
   arrow: { name: '장궁', cat: 'ranged', ic: '궁', desc: '가장 가까운 적에게 화살 1발', col: '#e8f6d0',
-    base: { dmg: 16, cd: 1.0, range: 300, n: 1, sp: 540 },
+    base: { dmg: 21, cd: 1.0, range: 300, n: 1, sp: 540 },
     ups: [{ dmg: 0.3 }, { cd: 0.15 }, { n: 1 }, { dmg: 0.4 }] },
   turret: { name: '포탑 설치', cat: 'ranged', ic: '포', desc: '곁에 포탑 설치, 포탑이 가까운 적 사격 (10초 뒤 사라짐)', col: '#ffd890',
-    base: { dmg: 8, cd: 4, n: 3, life: 10, fire: 0.8, range: 240 },
+    base: { dmg: 11, cd: 4, n: 3, life: 10, fire: 0.8, range: 240 },
     ups: [{ dmg: 0.3 }, { n: 1 }, { cd: 0.15 }, { dmg: 0.4 }] },
   fireball: { name: '화염구', cat: 'magic', ic: '화', desc: '가장 가까운 적에게 불덩이, 작은 폭발', col: '#ff9a4a',
-    base: { dmg: 18, cd: 1.2, range: 260, R: 35, sp: 300 },
+    base: { dmg: 22, cd: 1.2, range: 260, R: 35, sp: 300 },
     ups: [{ dmg: 0.3 }, { area: 0.2 }, { cd: 0.15 }, { dmg: 0.3, area: 0.1 }] },
   lamp: { name: '영혼 등불', cat: 'magic', ic: '등', desc: '가까운 적과 줄기로 이어져 계속 빨아들임', col: '#b9a4ff', noMotion: true,
-    base: { dmg: 5, cd: 0.25, range: 140, n: 1 },
+    base: { dmg: 7, cd: 0.25, range: 140, n: 1 },
     ups: [{ dmg: 0.3 }, { area: 0.15 }, { n: 1 }, { dmg: 0.4 }] },
   bell: { name: '축복의 종', cat: 'magic', ic: '종', desc: '몸 주위로 음파 고리, 맞은 적 멈칫', col: '#f3e6b0',
-    base: { dmg: 12, cd: 3, R: 140, stun: 0.2 },
+    base: { dmg: 14, cd: 3, R: 140, stun: 0.2 },
     ups: [{ dmg: 0.3 }, { area: 0.15 }, { cd: 0.15 }, { dmg: 0.4 }] },
   thorn: { name: '가시 덩굴', cat: 'magic', ic: '덩', desc: '가장 가까운 적 발밑에서 솟아 휘감아 묶음', col: '#9fd47a',
-    base: { dmg: 15, cd: 1.3, range: 200, R: 35, n: 1, root: 0.5 },
+    base: { dmg: 18, cd: 1.3, range: 200, R: 35, n: 1, root: 0.5 },
     ups: [{ dmg: 0.3 }, { area: 0.2 }, { cd: 0.15 }, { n: 1 }] },
 });
+// 0.69 연성·인물 수치 기준표: 인물 파일의 연성 설정 피해(C.dmg 등)는 이 표(0.60 짝 무기 피해)에 맞춰 적혀 있음
+//   → 배율 = 현재 짝 무기 피해(wStats) ÷ 기준표, 옛 전환기 보정 1.2는 짝 무기 표 피해에 편입됨 (기준표는 고정, 짝 무기 표만 조정)
+const FREF60 = { cleave: 19, dagger: 14, arrow: 16, turret: 8, fireball: 18, lamp: 5, bell: 12, thorn: 15 };
+const fk60r = (w, S) => S.dmg / FREF60[w.id];
 WEAPON_ORDER.splice(0, WEAPON_ORDER.length, ...PW60);
 START_POOL.splice(0, START_POOL.length, ...PW60);
 for (const id of PW60) { delete BRANCHES[id]; delete AWAKEN[id]; }   // 일반 무기는 발현·각성 없음 (전용 무기 발현은 인물 구현 때 인물 쪽에 둠)
@@ -13506,8 +13511,9 @@ const FUSE60 = {};                                           // FUSE60[인물][�
 function fuseDef60(j, id) { return FUSE60[j] && FUSE60[j][id] || null; }
 function fuseCands60() {
   const p = G.p; if (!p.job || !baseW()) return [];
-  return slotWs().filter(w => !w.fu && w.lvl >= CFG.weaponMax && fuseDef60(p.job, w.id));
+  return slotWs().filter(w => !w.fu && w.lvl >= CFG.weaponMax - 1 && fuseDef60(p.job, w.id));   // 0.69 연성 카드 시점: 짝 무기 Lv 4 → 5 카드 = 연성 카드 (DESIGN 4장)
 }
+const fuseNext60 = w => !w.fu && !w.base && w.lvl === CFG.weaponMax - 1 && G.p.job && baseW() && fuseDef60(G.p.job, w.id);   // Lv 4 짝 무기의 다음 카드는 연성 카드로 대체
 fuseName = (j, id) => (FUSE60_NM[j] && FUSE60_NM[j][id]) || WEAPONS[id].name;
 
 /* ---------- 상태 ---------- */
@@ -13520,18 +13526,14 @@ makeEnemy = function (type, x, y) { const e = _makeEnemy60(type, x, y); if (G &&
 /* ---------- 전환기 임시 보정 (대규모 밸런스 단계에서 제거·재조정) ----------
    옛 직업 규칙·분기·각성·연성 90종이 빠지고 인물·연성이 아직 비어 있는 동안 판 돌파가 가능하도록 일괄 보정
    (짝 무기 기본형은 대부분 단일 대상이라 무리 처리량이 0.58의 약 60% → 무기 피해·출현량·경험치 3가지로 메움) */
-const TEMP60 = { dmg: 1.2, spawn: 0.7, xp: 1.25 };
-const _phaseSpawnMul60 = phaseSpawnMul;
-phaseSpawnMul = function () { return _phaseSpawnMul60.apply(this, arguments) * TEMP60.spawn; };
-const _addXp60 = addXp;
-addXp = function (v) { return _addXp60(v * TEMP60.xp); };
+// 0.69 대규모 밸런스 2단계: 임시 보정 제거 → 정식 수치로 편입 (무기 피해 1.2 = 짝 무기 표 피해, 출현 0.7 = CFG.spawn, 경험치 1.25 = CFG.xp 곡선)
 
 /* ---------- 0.62 치명타 공통 (회차 93 결정) ----------
    • 판정: 무기 발동 1번에 1회 (여러 적을 맞혀도 같은 결과), 그 발동의 투사체·늦은 타격도 같은 판정
      발동 밖의 지속 피해(장판·소환물 틱 등)는 치명타 없음, 인물 규칙이 직접 지정하는 경우 o.cr·o.critMul
    • 치명타 피해 1.5배 (통달 '급소' 1.8배), 확률 = 보조 효과 '치명타' 레벨당 +4% (모든 인물·모든 무기) + 인물 규칙(도적: 전용·연성 +20%)
    • 보조 효과 통달: Lv 3 분기 → Lv 5 통달로 이동 (전용 무기 발현은 Lv 3 그대로), 공격력 분기 '치명' 삭제 → '압도' */
-const CRIT60 = { per: 0.04, mul: 1.5, vital: 1.8, shake: 0.3, over: 1.5 };
+const CRIT60 = { per: 0.08, mul: 1.5, vital: 1.8, shake: 0.3, over: 1.5 };
 const PBR_AT = 5;
 let CR60 = null;                                             // 현재 발동의 치명타 판정 { w, cr }
 function critCh60(w) { let c = CRIT60.per * passLv('crit'); const h = w && hook60('critAdd', w); if (h) c += h; return c; }
@@ -13543,7 +13545,7 @@ function runCR60(ctx, f) {                                   // 판정을 걸고
   return r;
 }
 const critMul60 = () => pBr('crit') === 'vital' ? CRIT60.vital : CRIT60.mul;
-PASSIVES.crit = { name: '치명타', ic: '치', per: CRIT60.per, desc: L => `치명타 확률 +${4 * L}% (치명타 피해 1.5배)` };
+PASSIVES.crit = { name: '치명타', ic: '치', per: CRIT60.per, desc: L => `치명타 확률 +${Math.round(CRIT60.per * 100 * L)}% (치명타 피해 1.5배)` };
 if (!PASSIVE_ORDER.includes('crit')) PASSIVE_ORDER.push('crit');
 BRANCHES.crit = [{ k: 'vital', nm: '급소', ds: '치명타 피해 1.5배 → 1.8배' }, { k: 'shake', nm: '흔들기', ds: '치명타를 맞은 적 0.3초 멈칫' }];
 BRANCHES.might = [{ k: 'over', nm: '압도', ds: '체력이 가득 찬 적에게 주는 첫 타격 피해 +50%' }, BRANCHES.might.find(o => o.k === 'pen')];
@@ -13566,7 +13568,7 @@ function wStats(w) {
   if (mL && B.n && w.id !== 'turret') { s.n += multiN(mL) + (pBr('multi') === 'barrage' ? 1 : 0); dm *= 1 + 0.03 * mL + (pBr('multi') === 'velocity' ? 0.2 : 0); if (pBr('multi') === 'barrage') cm *= 1.2; }
   if (pBr('might') === 'pen' && w.id === 'arrow') s.pierce += 1;
   const H = heroStat60(w); dm *= H.dmg; cm *= H.cd;
-  return { dmg: B.dmg * (1 + s.dmg) * M.dmg * dm * TEMP60.dmg, area: (1 + s.area) * H.area, cd: (B.cd || 0) * (1 - s.cd) * M.cd * cm, n: (B.n || 1) + s.n, pierce: (B.pierce || 0) + s.pierce, rot: 0 };
+  return { dmg: B.dmg * (1 + s.dmg) * M.dmg * dm, area: (1 + s.area) * H.area, cd: (B.cd || 0) * (1 - s.cd) * M.cd * cm, n: (B.n || 1) + s.n, pierce: (B.pierce || 0) + s.pierce, rot: 0 };
 }
 /* 인물 규칙의 무기 수치 보정 (전용·연성 무기만, 인물 구현 때 HERO60[id].stat(w) 등록) */
 function heroStat60(w) { const H = H60(); return H && H.impl && H.stat && (w.base || w.fu) ? Object.assign({ dmg: 1, cd: 1, area: 1 }, H.stat(w)) : { dmg: 1, cd: 1, area: 1 }; }
@@ -13774,6 +13776,7 @@ function applyHero60(id) {
   const own = p.weapons.find(w => w.id === H.wpn && !w.fu);
   if (own) p.weapons = p.weapons.filter(w => w !== own);
   p.job = id; p.jobAt = G.ph.i; G.altar = null;
+  if (G.banished && G.banished.delete(H.wpn)) S60().unban = H.wpn;   // 0.69 오류 수정: 인물 선택 전 '제외'한 무기가 전용 무기가 되면 강화 카드가 영영 안 나오던 문제 (전용 무기는 제외 대상 아님)
   G.stats.job = id; G.stats.jobAt = Math.round(G.time);
   const b = makeBase(own || { id: H.wpn, lvl: 1, t: 0.3 }); p.weapons.push(b);
   G.stats.base = H.wpn + ':' + b.lvl;
@@ -13813,7 +13816,7 @@ function keepOk60() {
   G.p.weapons = G.p.weapons.filter(w => !drop.includes(w));
   S60().keep = { kept: [...s.keep], drop: drop.map(w => w.id + ':' + w.lvl), xp };
   recalc(); closeSel();
-  if (xp > 0) _addXp60(xp);
+  if (xp > 0) addXp(xp);
   toast(drop.length ? `${drop.map(w => WEAPONS[w.id].name).join('·')} → 경험치 ${xp}` : '무기 정리 완료', H60() ? H60().col : '#fff');
 }
 SEL_HEAD.keep = s => ['남길 무기', `${H60() ? H60().name : ''} 무기 칸 ${s.n + 1}개 · 일반 무기 ${s.n}개 선택`];   // 빠지는 무기의 경험치 환급은 카드에 표기
@@ -13900,7 +13903,7 @@ function applyFuse60(id) {
   const p = G.p, w = slotWs().find(x => x.id === id && !x.fu), j = p.job, d = fuseDef60(j, id);
   if (!w || !j) return;
   if (!d) { toast('이 연성은 아직 제작 전', '#ff8a7a'); return; }
-  const H = HERO60[j]; w.fu = { job: j, nm: d.nm || fuseName(j, id) }; w.t = 0.3;
+  const H = HERO60[j]; w.lvl = Math.max(w.lvl, CFG.weaponMax); w.fu = { job: j, nm: d.nm || fuseName(j, id) }; w.t = 0.3;   // 0.69 연성 = Lv 5 도달
   (G.stats.fuses = G.stats.fuses || []).push(`${id}:${j}:${Math.round(G.time)}`); S60().fuse++;
   banner('연성 · ' + w.fu.nm, `${WEAPONS[id].name} + ${WEAPONS[H.wpn].name}`, H.col, 2.4);
   heroBurst60(H.col); if (typeof cine47 === 'function') cine47('fuse', H.col, w);
@@ -13909,7 +13912,7 @@ function applyFuse60(id) {
 applyFuse = applyFuse60;
 function levelCands60() {
   const p = G.p, out = [], ban = G.banished, nW = p.weapons.length, K = CFG.select, b = baseW();
-  for (const w of p.weapons) if (!w.fu && w.lvl < CFG.weaponMax && !ban.has(w.id)) out.push({ t: 'wup', id: w.id, w: K.wupW * (nW >= 3 ? K.wupW3 : 1) * (w === b ? BASE_CARD_W : 1) });
+  for (const w of p.weapons) if (!w.fu && w.lvl < CFG.weaponMax && !ban.has(w.id) && !fuseNext60(w)) out.push({ t: 'wup', id: w.id, w: K.wupW * (nW >= 3 ? K.wupW3 : 1) * (w === b ? BASE_CARD_W : 1) });
   if (nW < slotW()) {
     const nw = WEAPON_ORDER.filter(id => !hasW(id) && !ban.has(id) && catOk(WEAPONS[id].cat)), nk = Math.min(1, K.wnewPool / Math.max(1, nw.length));
     for (const id of nw) out.push({ t: 'wnew', id, w: (nW >= 3 ? K.wnewW3 : K.wnewW) * nk });
@@ -13926,7 +13929,7 @@ function drawCards(n, exclude = []) {
   for (const t of traitCands(exclude.concat(res))) if (res.length < n) res.push(t);
   for (const f of FILL_CARDS) if (res.length < n && !res.some(x => same(x, f)) && !exclude.some(x => same(x, f))) res.push(f);
   const b = baseW(); if (b && res.some(x => x.t === 'wup' && x.id === b.id)) S60().bOff = (S60().bOff || 0) + 1;
-  const c = fuseCands60()[0];
+  const fc = fuseCands60(), c = fc.length ? fc[Math.floor(Math.random() * fc.length)] : null;   // 0.69 Lv 4 짝 무기가 여럿이면 무작위 1장 (교차 검토 반영: 첫 무기만 나와 나머지가 Lv 4에 고정되던 문제)
   if (c && n === selN() && !exclude.some(x => x.t === 'fuse60') && res.length) { res.splice(res.length - 1, 1); res.unshift({ t: 'fuse60', id: c.id }); }
   return res;
 }
@@ -14061,7 +14064,7 @@ function abilW55() {
   return ws.map(w => {
     const d = WEAPONS[w.id], col = w.fu || w.base ? JOB_COL[p.job] : CFG.colors[d.cat], fd = w.fu && fuseDef60(w.fu.job, w.id);
     return cxCard({ id: w.id, col, ic: d.ic, nm: wName(w.id), tag: (w.base ? '전용 무기 · ' : w.fu ? '연성 · ' : '') + 'Lv ' + w.lvl,
-      lines: [esc(fd ? fd.ds || '' : d.desc), wChips55(w, null, null), !w.fu && w.lvl < CFG.weaponMax ? '' : !w.base && !w.fu && p.job && FUSE60_NM[p.job] && FUSE60_NM[p.job][w.id] ? `<i>연성</i> ${esc(FUSE60_NM[p.job][w.id])}${fuseDef60(p.job, w.id) ? '' : ' (제작 중)'}` : ''] });
+      lines: [esc(fd ? fd.ds || '' : d.desc), wChips55(w, null, null), !w.fu && w.lvl < CFG.weaponMax - 1 ? '' : !w.base && !w.fu && p.job && FUSE60_NM[p.job] && FUSE60_NM[p.job][w.id] ? `<i>연성</i> ${esc(FUSE60_NM[p.job][w.id])}${fuseDef60(p.job, w.id) ? '' : ' (제작 중)'}` : ''] });
   }).join('');
 }
 function abilJ55() {
@@ -14240,7 +14243,7 @@ const tierK60 = e => e.gk || e.boss ? B60C.fury.bossK : e.elite ? B60C.fury.elit
 const furyOn60 = () => !!B60().mode;
 const furyFrac60 = () => { const B = B60(); return B.mode ? 1 : Math.min(1, B.fury / B.max); };
 // 연성 수치: 기획 수치 × (그 짝 무기의 현재 강화·보조 효과·인물 보정 배율)
-const fk60 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;
+const fk60 = (w, S) => fk60r(w, S);
 const fc60 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 
 /* ---------- 투지·격노 ---------- */
@@ -14578,16 +14581,16 @@ function drawB60(c) {
 /* ============================================================
    0.62 도적 구현 (회차 93, 분할 구현 3차) — 기준: docs/characters/rogue.md
    • 고유 규칙: 무기 칸 3개(전용 포함) + 그림자 연격 "치명타가 나면 그림자가 나타나 거든다"
-     - 치명타 확률 = 공통(보조 효과 '치명타') + 도적 20% (전용·연성 무기만), 판정은 공격 1번에 1회 (hero60.js 치명타 공통)
-     - 그림자 = 같은 공격 한 번 더(원래 피해 70%) 또는 무기마다 정해진 추가 동작, 기본형은 1번만
+     - 치명타 확률 = 공통(보조 효과 '치명타') + 도적 30% (전용·연성 무기만, 0.69 20% → 30%), 판정은 공격 1번에 1회 (hero60.js 치명타 공통)
+     - 그림자 = 같은 공격 한 번 더(원래 피해 90%, 0.69 70% → 90%) 또는 무기마다 정해진 추가 동작, 기본형은 1번만
    • 전용 무기 단검: 발현 A 쌍단검 → 무기 각성 A 그림자 난무 / 발현 B 긴 선 → 무기 각성 B 그림자 균열
    • 궁극기: 기본 그림자 잠행 / 인물 각성 A 연격 최대 3번 + 그림자 분신 / 인물 각성 B 늦게 터지는 상처 + 일섬 → 단검 집중
    • 연성 7종: 흑풍·그림자 표창·대역 통나무·기폭찰 쿠나이·그림자 도둑·숨죽인 파문·올가미
    • 그림: 새 장면은 임시 도형 (최종본 아님, GPT 요청 대상), 수치는 전부 가안 (대규모 밸런스 단계 조정)
    ============================================================ */
 const R60C = {
-  crit: 0.2,                                                                       // 도적 치명타 확률 (전용·연성 무기)
-  sh: { k: 0.7, gap: 0.15 },                                                        // 그림자 = 원래 공격 70%, 0.15초 뒤
+  crit: 0.3,                                                                       // 도적 치명타 확률 (전용·연성 무기, 0.69 20% → 30%)
+  sh: { k: 0.9, gap: 0.15 },                                                        // 그림자 = 원래 공격 90%, 0.15초 뒤 (0.69 70% → 90%)
   chain: { n: 3, step: 0.2, xR: 60 },                                               // 인물 각성 A: 연격 최대 3번, 단계마다 +20%, 3번째 붉은 X자 반경 60
   wound: { t: 1.0, k: 1.8, max: 3 },                                                // 인물 각성 B: 늦게 터지는 상처 1초 뒤 1.8배, 최대 3겹
   twin: { cd: 0.5, dmg: 10 / 14 },                                                  // 발현 A 쌍단검: 간격 절반, 회당 피해 14 → 10
@@ -14608,7 +14611,7 @@ const R60C = {
 const Rg = () => G.r62 || (G.r62 = { inClone: false, stealth: 0, marks: null, sD: 0, clone: 0, focus: 0, hide: 0,
   cuts: [], shades: [], xs: [], wounds: [], rifts: [], gales: [], stars: [], logs: [], kunai: [], ripples: [], pulls: [], tears: [], slash: null });
 const isR60 = () => G.p.job === 'rogue' && HERO60.rogue.impl;
-const rk60 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과 배율
+const rk60 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const rc60 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 const RCOL = () => HERO60.rogue;
 function rStat60(S, k) { return Object.assign({}, S, { dmg: S.dmg * k }); }
@@ -15015,7 +15018,7 @@ function drawR60(c) {
    0.63 궁수 구현 (회차 94, 분할 구현 4차) — 기준: docs/characters/archer.md
    • 고유 규칙(제약형 + 연성형 + 자신형): "멈춰 있을 때만 쏘고, 서 있을수록 빨라짐"
      - 멈춤 사격: 이동 중 전용·연성 무기 발동 없음 (매 횃대의 이미 앉은 매는 움직여도 싸움)
-     - 정지 중 공속 +80% (전용·연성만), 정지 중 경험치 흡수 범위 +60% (멈춤 인물 경험치 보조 수단)
+     - 정지 중 공속 +180% (전용·연성만, 0.69 +80% → +180%), 0.69 버티기 사격: 서서 맞힌 공격은 반경 90 안 적을 밀어냄, 정지 중 경험치 흡수 범위 +60% (멈춤 인물 경험치 보조 수단)
    • 전용 무기 장궁: 발현 A 연사 → 무기 각성 A 속사 연발 / 발현 B 꿰뚫기 → 무기 각성 B 거대 화살
    • 궁극기: 기본 사냥 개시 / 인물 각성 A 매의 눈 + 매의 시선 / 인물 각성 B 치고 빠지기 + 화살 폭풍
    • 연성 7종: 초승달촉 화살·사냥칼 던지기·매 횃대·불화살·미늘 줄화살·우는살·가시줄 화살
@@ -15023,9 +15026,10 @@ function drawR60(c) {
    • 그림: 새 장면은 임시 도형 (최종본 아님, GPT 요청 대상), 수치는 전부 가안 (대규모 밸런스 단계 조정)
    ============================================================ */
 const A63C = {
-  still: { spd: 0.8, xp: 0.6, moveMin: 0.2 },                                       // 정지 공속 +80%, 흡수 범위 +60%, '움직였다' 판정 최소 이동 0.2초
-  eye: { t0: 1, t1: 3, max: 1.5 },                                                  // 인물 각성 A 매의 눈: 1초 +80% → 3초 +150%
+  still: { spd: 1.8, xp: 0.6, moveMin: 0.2 },                                       // 정지 공속 +180% (0.69 +80% → +180%), 흡수 범위 +60%, '움직였다' 판정 최소 이동 0.2초
+  eye: { t0: 1, t1: 3, max: 2.8 },                                                  // 인물 각성 A 매의 눈: 1초 +180% → 3초 +280% (0.69 정지 공속 상향에 맞춰 +150% → +280%)
   hit: { n: 3, fan: 0.25, k: 1.5 },                                                 // 인물 각성 B 치고 빠지기: 멈춘 직후 첫 발동 부채꼴 3발 + 150%
+  guard: { R: 90, kb: 140, once: 0.4 },                                            // 0.69 버티기 사격: 서서 쏠 때 반경 90(0.6초) 안까지 붙은 적은 맞으면 밀려남 (같은 적 0.4초에 1번)
   bow: { sp: 540, r: 6 },
   rapidA: { n: 2, gap: 0.1 },                                                       // 발현 A 연사: 한 번에 2발·0.1초 간격
   pierceB: { dmg: 1.15 },                                                           // 발현 B 꿰뚫기: 사거리 끝까지 관통·피해 +15%
@@ -15046,7 +15050,7 @@ const Ag = () => G.a63 || (G.a63 = { still: 0, mov: 0, hunt: 0, gaze: 0, storm: 
   ar: [], perches: [], knives: [], booms: [], rings: [], lines: [], hawks: [] });
 const isA63 = () => G.p && G.p.job === 'archer' && HERO60.archer.impl;
 const ACOL = () => HERO60.archer;
-const ak63 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과 배율
+const ak63 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const ac63 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 const own63 = w => !!(w && (w.base || w.fu));                                       // 인물 규칙 대상 (전용·연성)
 const canShoot63 = () => !G.p.moving || Ag().hunt > 0;                              // 멈춤 사격 (사냥 개시 5초 동안은 이동 중에도)
@@ -15181,7 +15185,7 @@ function stormTick63(dt) {
 // 초승달촉 화살: 넓은 초승달 칼날을 촉으로 단 화살, 맞은 적에 큰 칼자국 + 칼날 폭 안 적 함께 베임 (첫 적에서 멈춤, 최대 3마리)
 function fMoon63(w, S) {
   const C = A63C.moon, p = G.p, tg = nearestEnemy(p.x, p.y, C.range * S.area); if (!tg) return false;
-  const d = WEAPONS.cleave.base.dmg * ak63(w, S) * HBK63, R = C.R * S.area;
+  const d = FREF60.cleave * ak63(w, S) * HBK63, R = C.R * S.area;
   arrow63({ x: p.x, y: p.y, a: ang63(p.x, p.y, tg), sp: C.sp, L: C.range * S.area, r: 9, dmg: d, src: 'cleave', kind: 'moon',
     onHit: (e, pr) => { const L = [e].concat(nearN60(e.x, e.y, R + 14, C.n + 1).filter(o => o !== e)).slice(0, C.n);
       for (const o of L) { cut60(o, ACOL().c1); damageEnemy(o, pr.dmg, hitOpt63(pr)); }
@@ -15191,7 +15195,7 @@ function fMoon63(w, S) {
 // 사냥칼 던지기: 가까이 온 적 2마리에게 허리의 사냥칼을 던져 그음 (회전하며 날아가 상처 선, 바닥에 꽂혔다 사라짐)
 function fKnife63(w, S) {
   const C = A63C.knife, p = G.p, ts = nearN60(p.x, p.y, C.range * S.area, C.n); if (!ts.length) return false;
-  const d = WEAPONS.dagger.base.dmg * ak63(w, S) * HBK63;
+  const d = FREF60.dagger * ak63(w, S) * HBK63;
   for (const e of ts) {
     const x0 = p.x, y0 = p.y, tt = Math.sqrt(dist2(x0, y0, e.x, e.y)) / C.sp, K = { x0, y0, x: e.x, y: e.y, t: 0, fly: tt, dur: 0.45 };
     Ag().knives.push(K);
@@ -15237,7 +15241,7 @@ function fFire63(w, S) {
   if (!L.length) return false;
   let best = L[0], bn = -1;
   for (const e of L.length > 40 ? L.slice(0, 40) : L) { let n = 0; gridQuery(e.x, e.y, C.crowd, () => { n++; }); if (n > bn) { bn = n; best = e; } }
-  const tx = best.x, ty = best.y, R = C.R * S.area, d = WEAPONS.fireball.base.dmg * ak63(w, S) * HBK63, Ld = Math.sqrt(dist2(p.x, p.y, tx, ty));
+  const tx = best.x, ty = best.y, R = C.R * S.area, d = FREF60.fireball * ak63(w, S) * HBK63, Ld = Math.sqrt(dist2(p.x, p.y, tx, ty));
   arrow63({ x: p.x, y: p.y, a: Math.atan2(ty - p.y, tx - p.x), sp: C.sp, L: Ld, noHit: true, dmg: d, src: 'fireball', kind: 'fire',
     onEnd: pr => { gridQuery(tx, ty, R, e => damageEnemy(e, d, { src: 'fireball', kb: 80, fx: tx, fy: ty })); Ag().booms.push({ x: tx, y: ty, R, t: 0, dur: 0.35, fire: 1 }); shake(1.5, 0.1); S60().fireN = (S60().fireN || 0) + 1; } });
   return C.cd * ac63(w, S);
@@ -15261,7 +15265,7 @@ function fWhistle63(w, S) {
   const C = A63C.whistle, p = G.p, R0 = C.range * S.area; let far = null, fd = -1;
   gridQuery(p.x, p.y, R0, e => { if (e.dead) return; const d = dist2(p.x, p.y, e.x, e.y); if (d <= R0 * R0 && d > fd) { fd = d; far = e; } });
   if (!far) return false;
-  const tx = far.x, ty = far.y, R = C.R * S.area, d = WEAPONS.bell.base.dmg * ak63(w, S) * HBK63;
+  const tx = far.x, ty = far.y, R = C.R * S.area, d = FREF60.bell * ak63(w, S) * HBK63;
   arrow63({ x: p.x, y: p.y, a: Math.atan2(ty - p.y, tx - p.x), sp: C.sp, L: Math.sqrt(fd), r: C.w / 2, noHit: true, kind: 'whistle', dmg: 0, src: 'bell',
     pass: e => { stun60(e, C.stun); S60().whPass = (S60().whPass || 0) + 1; },
     onEnd: () => { gridQuery(tx, ty, R, e => { damageEnemy(e, d, { src: 'bell' }); if (!e.dead) stun60(e, C.stun); }); Ag().rings.push({ x: tx, y: ty, R, t: 0, dur: 0.4 }); S60().whistle = (S60().whistle || 0) + 1; } });
@@ -15270,7 +15274,7 @@ function fWhistle63(w, S) {
 // 가시줄 화살: 가시 덩굴을 감아 둔 화살이 꽂히면 덩굴이 풀려 그 적과 곁의 최대 2마리 다리를 휘감아 묶음
 function fVine63(w, S) {
   const C = A63C.vine, p = G.p, tg = nearestEnemy(p.x, p.y, C.range * S.area); if (!tg) return false;
-  const d = WEAPONS.thorn.base.dmg * ak63(w, S) * HBK63, R = C.near * S.area;
+  const d = FREF60.thorn * ak63(w, S) * HBK63, R = C.near * S.area;
   arrow63({ x: p.x, y: p.y, a: ang63(p.x, p.y, tg), sp: C.sp, L: C.range * S.area, dmg: d, src: 'thorn', kind: 'vine',
     onHit: (e, pr) => { const L = [e].concat(nearN60(e.x, e.y, R, C.more + 1).filter(o => o !== e).slice(0, C.more)), F = F60();
       for (const o of L) { damageEnemy(o, pr.dmg, hitOpt63(pr)); if (!o.dead) root60(o, C.root); if (F.vines.length < 40) F.vines.push({ x: o.x, y: o.y, R: o.r + 6, e: o, t: 0, dur: Math.max(0.55, C.root + 0.15), col: ACOL().c1, s: rand(7) }); }
@@ -15295,6 +15299,11 @@ Object.assign(HERO60.archer, {
   wak: { A: { nm: '속사 연발', ds: '5번째 발동마다 1.5초 동안 초당 10발 연달아 사격 (각 50%)' }, B: { nm: '거대 화살', ds: '4번째 발동마다 화면 끝까지 꿰뚫는 거대 화살 (250%·밀쳐냄)' } },
   fire: af63(aBow63),
   stat(w) { const b = stillBonus63(); return b > 0 ? { cd: 1 / (1 + b) } : {}; },
+  onHit(e, o) {                                                                       // 0.69 버티기 사격 (대규모 밸런스: 서 있는 동안 몰려든 적에 맞아 쓰러지는 구조 보완, 밀어냄 기준점 = 캐릭터)
+    const p = G.p, C = A63C.guard; if ((p.moving && !(Ag().hunt > 0)) || e.dead || !noBoss60(e) || (e.ag63 || 0) > G.time) return;
+    const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy) || 1; if (d > C.R + e.r) return;
+    e.ag63 = G.time + C.once; e.kbx += dx / d * C.kb * JUICE.kbMul; e.kby += dy / d * C.kb * JUICE.kbMul; S60().guard = (S60().guard || 0) + 1;
+  },
   onPick() { G.a63 = null; Ag(); },
   ultFn(k) { return k === 'A' ? ultGaze63 : k === 'B' ? ultStorm63 : ultHunt63; },
   tick(dt) {
@@ -15499,9 +15508,9 @@ const N64C = {
 const Ng = () => G.n64 || (G.n64 = { souls: [], soulN: 0, ally: [], tombs: [], wisps: [], rel: [], bombs: [], hands: [], booms: [], links: [], giant: null, bind: 0, bindK: 1, relT: 0, relN: 0 });
 const isN64 = () => G.p && G.p.job === 'necromancer' && HERO60.necromancer.impl;
 const NCOL = () => HERO60.necromancer;
-const nk64 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과 배율
+const nk64 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const nc64 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
-const nMod64 = () => G.p.mod.dmg * TEMP60.dmg;                                      // 망령 피해: 공격력 보조 효과·전환기 보정만 (무기 강화와 무관)
+const nMod64 = () => G.p.mod.dmg * 1.2;                                             // 망령 피해: 공격력 보조 효과 × 기준 1.2 (0.69 옛 전환기 보정 편입, 무기 강화와 무관)
 const ref64 = () => { const b = baseW(); if (!b) return 20; const S = wStats(b); return S.dmg / Math.max(0.05, S.cd); };   // 등불 기준 = 초당 피해 (가안)
 const soulPer64 = () => G.p.job2 === 'B' ? N64C.soul.perB : N64C.soul.per;
 
@@ -15658,7 +15667,7 @@ function ultBind64(p) {                                                         
 function fEat64(w, S) {
   const C = N64C.eat, p = G.p, st = w.eat64 || 0, range = C.range * S.area * (1 + C.per * st), arc = C.arc + C.arcPer * st;
   const tg = nearestEnemy(p.x, p.y, range * 1.4); if (!tg) return false;
-  const a0 = Math.atan2(tg.y - p.y, tg.x - p.x), d = WEAPONS.cleave.base.dmg * nk64(w, S), hit = [];
+  const a0 = Math.atan2(tg.y - p.y, tg.x - p.x), d = FREF60.cleave * nk64(w, S), hit = [];
   gridQuery(p.x, p.y, range, e => { let da = Math.atan2(e.y - p.y, e.x - p.x) - a0; da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) <= arc / 2 + 0.15) hit.push(e); });
   for (const e of hit) { damageEnemy(e, d, { kb: WEAPONS.cleave.base.kb, fx: p.x, fy: p.y, src: 'cleave' }); Ng().links.push({ x: e.x, y: e.y, t: 0, dur: 0.3, home: 1, blade: 1 }); }
   fx({ kind: 'arc', a: a0, arc, r: range, dur: 0.18, color: NCOL().c3, basicArt: 'cleave', artX: p.x, artY: p.y });
@@ -15668,7 +15677,7 @@ function fEat64(w, S) {
 // 넋 가르기: 영혼 칼날이 몸을 긋고 한 박자 뒤 같은 자리에 반투명 칼날이 한 번 더 그어 넋까지 벰
 function fRend64(w, S) {
   const C = N64C.rend, p = G.p, ts = nearN60(p.x, p.y, C.range * S.area, S.n); if (!ts.length) return false;
-  const d = WEAPONS.dagger.base.dmg * nk64(w, S);
+  const d = FREF60.dagger * nk64(w, S);
   for (const e of ts) { cut60(e, NCOL().c3); damageEnemy(e, d, { src: 'dagger', fx: p.x, fy: p.y });
     G.later.push({ t: C.late, f: () => { if (G.result || e.dead) return; cut60(e, '#d8f4ff'); damageEnemy(e, d * C.k, { src: 'dagger' }); S60().rend = (S60().rend || 0) + 1; } }); }
   return C.cd * nc64(w, S);
@@ -15704,7 +15713,7 @@ function tombKill64(e) {                                                        
     o.s++; A.links.push({ x: e.x, y: e.y, tx: o.x, ty: o.y - 10, t: 0, dur: 0.3 });
     if (o.s >= C.need) {
       const w = o.w, S = wStats(w), T = o;
-      o.wr = ally64({ kind: 'tomb', x: o.x, y: o.y - 12, life: C.life - o.t + 0.1, atk: N64C.wr.atk, sp: N64C.wr.sp, reach: N64C.wr.reach, dmg: WEAPONS.turret.base.dmg * 2.5 * nk64(w, S) / nMod64(), anchor: () => T, alive: () => !T.dead, guard: C.guard, src: 'turret' });
+      o.wr = ally64({ kind: 'tomb', x: o.x, y: o.y - 12, life: C.life - o.t + 0.1, atk: N64C.wr.atk, sp: N64C.wr.sp, reach: N64C.wr.reach, dmg: FREF60.turret * 2.5 * nk64(w, S) / nMod64(), anchor: () => T, alive: () => !T.dead, guard: C.guard, src: 'turret' });
       S60().tombWr = (S60().tombWr || 0) + 1; fx({ kind: 'ring', x: o.x, y: o.y - 8, r0: 4, r1: 26, dur: 0.3, color: NCOL().c3 });
     }
     break;
@@ -15731,7 +15740,7 @@ function wispTick64(dt) {
 }
 // 조종: 낡은 종이 울리면 소환된 망령들도 함께 울부짖어, 망령 곁에도 울림이 퍼짐
 function fKnell64(w, S) {
-  const C = N64C.knell, p = G.p, A = Ng(), R = C.R * S.area, d = WEAPONS.bell.base.dmg * nk64(w, S);
+  const C = N64C.knell, p = G.p, A = Ng(), R = C.R * S.area, d = FREF60.bell * nk64(w, S);
   const wr = A.ally; if (!nearestEnemy(p.x, p.y, R) && !wr.some(a => nearestEnemy(a.x, a.y, C.wR))) return false;
   gridQuery(p.x, p.y, R, e => { damageEnemy(e, d, { src: 'bell' }); if (!e.dead) stun60(e, C.stun); });
   A.booms.push({ x: p.x, y: p.y, R, t: 0, dur: 0.4, ring: 1, bell: 1 });
@@ -15868,10 +15877,10 @@ function drawN64(c) {
    0.65 엔지니어 구현 (회차 97, 분할 구현 6차) — 기준: docs/characters/engineer.md
    • 고유 규칙: "엔지니어의 기계는 사라지지 않고 체력을 가지며, 가까운 적은 기계를 먼저 노림"
      - 정예 = 캐릭터 우선·길 막는 기계만 공격 / 수문장·마왕 = 기계 무시·광역기(예고 구역)에 기계도 피해
-     - 설치: 가만히 2.5초 → 캐릭터 위쪽 설치, 계속 서 있으면 1.2초 간격, 움직이면 취소
-     - 수량: 기본 포탑 4대(+ 포탑 강화 '최대 설치' + 연성마다 +1), 연성 기계 종류별 2기(가안)
+     - 설치: 가만히 1.5초 → 캐릭터 위쪽 설치, 계속 서 있으면 1.0초 간격, 움직이면 취소 (0.69 2.5·1.2초에서 단축)
+     - 수량: 기본 포탑 5대(0.69 4 → 5, + 포탑 강화 '최대 설치' + 연성마다 +1), 연성 기계 종류별 2기(가안)
      - 철거: 기계 탭 1회 = 반투명 + 빨간 X, 2회 = 철거 / 재설치 대기 부서짐 10초·철거 5초
-     - 영역: 기계마다 반경 200 원, 영역 밖 5초 → 전체 분해, 영역 밖에서는 짓지 않음
+     - 영역: 기계마다 반경 250 원, 영역 밖 8초 → 전체 분해 (0.69 200·5초에서 완화), 영역 밖에서는 짓지 않음
    • 전용 무기 포탑 설치: 발현 A 쌍열 포탑 → 무기 각성 A 회전 기관포 / 발현 B 대구경 포탑 → 무기 각성 B 박격포
    • 궁극기: 기본 긴급 증설 / 인물 각성 A 현장 지휘관 + 총지휘 / 인물 각성 B 전기 울타리 + 결전 병기
    • 연성 7종 = 그 무기를 쓰는 기계 설치: 대검 기계병·칼날 드론·쇠뇌 포대·용광로·용접 토치·경보종·철조망 발사기
@@ -15879,14 +15888,15 @@ function drawN64(c) {
    • 그림: 새 장면은 임시 도형 (최종본 아님, GPT 요청 대상), 수치는 전부 가안 (대규모 밸런스 단계 조정)
    ============================================================ */
 const E65C = {
-  build: { first: 2.5, next: 1.2, gap: 6, hpBase: 60 },                              // 가만히 2.5초 → 설치, 계속 서 있으면 1.2초 간격, 가장자리 틈 6, 체력 60
-  cap: { turret: 4, fuse: 2 },                                                       // 기본 포탑 4대 (+최대 설치 강화·연성마다 +1), 연성 기계 종류별 2기 (가안)
+  build: { first: 1.5, next: 1.0, gap: 6, hpBase: 80, hpMin: 0.3 },                 // 가만히 1.5초 → 설치, 계속 서 있으면 1.0초 간격, 가장자리 틈 6, 체력 80 × (1 + 분당 30%) (0.69: 2.5초·1.2초·60 고정 → 서 있기 어렵고 후반 접촉에 바로 부서짐)
+  cap: { turret: 5, fuse: 2 },                                                       // 0.69 기본 포탑 5대 (4 → 5) (+최대 설치 강화·연성마다 +1), 연성 기계 종류별 2기 (가안)
+  out: { k: 1.5 },                                                                   // 0.69 기계 출력: 전용·연성 기계 피해 +50% (대규모 밸런스, 처치/분 최하위 보완)
   cool: { broke: 10, removed: 5 },                                                   // 재설치 대기: 부서짐 10초·직접 철거 5초
   tap: { move: 10, time: 0.25, hit: 22, keep: 2 },                                   // 탭: 이동 10px 미만·0.25초 안에 뗌, 판정 지름 44px, X 표시 2초 유지
-  area: { R: 200, edge: 100, out: 5 },                                               // 영역 반경 200(1.3초), 경계 100 안에서 진해짐, 영역 밖 5초 → 분해
-  lure: { R: 150, hitCd: 0.6 },                                                      // 기계 반경 150 안·캐릭터보다 기계가 가까운 일반 적 → 기계를 노림 (가안), 붙어서 0.6초마다 적 피해만큼 (가안)
+  area: { R: 250, edge: 100, out: 8 },                                               // 영역 반경 250(1.7초), 경계 100 안에서 진해짐, 영역 밖 8초 → 분해 (0.69 200·5초 → 250·8초: 피하다 영역을 벗어나 기계 전부 분해되는 일 잦음)
+  lure: { R: 180, hitCd: 0.6 },                                                      // 기계 반경 150 안·캐릭터보다 기계가 가까운 일반 적 → 기계를 노림 (가안), 붙어서 0.6초마다 적 피해만큼 (가안)
   xp: { still: 0.6 },                                                                // 멈춤·자리 인물 경험치 보조 (가안): 서 있는 동안 흡수 범위 +60% (궁수와 같음)
-  turret: { fire: 0.8, range: 240, r: 10, sp: 520 },                                 // 기본 포탑: 0.8초마다·사거리 240·피해 8
+  turret: { fire: 0.65, range: 240, r: 10, sp: 520 },                                // 기본 포탑: 0.65초마다·사거리 240·피해 11 (0.69 0.8초 → 0.65초)
   gat: { min: 0.3, step: 0.1, back: 3, cap: 5 },                                             // 회전 기관포: 같은 적을 계속 쏘면 한 발마다 -0.1초 (최저 0.3초), 대상이 바뀌면 3발분 느려짐 (가안)
   big: { R: 30, k: 1.2 },                                                            // 대구경 포탑: 작은 폭발 반경 30·피해 +20%
   mortar: { every: 4, R: 80, k: 2.5, fly: 0.7, look: 80 },                           // 박격포: 4번째 발사마다 가장 큰 무리에 곡사 포탄 반경 80·250%
@@ -15909,7 +15919,7 @@ const MACH65 = {                                                                
 const Eg = () => G.e65 || (G.e65 = { mach: [], cool: {}, bt: 0, chain: false, outT: 0, cmdT: 0, cannon: null, lobs: [], booms: [], sparks: [], links: [], fenceT: 0, mark: null, prev: null });
 const isE65 = () => G.p && G.p.job === 'engineer' && HERO60.engineer.impl;
 const ECOL = () => HERO60.engineer;
-const ek65 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과 배율
+const ek65 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const ec65 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 function tFire65(S) { return E65C.turret.fire * (S.cd / WEAPONS.turret.base.cd); }
 const ref65 = () => { const b = baseW(); if (!b) return 10; const S = wStats(b); return S.dmg / Math.max(0.05, tFire65(S)); };   // 무기 기준 = 기본 포탑 1대 초당 피해 (가안, 사령술사 등불 기준과 같은 방식)
@@ -15951,7 +15961,7 @@ function spot65(type) {
   return { x: p.x + rand(-40, 40), y: p.y - 40 };
 }
 function place65(type, w, o = {}) {
-  const E = Eg(), q = o.at || spot65(type), D = MACH65[type], hp = E65C.build.hpBase * (type === 'cleave' ? E65C.bot.hpK : 1);
+  const E = Eg(), q = o.at || spot65(type), D = MACH65[type], hp = E65C.build.hpBase * (1 + E65C.build.hpMin * G.time / 60) * (type === 'cleave' ? E65C.bot.hpK : 1);
   const m = Object.assign({ type, w, x: q.x, y: q.y, hx: q.x, hy: q.y, r: D.r, hp, mhp: hp, cd: rand(0.1, 0.3), t: 0, a: -Math.PI / 2, shotN: 0, gat: 0 }, o.tmp ? { tmp: o.tmp } : {});
   E.mach.push(m); const S6 = S60(); S6.built = (S6.built || 0) + 1; const B = S6.builtBy || (S6.builtBy = {}); B[type] = (B[type] || 0) + 1;
   fx({ kind: 'ring', x: m.x, y: m.y, r0: 4, r1: m.r + 12, dur: 0.25, color: ECOL().c1 });
@@ -16079,7 +16089,7 @@ const MACT65 = {
     const C = E65C.alarm; if (m.cd > 0) return; const R = C.R * S.area;
     if (!nearestEnemy(m.x, m.y, R)) { m.cd = 0.25; return; }
     m.cd = C.cd * ec65(m.w, S); m.fireT = now;
-    const d = WEAPONS.bell.base.dmg * ek65(m.w, S) * vol65(m), ctx = roll60(m.w), E = Eg();
+    const d = FREF60.bell * ek65(m.w, S) * vol65(m), ctx = roll60(m.w), E = Eg();
     withCR60(ctx, () => gridQuery(m.x, m.y, R, e => { damageEnemy(e, d, { src: 'bell' }); if (!e.dead) stun60(e, C.stun); }));
     E.booms.push({ x: m.x, y: m.y, R, t: 0, dur: 0.35, ring: 1 });
     const os = E.mach.filter(o => o !== m && !o.dead).sort((a, b) => dist2(a.x, a.y, m.x, m.y) - dist2(b.x, b.y, m.x, m.y)).slice(0, C.n);
@@ -16263,6 +16273,7 @@ Object.assign(HERO60.engineer, {
   impl: true,
   br: [{ k: 'A', nm: '쌍열 포탑', ds: '포신 2개, 2발 동시 발사' }, { k: 'B', nm: '대구경 포탑', ds: '포탄이 작은 폭발 (반경 30), 피해 +20%' }],
   wak: { A: { nm: '회전 기관포', ds: '같은 적을 계속 쏘면 발사 간격 0.8 → 최저 0.3초' }, B: { nm: '박격포', ds: '4번째 발사마다 가장 큰 무리에 곡사 포탄 (반경 80·250%)' } },
+  stat(w) { return { dmg: E65C.out.k }; },
   fire: () => 'tick',                                                                 // 전용 무기 칸은 기본 포탑 종류만 정함, 공격은 설치된 포탑이 함
   onPick() { G.e65 = null; Eg(); SRC_NM.turret = '포탑'; SRC_NM.fence65 = '전기 울타리'; },
   ultFn(k) { return k === 'A' ? ultCmd65 : k === 'B' ? ultCannon65 : ultRush65; },
@@ -16445,15 +16456,15 @@ function drawE65(c) {
 }
 /* ============================================================
    0.66 화염술사 구현 (회차 97, 분할 구현 7차) — 기준: docs/characters/pyromancer.md
-   • 고유 규칙(연성형): "화염구·연성 무기에 맞은 적이 불붙음" — 불 3초·매초 화염구 피해 10%, 화염술사 전용 상태 (옮겨붙음·번짐 없음)
+   • 고유 규칙(연성형): "화염구·연성 무기에 맞은 적이 불붙음" — 불 3초·매초 화염구 피해 15%(0.69 10% → 15%), 화염술사 전용 상태 (옮겨붙음·번짐 없음)
    • 전용 무기 화염구: 발현 A 큰 불꽃 → 무기 각성 A 불기둥 / 발현 B 불의 창 → 무기 각성 B 폭렬 창
    • 궁극기: 기본 화염 해방 / 인물 각성 A 불 거두기 + 불사조 / 인물 각성 B 불티 + 거대 불덩이
    • 연성 7종: 불꽃 대검·X자 불칼금·불씨살·불꽃 정령·화염 등불·뜨거운 숨·불넝쿨 (7종 전부 불붙음, 색은 같게 두고 모양으로 구분)
    • 그림: 새 장면은 임시 도형 (최종본 아님, GPT 요청 대상), 수치는 전부 가안 (대규모 밸런스 단계 조정)
    ============================================================ */
 const P66C = {
-  burn: { dur: 3, k: 0.1, tick: 1 },                                                 // 불붙음: 3초·매초 화염구 피해 10%
-  fb: { range: 260, R: 35, sp: 300 },                                                // 화염구: 1.2초마다·사거리 260·폭발 반경 35·피해 18
+  burn: { dur: 3, k: 0.15, tick: 1 },                                                // 불붙음: 3초·매초 화염구 피해 15% (0.69 10% → 15%)
+  fb: { range: 260, R: 35, sp: 300 },                                                // 화염구: 1.2초마다·사거리 260·폭발 반경 35·피해 22(0.69 짝 무기 표)
   big: { R: 1.6 },                                                                   // 발현 A 큰 불꽃: 폭발 반경 +60%
   pillar: { every: 4, dur: 1.5, R: 50, tick: 0.3, k: 0.4 },                          // 무기 각성 A 불기둥: 4번째 발동마다 1.5초·반경 50·0.3초마다 40%
   spear: { k: 1.3, sp: 460, w: 10 },                                                 // 발현 B 불의 창: 일직선 관통·피해 +30%
@@ -16474,7 +16485,7 @@ const P66C = {
 const Pg = () => G.p66 || (G.p66 = { burn: [], embers: 0, pillars: [], spears: [], arrows: [], spirits: [], vines: [], booms: [], links: [], cuts: [], phoenix: null, meteor: null, nCast: 0 });
 const isP66 = () => G.p && G.p.job === 'pyromancer' && HERO60.pyromancer.impl;
 const PCOL = () => HERO60.pyromancer;
-const pk66 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과 배율
+const pk66 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const pc66 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 const fbD66 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.fireball.base.dmg; };   // 화염구 피해 (불붙음·불티·궁극기 기준)
 const ref66 = () => { const b = baseW(); if (!b) return 15; const S = wStats(b); return S.dmg / Math.max(0.05, S.cd); };   // 무기 기준 = 화염구 초당 피해 (가안, 사령술사·엔지니어와 같은 방식)
@@ -16654,7 +16665,7 @@ function fLamp66(w, S) {
 }
 // 뜨거운 숨: 숨을 내쉬듯 몸에서 열기 고리가 두 번 퍼지고, 두 번째가 더 멀리 퍼짐
 function fBreath66(w, S) {
-  const C = P66C.breath, p = G.p, R1 = C.R1 * S.area, R2 = C.R2 * S.area, d = WEAPONS.bell.base.dmg * pk66(w, S), P = Pg(), ctx = CR60;
+  const C = P66C.breath, p = G.p, R1 = C.R1 * S.area, R2 = C.R2 * S.area, d = FREF60.bell * pk66(w, S), P = Pg(), ctx = CR60;
   if (!nearestEnemy(p.x, p.y, R2)) return false;
   gridQuery(p.x, p.y, R1, e => { hit66(e, d, 'bell'); if (!e.dead) stun60(e, C.stun); });
   P.booms.push({ x: p.x, y: p.y, R: R1, t: 0, dur: 0.35, ring: 1 });
@@ -16771,7 +16782,7 @@ drawWeapons = function (c, inView) {
 /* ============================================================
    0.67 프리스트 구현 (회차 98, 분할 구현 8차) — 기준: docs/characters/priest.md
    • 고유 규칙(연성형): 기도 = 빛을 모으는 장치(스스로 피해 없음), 평소 천천히·멈추면 2배, 3단계 차면 0.3초 모으기 →
-     축복 일제 발동(전용·연성 무기가 간격 무관 한꺼번에 강화 발동: 범위 +50%·피해 2배) + 빛 파동(피해 없음)·종소리 + 보호막 2초
+     축복 일제 발동(전용·연성 무기가 간격 무관 한꺼번에 강화 발동: 범위 +50%·피해 1.6배, 0.69 2배 → 1.6배) + 빛 파동(피해 없음)·종소리 + 보호막 2초
    • 머리 위 여신 형상: 기도의 출처·단계 표시 (임시 도형)
    • 전용 무기 축복의 종: 발현 A 잔향 → 무기 각성 A 공명 / 발현 B 뻗는 울림 → 무기 각성 B 겹울림
    • 궁극기: 기본 하늘의 대종 / 인물 각성 A 넘치는 기도 + 여신 강림 / 인물 각성 B 맡기는 기도 + 심판
@@ -16780,7 +16791,7 @@ drawWeapons = function (c, inView) {
    ============================================================ */
 const R67C = {
   pray: { move: 1 / 3, stand: 2 / 3, max: 3, gather: 0.3, shield: 2 },               // 기도: 이동 중 9초·멈추면 4.5초에 3단계 (가안)
-  boost: { area: 1.5, dmg: 2 },                                                      // 축복 일제 발동: 범위 +50%·피해 2배
+  boost: { area: 1.5, dmg: 1.6 },                                                    // 축복 일제 발동: 범위 +50%·피해 1.6배 (0.69 2배 → 1.6배, 종 피해 쏠림 55%)
   over: { hold: 4, area: 2, dmg: 3 },                                                // 넘치는 기도 4단계: 3단계 후 4초·범위 +100%·피해 3배
   echo: { late: 0.5, k: 0.3 },                                                       // 발현 A 잔향: 0.5초 뒤 같은 적 30%
   reso: { late: 0.3, R: 70, Rb: 105, k: 0.5, stun: 0.2 },                            // 무기 각성 A 공명: 0.3초 뒤 반경 70 작은 고리 50% + 멈칫 (일제 발동 105)
@@ -16802,9 +16813,9 @@ const Qg = () => G.r67 || (G.r67 = { pray: 0, gT: 0, gLv: 0, hold: -1, boost: nu
   rings: [], waves: [], bolts: [], cuts: [], rays: [], candles: [], binds: [], sweeps: [], motes: [], bursts: 0 });
 const isR67 = () => G.p && G.p.job === 'priest' && HERO60.priest.impl;
 const QCOL = () => HERO60.priest;
-const rk67 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;                              // 짝 무기 강화·보조 효과·일제 발동 배율
+const rk67 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과·일제 발동 배율
 const rc67 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
-const ref67 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.bell.base.dmg * TEMP60.dmg; };   // 무기 기준 = 종 1번 피해 (궁극기·번개, 가안)
+const ref67 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.bell.base.dmg; };   // 무기 기준 = 종 1번 피해 (궁극기·번개, 가안)
 const stage67 = () => Math.max(0, Math.min(R67C.pray.max, Math.floor(Qg().pray + 1e-6)));
 function dense67(x, y, range, R) {                                                    // 범위 안에서 주변 적이 가장 많은 적
   let best = null, bs = -1;
@@ -17043,7 +17054,7 @@ Object.assign(HERO60.priest, {
   fire: pBell67,
   stat(w) { const B = Qg().boost; return B ? { dmg: B.dmg, area: B.area } : {}; },   // 일제 발동 중 강화 (전용·연성 무기만)
   hurtMul() { return inSky67() ? 1 - R67C.sky.guard : 1; },
-  avoid() { const P = Qg(); if (P.judge) return true; if (P.shieldT > 0) { S60().shieldBlock = (S60().shieldBlock || 0) + 1; return true; } return false; },
+  avoid() { const P = Qg(); if (P.judge) return true; if (P.shieldT > 0) { P.shieldT = 0; G.p.invT = CFG.player.invuln; S60().shieldBlock = (S60().shieldBlock || 0) + 1; fx({ kind: 'ring', x: G.p.x, y: G.p.y - 4, r0: 12, r1: 34, dur: 0.3, color: QCOL().c1, follow: true }); return true; } return false; },   // 0.69 보호막 = 2초 동안 피격 1번 막고 깨짐 (회차 102 해석: '근거 없는 무적' 원칙, 옛 2초 피해 무효)
   spdMul() { return Qg().judge ? 1e-6 : 1; },   // 0은 연결점에서 기본값 1로 바뀌므로 아주 작은 값
   onPick() { G.r67 = null; Qg(); },
   ultFn(k) { return k === 'A' ? ultDescend67 : k === 'B' ? ultJudge67 : ultSky67; },
@@ -17189,9 +17200,9 @@ const D68C = {
 const Dg = () => G.d68 || (G.d68 = { form: 'wolf', still: 0, lock: 0, keep: 0, moon: 0, nSw: 0, forest: null, tree: null, bushes: [], blooms: [], spikes: [], hawks: [], flowers: [], spits: [], pools: [], pollens: [], booms: [], swipes: [], leaves: [], fx: [] });
 const isD68 = () => G.p && G.p.job === 'druid' && HERO60.druid.impl;
 const DCOL = () => HERO60.druid;
-const dk68 = (w, S) => S.dmg / WEAPONS[w.id].base.dmg;
+const dk68 = (w, S) => fk60r(w, S);
 const dc68 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
-const ref68 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.thorn.base.dmg * TEMP60.dmg; };   // 무기 기준 = 가시 덩굴 1번 피해
+const ref68 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.thorn.base.dmg; };   // 무기 기준 = 가시 덩굴 1번 피해
 const bear68 = () => Dg().form === 'bear';
 function wildLv68() { const D = Dg(); if (G.p.job2 !== 'A') return 1; if (D.moon > 0) return 3; return D.keep >= D68C.wild.t2 ? 3 : D.keep >= D68C.wild.t1 ? 2 : 1; }
 const formK68 = () => 1 + D68C.wild.k * (wildLv68() - 1);                            // 형태 효과 배율 (1 → 1.5 → 2)
@@ -17369,7 +17380,7 @@ function fRoot68(w, S) {
 // 초롱꽃: 곁에 핀 초롱꽃이 흔들리면 꽃가루 고리가 퍼져 적을 움찔하게 하고, 꽃가루가 잠시 남아 적을 느리게 함
 function fBellf68(w, S) {
   const C = D68C.bellf, p = G.p, D = Dg(), R = C.R * S.area; if (!nearestEnemy(p.x, p.y, R)) return false;
-  const d = WEAPONS.bell.base.dmg * dk68(w, S);
+  const d = FREF60.bell * dk68(w, S);
   gridQuery(p.x, p.y, R, e => { damageEnemy(e, d, { src: 'bell' }); if (!e.dead) stun60(e, C.stun); });
   D.pollens.push({ x: p.x, y: p.y, R, t: 0, bear: bear68() }); S60().pollen = (S60().pollen || 0) + 1;
   return C.cd * dc68(w, S);
@@ -17531,6 +17542,127 @@ function drawD68(c) {
   for (const o of D.fx) { const k = o.t / o.dur; c.globalAlpha = 1 - k; c.fillStyle = '#6cc456'; c.fillRect(o.x + o.vx * o.t, o.y + o.vy * o.t, 3, 2); }
   c.globalAlpha = 1;
 }
+/* ============================================================
+   0.69 우두머리 페이즈 (회차 102, 대규모 밸런스 구조 추가) — 기준: docs/BALANCE_TODO.md 진행 방식(회차 99 사용자 결정)
+   • 판마다 중반에 '우두머리' 페이즈 1회: 정예보다 크고 세고 체력 많음, 몬스터마다 고유 패턴 기술 1개
+   • 처치 보상 = 보물 상자 3개 (레벨업 카드 3회), 120초 안에 못 잡으면 우두머리 퇴각·보상 없음
+   • 판 길이 유지: 일반 페이즈를 1개 적게 뽑고(일반 판 7~8 → 6~7, 유형별 2종 보장 유지) 우두머리 1 추가, 재도전 판 제외
+   • 유형 '보스' → 돌발 사건·고비 사건 없음, 정예 일정 없음, 시간 정지 중 패턴 멈춤
+   • 고정 위치: 페이즈 순서의 가운데, 강함 판정에 따른 순서 바꾸기 대상에서 제외
+   • 기존 정예·오우거 전열·수문장과 겹치지 않게 패턴 선택 (돌진 = 수문장 바르간, 대장 추적 = 오우거 전열)
+   • 그림: 잡몹 그림 확대 + 금빛 왕관 고리 (임시 도형, 최종본 아님 — GPT 요청 대상)
+   ============================================================ */
+const CH69 = {
+  fail: 120, hp: 2500, rK: 2.5, dmgK: 1.4, spK: 0.85, xp: 60, chests: 3, cd: [5.2, 6.8], first: 2.5,
+  jelly: { nm: '젤리 여왕', pat: '분출', tele: 0.8, n: 10, sp: 150, k: 0.6, kids: 4 },                   // 흔들림 예고 → 사방 젤리 탄 10발 + 작은 슬라임 4마리
+  gob: { nm: '고블린 두목', pat: '일제 사격', tele: 0.9, n: 5, fan: 0.2, sp: 280, k: 0.7, keep: [170, 240] },   // 예고선 5줄 → 부채꼴 5발, 거리 유지
+  knight: { nm: '방패 대장', pat: '도약 내려찍기', tele: 1.1, R: 95, k: 2.2, near: 260 },               // 캐릭터 자리에 예고 원 → 뛰어올라 내려찍기
+  mush: { nm: '버섯 군주', pat: '포자 폭발', tele: 1.3, n: 4, R: 58, k: 1.6, ring: [60, 150] },          // 캐릭터 주변 예고 원 4개 → 폭발
+  types: ['jelly', 'gob', 'knight', 'mush'],
+};
+PHASES.chief = { name: '우두머리 출현', type: '보스', goal: 'kill', fail: CH69.fail, spawnMul: 0.5, tint: [215, 170, 70],
+  hint: '우두머리 처치 (보물 상자 3개)' };
+const chiefOf69 = () => G.ph && G.ph.id === 'chief' && G.ph.cmd && G.ph.cmd.chief ? G.ph.cmd : null;
+
+/* ---------- 페이즈 순서: 가운데 고정 ---------- */
+const _pickPhaseOrder69 = pickPhaseOrder;
+pickPhaseOrder = function (retry) {
+  if (retry) return _pickPhaseOrder69(retry);
+  const pr = PH_CFG.perRun; PH_CFG.perRun = pr.map(n => n - 1);   // 일반 페이즈 1개 적게 뽑기 (유형별 2종 보장 유지, 교차 검토 반영)
+  let o; try { o = _pickPhaseOrder69(retry); } finally { PH_CFG.perRun = pr; }
+  o.splice(Math.ceil(o.length / 2), 0, 'chief');
+  return o;
+};
+const _phaseChooseNext69 = phaseChooseNext;
+phaseChooseNext = function () {
+  const ph = G.ph, ci = ph.order.indexOf('chief');
+  if (ci < 0 || ci <= ph.i) return _phaseChooseNext69();
+  if (ci === ph.i + 1) { ph.nextAmbush = false; ph.str = strength(); return; }      // 다음이 우두머리면 순서 그대로
+  ph.order.splice(ci, 1); _phaseChooseNext69(); ph.order.splice(ci, 0, 'chief');
+};
+
+/* ---------- 등장 ---------- */
+const _phaseStart69 = phaseStart;
+phaseStart = function () {
+  _phaseStart69.apply(this, arguments);
+  const ph = G.ph; if (ph.id !== 'chief') return;
+  const t = pick(CH69.types), C = CH69[t], q = ringAt(VIEW.w * 0.45, VIEW.w * 0.55), e = makeEnemy(t, q.x, q.y), min = G.time / 60;
+  e.hp = e.maxHp = CH69.hp * (1 + CFG.scale.hpPerMin * min) * (1 + tierK());
+  e.r = ENEMIES[t].r * CH69.rK; e.dmg *= CH69.dmgK; e.speed *= CH69.spK; e.xp = CH69.xp; e.mb = 'chief'; e.cmd = true; e.chief = t;
+  e.ai69 = { cd: CH69.first, st: null, t: 0 };
+  ph.cmd = e; ph.elites = [];                                   // 정예 일정 없음 (돌발·고비 사건은 '보스' 유형으로 제외)
+  const S = S60(); S.chief = S.chief || []; S.chief.push([t, Math.round(G.time), null, 0]);
+  banner(C.nm, `${ph.i + 1}/${ph.order.length} · 우두머리 · ${C.pat}`, '#ffd24a', 2.4); shake(4, 0.5); sfx('preview');
+};
+
+/* ---------- 패턴 ---------- */
+function chiefUpdate69(dt) {
+  const e = chiefOf69(); if (!e || e.dead || G.result) return;
+  const A = e.ai69, C = CH69[e.chief], p = G.p, dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy) || 1;
+  if (eventPaused() || (G.tm && G.tm.alpha > 0)) return;          // 시간 정지 중 패턴 멈춤
+  if (A.st) {
+    A.t += dt; e.flash = Math.floor(A.t * 14) & 1 ? 0.08 : 0;
+    if (A.t >= C.tele) { chiefFire69(e, A, C); A.st = null; A.cd = rand(CH69.cd[0], CH69.cd[1]); }
+    return;
+  }
+  A.cd -= dt;
+  if (e.chief === 'gob') { e.hold69 = d < C.keep[0] ? -0.8 : d < C.keep[1] ? 0 : 1; }
+  if (A.cd > 0 || d > VIEW.w * 0.75) return;
+  if (e.chief === 'knight' && d > C.near) return;
+  A.st = e.chief; A.t = 0; A.ang = Math.atan2(dy, dx);
+  if (e.chief === 'gob') for (let i = 0; i < C.n; i++) { const a = A.ang + (i - (C.n - 1) / 2) * C.fan; G.hz.push({ k: 'line', x: e.x, y: e.y, dx: Math.cos(a), dy: Math.sin(a), len: 320, w: 10, warn: C.tele, t: 0, dmg: 0, follow: e, src: C.nm }); }
+  if (e.chief === 'knight') { A.tx = p.x; A.ty = p.y; gkCircle(A.tx, A.ty, C.R, C.tele, e.dmg * C.k, C.nm); }
+  if (e.chief === 'mush') for (let i = 0; i < C.n; i++) { const q = i === 0 ? { x: p.x, y: p.y } : ringAt(C.ring[0], C.ring[1]); gkCircle(q.x, q.y, C.R, C.tele, e.dmg * C.k, C.nm); }
+  if (e.chief === 'jelly') fx({ kind: 'ring', x: e.x, y: e.y, r0: e.r, r1: e.r * 1.6, dur: C.tele, color: '#6ad8f0' });
+}
+function chiefFire69(e, A, C) {
+  const st = S60().chief; if (st && st.length) st[st.length - 1][3]++;
+  if (e.chief === 'jelly') {
+    const a0 = rand(Math.PI * 2);
+    for (let i = 0; i < C.n; i++) { const a = a0 + i * Math.PI * 2 / C.n; gkShot(e.x, e.y, Math.cos(a) * C.sp, Math.sin(a) * C.sp, e.dmg * C.k, C.nm, '#8fe8ff'); }
+    for (let i = 0; i < C.kids; i++) { if (aliveCount() >= CFG.spawn.max) break; const a = rand(Math.PI * 2), k = makeEnemy('slime', e.x + Math.cos(a) * e.r, e.y + Math.sin(a) * e.r); k.kbx = Math.cos(a) * 160; k.kby = Math.sin(a) * 160; k.xp = 1; }
+    shake(2, 0.25);
+  }
+  if (e.chief === 'gob') for (let i = 0; i < C.n; i++) { const a = A.ang + (i - (C.n - 1) / 2) * C.fan; gkShot(e.x, e.y, Math.cos(a) * C.sp, Math.sin(a) * C.sp, e.dmg * C.k, C.nm, '#c8ff7a'); }
+  if (e.chief === 'knight') { e.x = A.tx; e.y = A.ty; e.kbx = e.kby = 0; shake(5, 0.35); burst(e.x, e.y, 14, '#c8d2e0', 200, 0.5, 3); }
+  if (e.chief === 'mush') shake(2, 0.25);
+}
+const _updatePhaseGimmick69 = updatePhaseGimmick;
+updatePhaseGimmick = function (P, dt) { _updatePhaseGimmick69(P, dt); chiefUpdate69(dt); };
+/* 이동: 예고 중 정지, 고블린 두목 거리 유지 (e.mb = 'chief' → 잡몹 행동 대신 이 규칙) */
+const _mobMove69 = mobMove;
+mobMove = function (e, dt, sp, d, dx, dy) {
+  if (e.chief) { if (e.ai69 && e.ai69.st) return 0; if (e.chief === 'gob') return sp * (e.hold69 == null ? 1 : e.hold69); return sp; }
+  return _mobMove69(e, dt, sp, d, dx, dy);
+};
+
+/* ---------- 보상·정리 ---------- */
+const _phaseEnd69 = phaseEnd;
+phaseEnd = function (outcome) {
+  const ph = G.ph;
+  if (ph.id === 'chief' && ph.cmd && ph.cmd.chief) {
+    const e = ph.cmd, st = S60().chief, ok = outcome === 'ok' && e.dead;
+    if (st && st.length) st[st.length - 1][2] = ok ? Math.round(ph.t) : -1;
+    if (ok) { for (let i = 0; i < CH69.chests; i++) { const a = i * Math.PI * 2 / CH69.chests - Math.PI / 2; G.chests.push({ x: e.x + Math.cos(a) * 28, y: e.y + Math.sin(a) * 28, r: 14 }); } toast(`${CH69[e.chief].nm} 처치 · 보물 상자 ${CH69.chests}개`, '#ffd24a'); }
+    else toast(`${CH69[e.chief].nm} 퇴각`, '#ff9a7a');
+    const nm = CH69[e.chief].nm; G.hz = G.hz.filter(h => h.src !== nm); G.eb = G.eb.filter(b => b.src !== nm);   // 남은 예고·탄 정리
+  }
+  return _phaseEnd69.apply(this, arguments);
+};
+
+/* ---------- 그림 (임시 도형): 금빛 왕관 고리·이름 ---------- */
+const _drawWeapons69 = drawWeapons;
+drawWeapons = function (c) {
+  _drawWeapons69.apply(this, arguments);
+  const e = chiefOf69(); if (!e || e.dead) return;
+  const C = CH69[e.chief], y = e.y - e.r - 6, w = e.r * 0.9;
+  c.save(); c.fillStyle = '#ffd24a'; c.strokeStyle = '#5a3a10'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(e.x - w / 2, y); c.lineTo(e.x - w / 2, y - 8); c.lineTo(e.x - w / 4, y - 4); c.lineTo(e.x, y - 10); c.lineTo(e.x + w / 4, y - 4); c.lineTo(e.x + w / 2, y - 8); c.lineTo(e.x + w / 2, y); c.closePath(); c.fill(); c.stroke();
+  if (e.ai69 && e.ai69.st) { c.globalAlpha = 0.5 + 0.4 * Math.sin(G.time * 20); c.strokeStyle = '#ffd24a'; c.lineWidth = 3; c.beginPath(); c.arc(e.x, e.y, e.r + 6, 0, Math.PI * 2); c.stroke(); }
+  c.globalAlpha = 1; c.font = 'bold 10px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ffe9a8'; c.strokeStyle = '#2a1a08'; c.lineWidth = 3; c.strokeText(C.nm, e.x, y - 14); c.fillText(C.nm, e.x, y - 14);
+  c.restore();
+};
+/* 시험 기록: G.stats.h60.chief = [[종류, 등장 시각, 처치 시간(-1 = 퇴각), 패턴 횟수], ...] */
 /* ============================================================
    화면 겹침 UI — 시작·일시정지·결과 화면, 대사창 틀 (0.4)
    ============================================================ */
