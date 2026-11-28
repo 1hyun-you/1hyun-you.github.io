@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="회귀의 들판">
-<title>[미리보기 0.70] 회귀의 들판</title>
+<title>[미리보기 0.71] 회귀의 들판</title>
 <meta name="theme-color" content="#16141e">
 <style>
 @font-face{font-family:Galmuri11;src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400;font-display:swap}
@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.70',
+  VERSION: '0.71',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -1565,7 +1565,7 @@ function gkSplit(e) {
     const a = a0 + i * 6.283 / (n + 1), x = p.x + Math.cos(a) * 200, y = p.y + Math.sin(a) * 200;
     if (i === slot) { e.x = x; e.y = y; continue; }
     const c = makeEnemy('brute', x, y);
-    Object.assign(c, { r: e.r, speed: e.speed, color: e.color, shape: e.shape, xp: 0, dmg: e.dmg, cmd: true, boss: true, gk: 'seren', clone: true, real: e });
+    Object.assign(c, { r: e.r, speed: e.sp0 || e.speed, color: e.color, shape: e.shape, xp: 0, dmg: e.dmg, cmd: true, boss: true, gk: 'seren', clone: true, real: e });
     c.hp = c.maxHp = e.maxHp * GK_CFG.seCloneHp;
   }
   e.ai.hp0 = e.hp; e.ai.splitAt = G.time;
@@ -3935,11 +3935,11 @@ function mobMove(e, dt, sp, d, dx, dy) {
   }
   if (k === 'dash') {
     const C = MOB.dash; e.cd = (e.cd == null ? rand(C.cd[0], C.cd[1]) : e.cd) - dt;
-    if (e.dsh > 0) { e.dsh -= dt; e.x += e.ddx * e.speed * C.spK * dt; e.y += e.ddy * e.speed * C.spK * dt; return 0; }
+    if (e.dsh > 0) { e.dsh -= dt; const v = e.sp0 || e.speed; e.x += e.ddx * v * C.spK * dt; e.y += e.ddy * v * C.spK * dt; return 0; }   // 0.71 sp0 = 둔화 전 원래 속도 (예고선과 실제 돌진 거리 일치)
     if (e.tl > 0) { e.tl -= dt; if (e.tl <= 0) e.dsh = C.dur; return 0; }
     if (e.cd <= 0 && d < C.near && !G.result && sp > 0) {
       e.cd = rand(C.cd[0], C.cd[1]); e.tl = C.tele; e.ddx = dx / d; e.ddy = dy / d;
-      G.hz.push({ k: 'line', x: e.x, y: e.y, dx: e.ddx, dy: e.ddy, len: e.speed * C.spK * C.dur, w: e.r * 2, warn: C.tele, t: 0, dmg: 0, follow: e });
+      G.hz.push({ k: 'line', x: e.x, y: e.y, dx: e.ddx, dy: e.ddy, len: (e.sp0 || e.speed) * C.spK * C.dur, w: e.r * 2, warn: C.tele, t: 0, dmg: 0, follow: e });
       return 0;
     }
     return sp;
@@ -15043,6 +15043,7 @@ const A63C = {
   volley: { every: 5, dur: 1.5, rate: 10, k: 0.5 },                                 // 무기 각성 A 속사 연발: 5번째 발동마다 1.5초·초당 10발·각 50%
   giant: { every: 4, w: 30, k: 2.5, kb: 260, sp: 760 },                             // 무기 각성 B 거대 화살: 4번째 발동마다 폭 30·화면 끝까지·250%·밀쳐냄
   hunt: { up: 0.35, rain: 1.0, n: 30, R: 0.5, r: 28, k: 2, dur: 5 },               // 사냥 개시: 화면 절반 범위, 화살 1발 = 장궁 피해 2배, 이후 5초 이동 중 사격
+  flinch: { t: 0.4, k: 0.4, kBoss: 0.2 },                                           // 0.70 움찔: 전용·연성 화살에 맞은 적 0.4초 이동 -40% (수문장·마왕·정예 대장 -20%), 다시 맞으면 새로 시작 (회차 103 사용자 결정)
   gaze: { dur: 4, slow: 0.5, slowBoss: 0.25 },                                      // 매의 시선: 4초 화면 전체 적 이동 -50% (수문장·마왕 -25%)
   storm: { dur: 3, rate: 12, k: 0.7, buff: 4 },                                     // 화살 폭풍: 3초 사방 난사·초당 12발·각 70% → 4초 모든 발동 첫 발동 강화
   moon: { cd: 1.25, range: 220, R: 25, n: 3, sp: 560 },                             // 초승달촉 화살 (칼날 폭 50)
@@ -15312,7 +15313,9 @@ Object.assign(HERO60.archer, {
   wak: { A: { nm: '속사 연발', ds: '5번째 발동마다 1.5초 동안 초당 10발 연달아 사격 (각 50%)' }, B: { nm: '거대 화살', ds: '4번째 발동마다 화면 끝까지 꿰뚫는 거대 화살 (250%·밀쳐냄)' } },
   fire: af63(aBow63),
   stat(w) { const b = stillBonus63(); return b > 0 ? { cd: 1 / (1 + b) } : {}; },
-  onHit(e, o) {                                                                       // 0.69 버티기 사격 (대규모 밸런스: 서 있는 동안 몰려든 적에 맞아 쓰러지는 구조 보완, 밀어냄 기준점 = 캐릭터)
+  onHit(e, o) {
+    if (!e.dead && o && o.src) { const w = G.p.weapons.find(x => x.id === o.src); if (own63(w)) e.fl63 = G.time + A63C.flinch.t; }   // 0.70 움찔 (전용·연성 화살만)
+    // 0.69 버티기 사격 (대규모 밸런스: 서 있는 동안 몰려든 적에 맞아 쓰러지는 구조 보완, 밀어냄 기준점 = 캐릭터)
     const p = G.p, C = A63C.guard; if ((p.moving && !(Ag().hunt > 0)) || e.dead || !noBoss60(e) || (e.ag63 || 0) > G.time) return;
     const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy) || 1; if (d > C.R + e.r) return;
     e.ag63 = G.time + C.once; e.kbx += dx / d * C.kb * JUICE.kbMul; e.kby += dy / d * C.kb * JUICE.kbMul; S60().guard = (S60().guard || 0) + 1;
@@ -15347,8 +15350,18 @@ const _updateEnemiesA63 = updateEnemies;
 updateEnemies = function (dt) {
   const A = G && G.a63; if (!A || !(A.gaze > 0) || !isA63()) return _updateEnemiesA63.apply(this, arguments);
   const p = G.p, hw = VIEW.w / 2 + 30, hh = VIEW.h / 2 + 30, C = A63C.gaze, ch = [];
-  for (const e of G.enemies) if (!e.dead && Math.abs(e.x - p.x) < hw && Math.abs(e.y - p.y) < hh) { const k = 1 - (e.boss || e.gk || e.cmd ? C.slowBoss : C.slow); ch.push([e, e.speed]); e.speed *= k; }
-  try { return _updateEnemiesA63.apply(this, arguments); } finally { for (const [e, s] of ch) e.speed = s; }
+  for (const e of G.enemies) if (!e.dead && Math.abs(e.x - p.x) < hw && Math.abs(e.y - p.y) < hh) { const k = 1 - (e.boss || e.gk || e.cmd ? C.slowBoss : C.slow); ch.push([e, e.speed, e.sp0]); if (e.sp0 == null) e.sp0 = e.speed; e.speed *= k; }
+  try { return _updateEnemiesA63.apply(this, arguments); } finally { for (let i = ch.length - 1; i >= 0; i--) { const [e, s, s0] = ch[i]; e.speed = s; e.sp0 = s0; } }   // 0.71 sp0 = 원래 속도 (돌진 예고선·분신 복사용)
+};
+
+/* 0.70 움찔: 화살에 맞은 적 잠깐 느려짐 — 매의 시선·포효·다른 둔화와 겹치면 더 강한 쪽 하나만 (겹쳐서 거의 멈추는 일 방지) */
+const _updateEnemiesF63 = updateEnemies;
+updateEnemies = function (dt) {
+  if (!isA63() || G.tm.roar > 0) return _updateEnemiesF63.apply(this, arguments);
+  const A = G.a63, gz = A && A.gaze > 0, p = G.p, hw = VIEW.w / 2 + 30, hh = VIEW.h / 2 + 30, C = A63C.flinch, now = G.time, ch = [];
+  for (const e of G.enemies) if (!e.dead && e.fl63 > now && !(e.slowT > 0) && !(gz && Math.abs(e.x - p.x) < hw && Math.abs(e.y - p.y) < hh)) {   // 매의 시선은 화면 안 적에만 걸리므로 그 적만 제외
+    ch.push([e, e.speed, e.sp0]); if (e.sp0 == null) e.sp0 = e.speed; e.speed *= 1 - (e.boss || e.gk || e.cmd ? C.kBoss : C.k); }
+  try { return _updateEnemiesF63.apply(this, arguments); } finally { for (let i = ch.length - 1; i >= 0; i--) { const [e, s, s0] = ch[i]; e.speed = s; e.sp0 = s0; } }   // 역순 복원, sp0 = 원래 속도 (돌진 예고선·분신 복사용)
 };
 
 /* ---------- 자동 플레이: 궁수 전용 '멈춰 쏘기' (시험·실기기 자동 플레이 공용) ----------
