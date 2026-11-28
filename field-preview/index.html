@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="회귀의 들판">
-<title>[미리보기 0.69] 회귀의 들판</title>
+<title>[미리보기 0.70] 회귀의 들판</title>
 <meta name="theme-color" content="#16141e">
 <style>
 @font-face{font-family:Galmuri11;src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400;font-display:swap}
@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.69',
+  VERSION: '0.70',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -1391,6 +1391,7 @@ const GK_ORDER = ['bargan', 'igna', 'morden', 'seren'];
 const GK_CFG = {
   hpMul: 100, dmgMul: 1.3, spawn: [230, 270], rage: 0.5, fail: 360,   // 0.69 hpMul 140→100 (인물 재구성 후 수문장전 100~360초·퇴각 잦음 → 목표 60~150초) / hpMul 80→140: 0.11 1차 10판 바르간 평균 36초·이그나 18~71초·세렌 74초
   bulletR: 6, bulletLife: 5,
+  holdIg: 1.2, holdMo: 1.5, holdMoS: 0.6, holdSe: 1.5,   // 0.70 큰 동작 뒤 굳는 틈(초): 거리 유지 수문장에 서 있는 인물도 피해를 줄 틈 (회차 103 사용자 결정)
   // 바르간
   bgEvery: [2.6, 1.9], bgTele: [0.75, 0.55], bgDashSp: 560, bgDashT: 0.6, bgSlamR: 120, bgSlamWarn: 0.9, bgSlamDmg: 26, bgAfterR: 62, bgAfterDmg: 20,
   // 이그나
@@ -1443,6 +1444,7 @@ function gkUpdate(e, dt, d, dx, dy) {
   else if (e.gk === 'igna') mv = gkKeep(e, d, 210, 170, 270) * gkIgna(e, ai, dt);
   else if (e.gk === 'morden') mv = gkKeep(e, d, 250, 200, 310) * gkMorden(e, ai, dt);
   else if (e.gk === 'seren') mv = gkKeep(e, d, 200, 150, 260) * gkSeren(e, ai, dt, d);
+  if (ai.hold > 0) { ai.hold -= dt; if (e.gk !== 'bargan') mv = 0; }   // 0.70 굳는 틈: 제자리 (패턴 대기시간은 계속 흐름)
   if (!ai.dash) {
     let sx = mx, sy = my;
     if (e.strafe) { const s = e.strafe; sx = mx * s.k - my * s.dir * (1 - Math.abs(s.k)); sy = my * s.k + mx * s.dir * (1 - Math.abs(s.k)); const m = Math.hypot(sx, sy) || 1; sx /= m; sy /= m; }
@@ -1505,6 +1507,7 @@ function gkIgna(e, ai, dt) {
     ai.cd = gkLv(GK_CFG.igEvery);
     const K = bpNext(ai, ['ring', 'fan', 'pool', 'twist', 'grid'].concat(e.rage && G.time > (ai.sunCd || 0) ? ['sun'] : [])), sp = gkLv(GK_CFG.igSp), dmg = gkDmg(GK_CFG.igDmg);   // 0.33 순번표
     const k = { ring: 1, fan: 2, pool: 0 }[K];
+    if (K !== 'sun') { ai.hold = GK_CFG.holdIg; ai.holdMax = ai.hold; }   // 0.70 불꽃을 쏟아낸 뒤 숨 고르기 (태양은 원래 제자리)
     if (K === 'twist') bpTwister(e); else if (K === 'grid') bpGrid(e); else if (K === 'sun') { bpSun(e, ai); return 0; }
     else if (k === 1) { const n = gkLv(GK_CFG.igRing); gkRing(e.x, e.y, n, sp, dmg, '이그나 화염탄', rand(6.28)); if (e.rage) G.later.push({ t: 0.4, f: () => { if (!e.dead) gkRing(e.x, e.y, n, sp, dmg, '이그나 화염탄', rand(6.28)); } }); }
     else if (k === 2) { const pl = G.p, ta = Math.atan2(pl.y - e.y, pl.x - e.x); G.hz.push({ k: 'line', x: e.x, y: e.y, dx: Math.cos(ta), dy: Math.sin(ta), len: 280, w: 56, warn: GK_CFG.igTell, t: 0, dmg: 0 }); for (let v = 0; v < (e.rage ? 4 : 3); v++) G.later.push({ t: GK_CFG.igTell + v * 0.28, f: () => { if (!e.dead && !G.result) gkFan(e, GK_CFG.igFan, 0.55, sp * 1.15, dmg, '이그나 화염탄'); } }); }
@@ -1522,6 +1525,7 @@ function gkMorden(e, ai, dt) {
     ai.cd = gkLv(GK_CFG.moEvery); ai.n = (ai.n || 0) + 1;
     const K = bpNext(ai, ['raise', 'prison', 'bolt', 'march', 'mark'].concat(e.rage && G.time > (ai.graveCd || 0) && !(ai.graves && ai.graves.length) ? ['grave'] : []));   // 0.33 순번표
     const k = { raise: 1, prison: 2, bolt: 0 }[K], p = G.p;
+    ai.hold = (K === 'bolt' || K === 'mark') ? GK_CFG.holdMoS : GK_CFG.holdMo; ai.holdMax = ai.hold;   // 0.70 망자를 부르는 의식(소환류 1.5초)·화살 0.6초
     if (K === 'march') bpMarch(e); else if (K === 'mark') bpMark(); else if (K === 'grave') bpGraves(e, ai);
     else if (k === 1) { const n = gkLv(GK_CFG.moRaise); for (let i = 0; i < n && aliveCount() < CFG.spawn.max; i++) { const a = rand(6.28), R = rand(60, 110); const m = makeEnemy(i % 3 ? 'skel' : 'slime', e.x + Math.cos(a) * R, e.y + Math.sin(a) * R); m.color = '#a8b8a0'; } toast('망자 소환', '#a8c8a8'); fx({ kind: 'ring', x: e.x, y: e.y, r0: 20, r1: 120, dur: 0.5, color: '#a8c8a8' }); }
     else if (k === 2) {
@@ -1554,6 +1558,7 @@ function gkSeren(e, ai, dt, d) {
   return 1;
 }
 function gkSplit(e) {
+  if (e.ai) { e.ai.hold = GK_CFG.holdSe; e.ai.holdMax = e.ai.hold; }   // 0.70 거울에서 빠져나온 본체가 자세를 잡음 (본체 단서)
   const p = G.p, n = gkLv(GK_CFG.seClones), a0 = rand(6.28), slot = Math.floor(rand(n + 1));
   for (const o of G.enemies) if (o.clone && !o.dead) { o.dead = true; fx({ kind: 'pop', x: o.x, y: o.y, r: o.r, color: o.color, dur: 0.25 }); }
   for (let i = 0; i <= n; i++) {
@@ -1666,6 +1671,7 @@ function drawBossTop(c, inView) {
     if (e.dead || !e.gk || !inView(e.x, e.y, e.r)) continue;
     drawSprite(c, 'crown', 0, e.x, e.y - e.r - 1 + (f2(2) ? -1 : 0));             // 0.30 도트 관 (수문장 표식), 격노는 도트 외곽선(rage)으로 표시
     drawBpTop(c, e);                                                              // 0.33 기절 별·반사막·교환 예고
+    if (!e.clone && e.ai && e.ai.hold > 0 && e.gk !== 'demon') { const k = e.ai.hold / (e.ai.holdMax || 1); c.strokeStyle = `rgba(255,255,255,${0.35 + 0.5 * k})`; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.arc(e.x, e.y, e.r + 5, -1.571, -1.571 + 6.283 * k); c.stroke(); c.setLineDash([]); }   // 0.70 굳는 틈 표시: 남은 시간만큼 흰 원호
     if (e.gk === 'seren' && !e.clone && (G.time % 1.3) < 0.2) { c.strokeStyle = 'rgba(255,255,255,0.95)'; c.lineWidth = 3; c.beginPath(); c.arc(e.x, e.y, e.r + 8, 0, 7); c.stroke(); }   // 본체 미광
   }
   drawEnemyShots(c, inView);
