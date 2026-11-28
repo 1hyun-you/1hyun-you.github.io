@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="회귀의 들판">
-<title>[미리보기 0.75] 회귀의 들판</title>
+<title>[미리보기 0.76] 회귀의 들판</title>
 <meta name="theme-color" content="#16141e">
 <style>
 @font-face{font-family:Galmuri11;src:url(fonts/Galmuri11.woff2) format('woff2');font-weight:400;font-display:swap}
@@ -241,7 +241,7 @@ button.row.pick.on{border-color:var(--accent);background:#2e2858}
    초기값 출처: 초안 0.2l, 본 제작 시험 기록으로 재조정 (0.2: 경험치 곡선·흡수 범위, 0.3: 페이즈 도입에 따른 출현 증가율·적 강화율 하향)
    ============================================================ */
 const CFG = {
-  VERSION: '0.75',
+  VERSION: '0.76',
   DEV: true,
   SAVE_KEY: 'hoegwi_main_v1',
   dprMax: 2,
@@ -17898,6 +17898,93 @@ drawWeapons = function (c) {
   c.restore();
 };
 /* 시험 기록: G.stats.h60.chief = [[종류, 등장 시각, 처치 시간(-1 = 퇴각), 패턴 횟수], ...] */
+/* ============================================================
+   0.76 인물 도트 게임 적용 (회차 106) — 기준: docs/DOT_STYLE.md 5~7장
+   • GPT 도트(assets/dot-src/<인물>/gpt_dot) → python3 dev/dot/pack_heroes.py → assets/dot/heroes → dev/pack-dot-heroes.cjs (DOT_HERO_DATA)
+   • 인물 선택 전 = 흰 형체(blank), 선택 후 = 그 인물, 드루이드 = 늑대·곰(깊어지는 야성 3단계 = 80칸 그림)
+   • 동작: 서 있기(2장)·걷기(4장)·공격(옆 3장, 실제 발사 순간 기준 0.27초)·쓰러짐(아래 4장), 방향 = 아래·위·옆(왼쪽은 뒤집기)
+   • 크기: 1칸 = 화면 1 CSS 픽셀(기기 픽셀 dpr개, 정수 배율), 발바닥 줄 = 60번 줄 → 발 위치(p.y + r × 1.1)
+   • 설정 '캐릭터 그림'(새 도트·옛 그림)으로 비교 가능, 기본 새 도트 — 그림체는 재검토 중(회차 106 사용자 결정, GPT 아스트라와 기준 회의)
+   ============================================================ */
+const DOT76 = (() => {
+  const S = {};
+  if (typeof Image !== 'undefined' && typeof DOT_HERO_DATA !== 'undefined')
+    for (const [j, d] of Object.entries(DOT_HERO_DATA)) { const img = new Image(); S[j] = { img, map: d.map, ok: false, white: null }; img.onload = () => { S[j].ok = true; }; img.src = d.src; }
+  const on = () => typeof SETTINGS === 'undefined' || SETTINGS.dot76 !== 'off';
+  function whiteOf(s) {                                          // 피격 번쩍임용 흰 실루엣 (한 번만 만듦)
+    if (s.white) return s.white;
+    const cv = document.createElement('canvas'); cv.width = s.img.width; cv.height = s.img.height;
+    const c = cv.getContext('2d'); c.drawImage(s.img, 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height);
+    return (s.white = cv);
+  }
+  function who() {
+    const p = G.p, j = p.job && S[p.job] ? p.job : p.job ? null : 'blank';
+    if (!j) return null;
+    let pre = '';
+    if (j === 'druid' && typeof Dg === 'function') { const lv = typeof wildLv68 === 'function' ? wildLv68() : 1; pre = Dg().form + (lv >= 3 ? '3' : '') + '_'; }
+    return { j, pre };
+  }
+  function pick(s, pre, act, dir) {                              // 없는 키는 가까운 것으로 대체 (위 → 아래, 옆 → 아래)
+    for (const k of [pre + act + '_' + dir, pre + act + '_down', pre + 'idle_' + dir, pre + 'idle_down']) if (s.map[k]) return k;
+    return null;
+  }
+  function frame(c, s, k, i, x, by, flip, white) {
+    const [y0, w, h, n] = s.map[k], tw = Math.max(1, Math.round(VIEW.dpr)) / (VIEW.zoom * VIEW.dpr), f = ((i % n) + n) % n;
+    const foot = h - 4;                                          // 발바닥 줄: 맨 아래에서 3칸 위 (64칸 = 60번 줄, 80칸 = 76번 줄)
+    c.save(); c.imageSmoothingEnabled = false;
+    c.translate(Math.round(x / tw) * tw, Math.round(by / tw) * tw); if (flip) c.scale(-1, 1);
+    c.drawImage(white ? whiteOf(s) : s.img, f * w, y0, w, h, -w / 2 * tw, -(foot + 1) * tw, w * tw, h * tw);
+    c.restore();
+  }
+  // 현재 상태 → 그림 키·장 번호·뒤집기
+  function state() {
+    const W = who(); if (!W) return null; const s = S[W.j]; if (!s || !s.ok) return null;
+    const p = G.p, fx = p.face ? p.face.x : 0, fy = p.face ? p.face.y : 1;
+    let dir = Math.abs(fy) > Math.abs(fx) * 1.2 ? (fy < 0 ? 'up' : 'down') : 'side', flip = dir === 'side' && fx < 0;
+    const A = typeof MOTION !== 'undefined' && MOTION.owner === G ? MOTION.attack : null, at = A ? (G.time - A.at) / 0.27 : 9;
+    if (at >= 0 && at < 1 && s.map[W.pre + 'attack_side']) return { s, k: W.pre + 'attack_side', i: Math.min(2, Math.floor(at * 3)), flip: Math.cos(A.a) < 0 };
+    const mv = p.moving && !(p.frz > 0);
+    const k = pick(s, W.pre, mv ? 'walk' : 'idle', dir);
+    return k && { s, k, i: Math.floor(G.time * (mv ? 8 : 2)), flip };
+  }
+  return { S, on, state, frame, pick, who, whiteOf };
+})();
+
+/* 그리기 교체: 도트가 준비됐고 설정이 켜져 있으면 새 도트, 아니면 옛 그림 (motion.js drawHeroReact) */
+const _drawHeroReact76 = drawHeroReact;
+drawHeroReact = function (c, fr, flip, tint) {
+  if (!DOT76.on()) return _drawHeroReact76.apply(this, arguments);
+  const st = DOT76.state(); if (!st) return _drawHeroReact76.apply(this, arguments);
+  const p = G.p, H = typeof H60 === 'function' ? H60() : null;
+  DOT76.frame(c, st.s, st.k, st.i, p.x, p.y + p.r * 1.1, st.flip, p.flash > 0.12);
+  // 머리 위 체력·궁극기 막대를 새 그림 키에 맞춰 올림 (그림 뒤에 그려지는 막대만, drawPlayer76이 되돌림)
+  const tw = Math.max(1, Math.round(VIEW.dpr)) / (VIEW.zoom * VIEW.dpr), top = p.y + p.r * 1.1 - (st.s.map[st.k][2] - 4) * tw;
+  DOT76.dy = Math.min(0, top - 2 - (p.y - p.r - 12));
+  if (DOT76.dy && !c._fr76) { const fr = c.fillRect; c._fr76 = fr; c.fillRect = function (x, y, w, h) { return fr.call(this, x, y + DOT76.dy, w, h); }; }
+};
+const _uiBar76 = uiBar;
+uiBar = function (c, x, y) { const dy = DOT76.dy; if (!dy) return _uiBar76.apply(this, arguments); const a = Array.from(arguments); a[2] = y + dy; DOT76.dy = 0; try { return _uiBar76.apply(this, a); } finally { DOT76.dy = dy; } };   // 안쪽 fillRect는 이미 옮긴 y라 다시 옮기지 않음
+/* 쓰러짐: v56 '넘어지는 회전' 대신 쓰러짐 4장 (0.15초 간격) */
+const _drawPlayer76 = drawPlayer;
+drawPlayer = function (c) {
+  const C = typeof cuOn56 === 'function' ? cuOn56() : null;
+  if (C && C.kind === 'dead' && DOT76.on()) {
+    const W = DOT76.who(), s = W && DOT76.S[W.j];
+    const k = s && s.ok && (s.map[W.pre + 'death_down'] ? W.pre + 'death_down' : s.map['human_death_down'] ? 'human_death_down' : null);
+    if (k) { const p = G.p; fieldContactShadow(c, p.x, p.y + p.r * 1.1, p.r); DOT76.frame(c, s, k, Math.min(s.map[k][3] - 1, Math.floor(C.t / 0.15)), p.x, p.y + p.r * 1.1, false, false); return; }
+  }
+  try { return _drawPlayer76.apply(this, arguments); }
+  finally { DOT76.dy = 0; if (c._fr76) { c.fillRect = c._fr76; delete c._fr76; } }
+};
+/* 설정 '캐릭터 그림' — 설정 화면 '이펙트 강도' 아래 한 줄 */
+const _showSettings76 = showSettings;
+showSettings = function (back) {
+  _showSettings76.apply(this, arguments);
+  const fx = document.getElementById('s_fx72'); if (!fx) return;
+  const v = SETTINGS.dot76 === 'off' ? 'off' : 'on';
+  fx.closest('.row').insertAdjacentHTML('afterend', `<div class="row"><div class="rt"><b>캐릭터 그림</b><span>${v === 'on' ? '새 도트 (GPT 64칸, 그림체 검토 중)' : '옛 그림'}</span></div><button class="tg" id="s_dot76">${v === 'on' ? '새 도트' : '옛 그림'}</button></div>`);
+  on('s_dot76', () => { SETTINGS.dot76 = v === 'on' ? 'off' : 'on'; saveSettings(); keepScroll(() => showSettings(back)); });
+};
 /* ============================================================
    화면 겹침 UI — 시작·일시정지·결과 화면, 대사창 틀 (0.4)
    ============================================================ */
