@@ -13418,7 +13418,7 @@ const HERO60 = {
     rule: '무기 칸 3개, 치명타가 나면 그림자가 나타나 거든다', ult: ['그림자 잠행', '2초 동안 맞지 않고 빨라짐, 스친 적을 끝에 확정 치명타'],
     aw: { A: { nm: '각성 A', ult: '그림자 분신', ds: '그림자 연격이 최대 3번까지 이어짐' }, B: { nm: '각성 B', ult: '일섬', ds: '그림자가 그은 자리에 늦게 터지는 상처' } } },
   archer: { name: '궁수', sub: '멈춰 서서 겨누는 사냥꾼', ic: '궁', wpn: 'arrow', slots: 5, art: 'archer', col: '#9BD94A', c1: '#9BD94A', c2: '#7A5530', c3: '#F2F7E6',
-    rule: '멈춰 있을 때만 쏘고, 서 있을수록 빨라짐', ult: ['사냥 개시', '하늘로 쏜 화살이 쏟아지고, 5초 동안 이동 중에도 사격'],
+    rule: '움직이면 느리게 쏘고, 서 있을수록 빨라짐', ult: ['사냥 개시', '하늘로 쏜 화살이 쏟아지고, 5초 동안 이동 중에도 제 속도로 사격'],
     aw: { A: { nm: '매의 눈', ult: '매의 시선', ds: '서 있는 시간에 따라 정지 공속이 더 오름' }, B: { nm: '치고 빠지기', ult: '화살 폭풍', ds: '움직이다 멈춘 직후 첫 발이 부채꼴 3발' } } },
   engineer: { name: '엔지니어', sub: '공장형 포탑 디펜스', ic: '엔', wpn: 'turret', slots: 5, art: 'engineer', col: '#B8652F', c1: '#B8652F', c2: '#5E6670', c3: '#4FA8FF',
     rule: '기계는 사라지지 않고 체력을 가지며, 가까운 적은 기계를 먼저 노림', ult: ['긴급 증설', '포탑 3대 낙하 설치, 모든 기계 수리'],
@@ -15016,8 +15016,8 @@ function drawR60(c) {
 }
 /* ============================================================
    0.63 궁수 구현 (회차 94, 분할 구현 4차) — 기준: docs/characters/archer.md
-   • 고유 규칙(제약형 + 연성형 + 자신형): "멈춰 있을 때만 쏘고, 서 있을수록 빨라짐"
-     - 멈춤 사격: 이동 중 전용·연성 무기 발동 없음 (매 횃대의 이미 앉은 매는 움직여도 싸움)
+   • 고유 규칙(제약형 + 연성형 + 자신형): "움직이면 느리게 쏘고, 서 있을수록 빨라짐" (0.69 회차 102 사용자 결정)
+     - 이동 사격: 이동 중 전용·연성 무기 간격 3배, 멈추는 순간 서 있는 간격으로 줄어듦 / 매 횃대·미늘 줄화살은 서 있을 때만(가안) (이미 앉은 매는 움직여도 싸움)
      - 정지 중 공속 +180% (전용·연성만, 0.69 +80% → +180%), 0.69 버티기 사격: 서서 맞힌 공격은 반경 90 안 적을 밀어냄, 정지 중 경험치 흡수 범위 +60% (멈춤 인물 경험치 보조 수단)
    • 전용 무기 장궁: 발현 A 연사 → 무기 각성 A 속사 연발 / 발현 B 꿰뚫기 → 무기 각성 B 거대 화살
    • 궁극기: 기본 사냥 개시 / 인물 각성 A 매의 눈 + 매의 시선 / 인물 각성 B 치고 빠지기 + 화살 폭풍
@@ -15029,6 +15029,7 @@ const A63C = {
   still: { spd: 1.8, xp: 0.6, moveMin: 0.2 },                                       // 정지 공속 +180% (0.69 +80% → +180%), 흡수 범위 +60%, '움직였다' 판정 최소 이동 0.2초
   eye: { t0: 1, t1: 3, max: 2.8 },                                                  // 인물 각성 A 매의 눈: 1초 +180% → 3초 +280% (0.69 정지 공속 상향에 맞춰 +150% → +280%)
   hit: { n: 3, fan: 0.25, k: 1.5 },                                                 // 인물 각성 B 치고 빠지기: 멈춘 직후 첫 발동 부채꼴 3발 + 150%
+  move: { k: 3 },                                                                    // 0.69 이동 사격(회차 102 사용자 결정): 움직이는 동안 전용·연성 무기 간격 3배
   guard: { R: 90, kb: 140, once: 0.4 },                                            // 0.69 버티기 사격: 서서 쏠 때 반경 90(0.6초) 안까지 붙은 적은 맞으면 밀려남 (같은 적 0.4초에 1번)
   bow: { sp: 540, r: 6 },
   rapidA: { n: 2, gap: 0.1 },                                                       // 발현 A 연사: 한 번에 2발·0.1초 간격
@@ -15053,7 +15054,7 @@ const ACOL = () => HERO60.archer;
 const ak63 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const ac63 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
 const own63 = w => !!(w && (w.base || w.fu));                                       // 인물 규칙 대상 (전용·연성)
-const canShoot63 = () => !G.p.moving || Ag().hunt > 0;                              // 멈춤 사격 (사냥 개시 5초 동안은 이동 중에도)
+const canShoot63 = () => !G.p.moving || Ag().hunt > 0;                              // 제 속도 사격 가능 여부 (서 있음, 사냥 개시 5초 동안은 이동 중에도) — 아니면 이동 사격(간격 3배)
 
 /* ---------- 정지 공속 (전용·연성) ---------- */
 function stillBonus63() {
@@ -15072,10 +15073,12 @@ function takeHB63(w) {
 }
 let HBK63 = 1;                                                                       // 현재 발동의 치고 빠지기 배율 (연성 피해에 곱함)
 
-/* 발동 감싸기: 이동 중이면 발동하지 않고 대기 (멈추는 순간 바로 발동), 치고 빠지기 판정 */
-function af63(fn, keepMove) {
+/* 발동 감싸기: 이동 중이면 간격 3배로 발동(서 있을 때만 무기는 대기), 치고 빠지기 판정은 서 있을 때만 */
+function af63(fn, keepMove, stillOnly) {
   return function (w, S) {
-    if (!canShoot63() && !keepMove) { if (w.id === 'lamp') w.lk63 = null; S60().held = (S60().held || 0) + 1; return 0.05; }
+    const mv = !canShoot63() && !keepMove;
+    if (mv && stillOnly) { if (w.id === 'lamp') w.lk63 = null; S60().held = (S60().held || 0) + 1; return 0.05; }   // 매 횃대·미늘 줄화살은 서 있을 때만 (자리를 잡는 무기)                                            // 0.69 이동 사격: 움직이는 동안에도 발동, 간격 3배 (치고 빠지기 강화는 멈춘 뒤에만)
+    if (mv) { const r = fn(w, S, false); if (r !== false) S60().mvShot = (S60().mvShot || 0) + 1; return typeof r === 'number' ? r * A63C.move.k : r; }
     const hb = takeHB63(w); HBK63 = hb ? A63C.hit.k : 1; w.hbNow = hb;
     try { const r = fn(w, S, hb); if (r === false && hb) w.hb63 = true; return r; } finally { HBK63 = 1; w.hbNow = false; }
   };
@@ -15140,16 +15143,20 @@ const a0Of63 = t => ang63(G.p.x, G.p.y, t);
 function volleyTick63(dt) {
   const A = Ag(), V = A.volley; if (!V) return;
   V.t -= dt; if (V.t <= 0 || !G.p.weapons.includes(V.w)) { A.volley = null; return; }
-  if (!canShoot63()) return;                                                         // 움직이면 쉬었다가 다시 서면 이어서
-  V.gap -= dt; if (V.gap > 0) return; V.gap = 1 / A63C.volley.rate;
+  V.gap -= canShoot63() ? dt : dt / A63C.move.k;                                    // 0.69 이동 중에는 3배 느리게
+  if (V.gap > 0) return; V.gap = 1 / A63C.volley.rate;
   const w = V.w, S = wStats(w), range = WEAPONS.arrow.base.range * S.area, t = nearestEnemy(G.p.x, G.p.y, range); if (!t) return;
   withCR60(roll60(w), () => arrow63({ x: G.p.x, y: G.p.y, a: ang63(G.p.x, G.p.y, t) + rand(-0.04, 0.04), sp: A63C.bow.sp * 1.15, L: range, dmg: S.dmg * A63C.volley.k * V.k, src: 'arrow', pierce: S.pierce, silver: 1, kind: 'quick' }));   // 연달아 쏘는 1발 = 공격 1번
 }
 
 /* ---------- 궁극기 ---------- */
 const ref63 = () => { const b = baseW(); return b ? wStats(b).dmg : WEAPONS.arrow.base.dmg; };
+function capStop63() {                                                              // 0.69 멈춤(또는 사냥 개시) 순간: 이동 사격의 3배 간격을 서 있는 간격으로 (치고 빠지기 강화 대기 무기는 즉시, 속사 연발 중인 무기는 연발 끝까지)
+  const A = Ag();
+  for (const w of G.p.weapons) if (own63(w) && w.t > 0) w.t = Math.min(w.t, w.hb63 ? 0.05 : Math.max(wStats(w).cd, A.volley && A.volley.w === w ? A.volley.t : 0));
+}
 function ultHunt63(p) {                                                             // 사냥 개시: 하늘로 쏜 화살이 화면 절반 범위에 쏟아짐 → 5초 이동 중에도 사격
-  const C = A63C.hunt, A = Ag(); A.hunt = C.dur; S60().hunt = (S60().hunt || 0) + 1;
+  const C = A63C.hunt, A = Ag(); A.hunt = C.dur; S60().hunt = (S60().hunt || 0) + 1; capStop63();
   A.lines.push({ x: p.x, y: p.y, up: 1, t: 0, dur: C.up });
   uLater(C.up, () => { const R = VIEW.w * C.R, d = ref63() * C.k, x = G.p.x, y = G.p.y, ts = [];
     gridQuery(x, y, R, e => { if (!e.dead) ts.push(e); });
@@ -15181,7 +15188,7 @@ function stormTick63(dt) {
   if (A.storm <= 0) { A.stormBuf = C.buff; toast('화살 폭풍 · 4초 첫 발동 강화', ACOL().c1); }
 }
 
-/* ---------- 연성 7종 (짝 무기 + 장궁) · 7종 공통: 멈춰 있을 때만 발동 + 정지 공속 +80% ---------- */
+/* ---------- 연성 7종 (짝 무기 + 장궁) · 7종 공통: 이동 중 간격 3배(매 횃대·미늘 줄화살은 서 있을 때만) + 정지 공속 ---------- */
 // 초승달촉 화살: 넓은 초승달 칼날을 촉으로 단 화살, 맞은 적에 큰 칼자국 + 칼날 폭 안 적 함께 베임 (첫 적에서 멈춤, 최대 3마리)
 function fMoon63(w, S) {
   const C = A63C.moon, p = G.p, tg = nearestEnemy(p.x, p.y, C.range * S.area); if (!tg) return false;
@@ -15285,9 +15292,9 @@ function fVine63(w, S) {
 FUSE60.archer = {
   cleave: { nm: '초승달촉 화살', ds: '넓은 초승달 칼날 촉 화살, 맞은 적에 큰 칼자국 + 칼날 폭 안 적 함께 베임 (최대 3마리)', fire: af63(fMoon63) },
   dagger: { nm: '사냥칼 던지기', ds: '가까이 온 적 2마리에게 사냥칼을 던져 그음', fire: af63(fKnife63) },
-  turret: { nm: '매 횃대', ds: '멈춰 서 있으면 곁에 횃대가 서고 매가 앉음, 매가 가까이 온 적을 할퀴고 돌아옴 (최대 3개, 움직여도 매는 싸움)', fire: af63(fPerch63) },
+  turret: { nm: '매 횃대', ds: '멈춰 서 있으면 곁에 횃대가 서고 매가 앉음, 매가 가까이 온 적을 할퀴고 돌아옴 (최대 3개, 움직여도 매는 싸움)', fire: af63(fPerch63, false, true) },
   fireball: { nm: '불화살', ds: '적이 가장 많이 몰린 곳 한가운데에 불화살을 꽂아 터뜨림', fire: af63(fFire63) },
-  lamp: { nm: '미늘 줄화살', ds: '줄 달린 미늘 화살을 박아 계속 파고듦, 쓰러지면 줄을 되감아 다음 적에게 다시 박음 (움직이면 줄이 풀림)', fire: af63(fBarb63) },
+  lamp: { nm: '미늘 줄화살', ds: '줄 달린 미늘 화살을 박아 계속 파고듦, 쓰러지면 줄을 되감아 다음 적에게 다시 박음 (움직이면 줄이 풀림)', fire: af63(fBarb63, false, true) },
   bell: { nm: '우는살', ds: '가장 먼 적 쪽으로 날아가며 지나는 길의 적을 움찔하게 하고, 꽂힌 자리에서 큰 소리 고리', fire: af63(fWhistle63) },
   thorn: { nm: '가시줄 화살', ds: '꽂히면 덩굴이 풀려 그 적과 곁의 최대 2마리를 휘감아 묶음', fire: af63(fVine63) },
 };
@@ -15309,7 +15316,9 @@ Object.assign(HERO60.archer, {
   tick(dt) {
     const A = Ag(), p = G.p;
     if (p.moving) { A.mov += dt; A.still = 0; if (!(A.hunt > 0)) for (const w of p.weapons) if (w.lk63) w.lk63 = null; }   // 움직이면 미늘 줄이 풀림
-    else { if (A.mov >= A63C.still.moveMin && p.job2 === 'B') for (const w of p.weapons) if (own63(w)) w.hb63 = true; A.mov = 0; A.still += dt; }
+    else { if (A.mov >= A63C.still.moveMin && p.job2 === 'B') for (const w of p.weapons) if (own63(w)) w.hb63 = true;
+      if (A.mov > 0) capStop63();   // 0.69 멈추는 순간: 이동 중 3배 간격을 서 있는 간격으로 줄임 (멈추면 바로 빠르게)
+      A.mov = 0; A.still += dt; }
     if (A.hunt > 0) A.hunt -= dt;
     if (A.gaze > 0) A.gaze -= dt;
     volleyTick63(dt); stormTick63(dt); arTick63(dt); perchTick63(dt);
@@ -15337,7 +15346,7 @@ updateEnemies = function (dt) {
 };
 
 /* ---------- 자동 플레이: 궁수 전용 '멈춰 쏘기' (시험·실기기 자동 플레이 공용) ----------
-   궁수는 서 있어야 공격하므로 기본은 '선다', 움직이는 것은 이유가 있을 때만:
+   궁수는 서 있어야 제 속도로 공격하므로 기본은 '선다', 움직이는 것은 이유가 있을 때만:
    ① 공격 예고 안
    ② 가장 빠른 적이 닿기까지 0.25초 미만(체력 40% 미만 0.45초) → 트인 쪽으로 물러섬, 0.6초 여유가 생기거나 0.5초 지나면 다시 섬 (봉인석 구역 안 제외)
    ③ 목표 지점(봉인석·상자·야영지·수레·돌발 사건·샘) ④ 적 탄환이 0.5초 안에 닿음 → 비킴
@@ -15894,6 +15903,7 @@ const E65C = {
   cool: { broke: 10, removed: 5 },                                                   // 재설치 대기: 부서짐 10초·직접 철거 5초
   tap: { move: 10, time: 0.25, hit: 22, keep: 2 },                                   // 탭: 이동 10px 미만·0.25초 안에 뗌, 판정 지름 44px, X 표시 2초 유지
   area: { R: 250, edge: 100, out: 8 },                                               // 영역 반경 250(1.7초), 경계 100 안에서 진해짐, 영역 밖 8초 → 분해 (0.69 200·5초 → 250·8초: 피하다 영역을 벗어나 기계 전부 분해되는 일 잦음)
+  cover: { R: 60, bossK: 0 },                                                       // bossK: 포탑의 수문장·마왕 1.3배 조준 — 확정 문서(DESIGN 4장 우선 조준 = 한 방향 강한 공격만) 범위 밖이라 승인 전 꺼 둠(0), 켜면 1.3                                                                  // 0.69 엄호 사격(회차 102 사용자 결정): 캐릭터 반경 60(0.4초) 안 적을 기계가 먼저 노림
   lure: { R: 180, hitCd: 0.6 },                                                      // 기계 반경 150 안·캐릭터보다 기계가 가까운 일반 적 → 기계를 노림 (가안), 붙어서 0.6초마다 적 피해만큼 (가안)
   xp: { still: 0.6 },                                                                // 멈춤·자리 인물 경험치 보조 (가안): 서 있는 동안 흡수 범위 +60% (궁수와 같음)
   turret: { fire: 0.65, range: 240, r: 10, sp: 520 },                                // 기본 포탑: 0.65초마다·사거리 240·피해 11 (0.69 0.8초 → 0.65초)
@@ -15921,6 +15931,22 @@ const isE65 = () => G.p && G.p.job === 'engineer' && HERO60.engineer.impl;
 const ECOL = () => HERO60.engineer;
 const ek65 = (w, S) => fk60r(w, S);                              // 짝 무기 강화·보조 효과 배율
 const ec65 = (w, S) => S.cd / WEAPONS[w.id].base.cd;
+/* 0.69 엄호 사격: 기계 사거리 안에 캐릭터에게 바짝 붙은 적이 있으면 그 적(캐릭터에 가장 가까운)부터 → (포탑만) 수문장·마왕이 사거리 1.3배 안이면 그쪽 → 기계에서 가장 가까운 적 */
+function nearCover65(x, y, range) {                                                  // 캐릭터 반경 60 안 + 기계 사거리 안 적 중 캐릭터에 가장 가까운 적
+  const p = G.p, R = E65C.cover.R; let best = null, bd = Infinity;
+  gridQuery(p.x, p.y, R + 40, e => {
+    if (e.dead) return; const dp = Math.hypot(e.x - p.x, e.y - p.y) - e.r; if (dp > R) return;
+    if ((e.x - x) ** 2 + (e.y - y) ** 2 > (range + e.r) ** 2) return; if (dp < bd) { bd = dp; best = e; }
+  });
+  return best;
+}
+function cover65(x, y, range, bossOK) {
+  const best = nearCover65(x, y, range);
+  if (best) { S60().cover = (S60().cover || 0) + 1; return best; }
+  if (bossOK && E65C.cover.bossK > 0) for (const e of G.enemies) if (!e.dead && (e.gk || e.boss) && (e.x - x) ** 2 + (e.y - y) ** 2 <= (range * E65C.cover.bossK + e.r) ** 2) { S60().coverBoss = (S60().coverBoss || 0) + 1; return e; }   // 수문장·마왕: 사거리 1.3배 안이면 조준 (DESIGN 4장 우선 조준 규칙, 거리 두는 수문장 대응)
+  return nearestEnemy(x, y, range);
+}
+
 function tFire65(S) { return E65C.turret.fire * (S.cd / WEAPONS.turret.base.cd); }
 const ref65 = () => { const b = baseW(); if (!b) return 10; const S = wStats(b); return S.dmg / Math.max(0.05, tFire65(S)); };   // 무기 기준 = 기본 포탑 1대 초당 피해 (가안, 사령술사 등불 기준과 같은 방식)
 
@@ -16009,12 +16035,12 @@ function bigCluster65(x, y, range, R) {                                         
 }
 function turretAtk65(m, S, now) {
   const C = E65C.turret, w = m.w, br = w.br, aw = w.aw, range = C.range * S.area;
-  const keep = aw === 'A' && m.tg && !m.tg.dead && dist2(m.tg.x, m.tg.y, m.x, m.y) < (range + m.tg.r) ** 2;   // 회전 기관포: 사거리 안에 있는 동안 같은 적을 계속 조준 (가안)
-  const e = keep ? m.tg : nearestEnemy(m.x, m.y, range); if (!e) { m.cd = 0.25; m.gat = Math.max(0, m.gat - 1); return; }
+  const cv = nearCover65(m.x, m.y, range), keep = aw === 'A' && m.tg && !m.tg.dead && dist2(m.tg.x, m.tg.y, m.x, m.y) < (range + m.tg.r) ** 2 && (!cv || cv === m.tg);   // 0.69 엄호 대상이 생기면 같은 적 조준 해제   // 회전 기관포: 사거리 안에 있는 동안 같은 적을 계속 조준 (가안)
+  const e = keep ? m.tg : cover65(m.x, m.y, range, true); if (!e) { m.cd = 0.25; m.gat = Math.max(0, m.gat - 1); return; }
   if (aw === 'A') { if (m.tg === e) m.gat = Math.min(E65C.gat.cap, m.gat + 1); else if (m.tg) m.gat = Math.max(0, m.gat - E65C.gat.back); }   // 회전 기관포: 같은 적을 계속 쏠수록 빨라짐
   m.tg = e; m.a = Math.atan2(e.y - m.y, e.x - m.x); m.shotN++; m.fireT = now;
   const base = tFire65(S); m.cd = aw === 'A' ? Math.max(E65C.gat.min * (S.cd / WEAPONS.turret.base.cd), base - E65C.gat.step * m.gat * (S.cd / WEAPONS.turret.base.cd)) : base;
-  const v = vol65(m), dm = S.dmg * v * (br === 'B' ? E65C.big.k : 1), col = ECOL().c1;
+  const v = vol65(m), dm = S.dmg * v * (br === 'B' ? E65C.big.k : 1), col = ECOL().c1, L65 = Math.max(range, Math.hypot(e.x - m.x, e.y - m.y) + 10);   // 0.69 수문장·마왕 1.3배 조준 시 탄이 닿게
   withCR60(roll60(w), () => {
     if (aw === 'B' && m.shotN % E65C.mortar.every === 0) {                            // 박격포: 4번째 발사마다 가장 큰 무리에 곡사 포탄
       const t = bigCluster65(m.x, m.y, range, E65C.mortar.look) || e;
@@ -16023,8 +16049,8 @@ function turretAtk65(m, S, now) {
     }
     const n = br === 'A' ? 2 : 1, ox = -Math.sin(m.a) * 4, oy = Math.cos(m.a) * 4;
     for (let i = 0; i < n; i++) { const s = n > 1 ? (i ? 1 : -1) : 0;
-      if (br === 'B') shoot({ kind: 'shell', x: m.x + ox * s, y: m.y - 6 + oy * s, ang: m.a, sp: C.sp, r: 5, dmg: dm, R: E65C.big.R * S.area, life: range / C.sp, color: col, src: 'turret', e65: 1, on44: pr => explode(pr.x, pr.y, pr.R, pr.dmg, 'turret', '#ffcf7a') });
-      else shoot({ kind: 'arrow', x: m.x + ox * s, y: m.y - 6 + oy * s, ang: m.a, sp: C.sp, r: 4, dmg: dm, pierce: 0, life: range / C.sp, color: col, src: 'turret', e65: 1 });
+      if (br === 'B') shoot({ kind: 'shell', x: m.x + ox * s, y: m.y - 6 + oy * s, ang: m.a, sp: C.sp, r: 5, dmg: dm, R: E65C.big.R * S.area, life: L65 / C.sp, color: col, src: 'turret', e65: 1, on44: pr => explode(pr.x, pr.y, pr.R, pr.dmg, 'turret', '#ffcf7a') });
+      else shoot({ kind: 'arrow', x: m.x + ox * s, y: m.y - 6 + oy * s, ang: m.a, sp: C.sp, r: 4, dmg: dm, pierce: 0, life: L65 / C.sp, color: col, src: 'turret', e65: 1 });
     }
   });
   const S6 = S60(); S6.tShot = (S6.tShot || 0) + 1; if (aw === 'A') { S6.gatMax = Math.max(S6.gatMax || 0, m.gat); S6.gatCd = Math.min(S6.gatCd || 9, m.cd / (S.cd / WEAPONS.turret.base.cd)); }
@@ -16032,7 +16058,7 @@ function turretAtk65(m, S, now) {
 /* 연성 기계 7종 */
 const MACT65 = {
   cleave(m, S, now, dt) {                                                             // 대검 기계병: 자기 자리 근처를 걸으며 다가온 적을 벰, 3마리 이상 몰리면 회전 베기
-    const C = E65C.bot, e = nearestEnemy(m.hx, m.hy, C.roam + C.range * S.area);
+    const C = E65C.bot, e = cover65(m.hx, m.hy, C.roam + C.range * S.area);
     let tx = m.hx, ty = m.hy; if (e) { tx = e.x; ty = e.y; }
     const dx = tx - m.x, dy = ty - m.y, d = Math.hypot(dx, dy) || 1, st = e ? Math.max(0, d - e.r - C.range * S.area * 0.6) : d;
     if (st > 1) { const s = Math.min(st, C.sp * dt); let nx = m.x + dx / d * s, ny = m.y + dy / d * s; const hd = Math.hypot(nx - m.hx, ny - m.hy);
@@ -16048,7 +16074,7 @@ const MACT65 = {
   dagger(m, S, now, dt) {                                                             // 칼날 드론: 충전대에서 날아가 적을 긋고 돌아옴, 돌아오는 길의 적도 한 번 더 그음
     const C = E65C.drone;
     if (m.dr) { m.dr.t += dt; return; }
-    if (m.cd > 0) return; const e = nearestEnemy(m.x, m.y, C.range * S.area); if (!e) { m.cd = 0.25; return; }
+    if (m.cd > 0) return; const e = cover65(m.x, m.y, C.range * S.area); if (!e) { m.cd = 0.25; return; }
     m.cd = C.cd * ec65(m.w, S); m.fireT = now;
     const d = Math.sqrt(dist2(m.x, m.y, e.x, e.y)), go = d / C.sp, dm = ek65(m.w, S) * vol65(m), ctx = roll60(m.w);
     m.dr = { e, x: e.x, y: e.y, t: 0, go };
@@ -16070,7 +16096,7 @@ const MACT65 = {
   fireball(m, S, now, dt) {                                                           // 용광로: 쇳물 덩이를 던져 터뜨림, 달궈진 몸통에 붙은 적은 데임
     const C = E65C.furn;
     m.bt = (m.bt || 0) - dt; if (m.bt <= 0) { m.bt = C.tick; const d = C.body * ek65(m.w, S); let n = 0; gridQuery(m.x, m.y, C.bodyR, o => { damageEnemy(o, d, { src: 'fireball' }); n++; }); if (n) S60().furnBody = (S60().furnBody || 0) + n; }   // 몸통 열기 (치명타 없음)
-    if (m.cd > 0) return; const e = nearestEnemy(m.x, m.y, C.range * S.area); if (!e) { m.cd = 0.25; return; }
+    if (m.cd > 0) return; const e = cover65(m.x, m.y, C.range * S.area); if (!e) { m.cd = 0.25; return; }
     m.cd = C.cd * ec65(m.w, S); m.fireT = now;
     Eg().lobs.push({ x0: m.x, y0: m.y - 10, x: e.x, y: e.y, t: 0, fly: C.fly, R: C.R * S.area, d: C.dmg * ek65(m.w, S) * vol65(m), src: 'fireball', melt: 1, cr: roll60(m.w) });
     S60().furn = (S60().furn || 0) + 1;
@@ -16079,7 +16105,7 @@ const MACT65 = {
     const C = E65C.torch;
     if (m.wait > 0) { m.wait -= dt; return; }
     if (m.tg && (m.tg.dead || dist2(m.tg.x, m.tg.y, m.x, m.y) > (C.range * S.area + m.tg.r) ** 2)) { if (m.tg.dead) m.wait = C.wait; m.tg = null; m.link = 0; if (m.wait > 0) return; }
-    if (!m.tg) { m.tg = nearestEnemy(m.x, m.y, C.range * S.area); m.link = 0; if (!m.tg) return; }
+    if (!m.tg) { m.tg = cover65(m.x, m.y, C.range * S.area); m.link = 0; if (!m.tg) return; }
     m.link += dt * mSpd65(m); m.a = Math.atan2(m.tg.y - m.y, m.tg.x - m.x);
     if (m.cd > 0) return; m.cd = C.tick * ec65(m.w, S); m.fireT = now;
     const k = Math.min(C.max, 1 + C.up * Math.floor(m.link)); withCR60(roll60(m.w), () => damageEnemy(m.tg, C.dmg * ek65(m.w, S) * k * vol65(m), { src: 'lamp' }));
@@ -16098,7 +16124,7 @@ const MACT65 = {
     S60().alarm = (S60().alarm || 0) + 1;
   },
   thorn(m, S, now) {                                                                  // 철조망 발사기: 가시철사 다발로 적과 곁의 적 다리를 휘감아 묶음
-    const C = E65C.wire; if (m.cd > 0) return; const tg = nearestEnemy(m.x, m.y, C.range * S.area); if (!tg) { m.cd = 0.25; return; }
+    const C = E65C.wire; if (m.cd > 0) return; const tg = cover65(m.x, m.y, C.range * S.area); if (!tg) { m.cd = 0.25; return; }
     m.cd = C.cd * ec65(m.w, S); m.a = Math.atan2(tg.y - m.y, tg.x - m.x); m.fireT = now;
     const L = [tg].concat(nearN60(tg.x, tg.y, C.near * S.area, C.more + 1).filter(o => o !== tg).slice(0, C.more)), d = C.dmg * ek65(m.w, S) * vol65(m), F = F60();
     withCR60(roll60(m.w), () => { for (const e of L) { damageEnemy(e, d, { src: 'thorn' }); if (e.dead) continue; root60(e, C.root); if (F.vines.length < 40) F.vines.push({ x: e.x, y: e.y, R: e.r, e, t: 0, dur: C.root + 0.15, col: '#9aa0a8', s: rand(7) }); } });
